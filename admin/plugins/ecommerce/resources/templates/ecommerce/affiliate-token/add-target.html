@@ -1,0 +1,149 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="content">
+    <div class="modal fade pt-4rem" id="add-target">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="add-target-modal-title">
+                        [[#{add_new_target}]]
+                    </h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="addTargetForm">
+                        <div class="form-group row">
+                            <label for="addTargetForUsername" class="col-4 col-form-label">
+                                [[#{user}]]
+                            </label>
+                            <div class="col-8">
+                                <label class="col-form-label text-danger d-none" id="addTargetForUsernameErrorLabel" for="addTargetForUsername">
+                                    <i class="far fa-times-circle"></i> <span id="addTargetForUsernameError"></span>
+                                </label>
+                                <input type="text" name="forUsername" id="addTargetForUsername"
+                                       class="form-control" th:placeholder="#{username}"
+                                       onkeydown="ecommerce.onKeyDownToAddTarget();"
+                                       autocomplete="off" inputmode="text">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="addTargetForProductCode" class="col-4 col-form-label">
+                                [[#{product}]]
+                            </label>
+                            <div class="col-8">
+                                <label class="col-form-label text-danger d-none" id="addTargetForProductCodeErrorLabel" for="addTargetForProductCode">
+                                    <i class="far fa-times-circle"></i> <span id="addTargetForProductCodeError"></span>
+                                </label>
+                                <input type="text" name="forProductCode" id="addTargetForProductCode"
+                                       class="form-control" th:placeholder="#{product_code}"
+                                       onkeydown="ecommerce.onKeyDownToAddTarget();"
+                                       autocomplete="off" inputmode="text">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="addTargetForProductCategoryName" class="col-4 col-form-label">
+                                [[#{product_category}]]
+                            </label>
+                            <div class="col-8">
+                                <label class="col-form-label text-danger d-none" id="addTargetForProductCategoryNameErrorLabel" for="addTargetForProductCategoryName">
+                                    <i class="far fa-times-circle"></i> <span id="addTargetForProductCategoryNameError"></span>
+                                </label>
+                                <input type="text" name="forProductCategoryName" id="addTargetForProductCategoryName"
+                                       class="form-control" th:placeholder="#{product_category_name}"
+                                       onkeydown="ecommerce.onKeyDownToAddTarget();"
+                                       autocomplete="off" inputmode="text">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <div>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">[[#{cancel}]]</button>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="ecommerce.addTarget();">
+                        [[#{add}]]
+                    </button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+</th:block>
+<script th:fragment="scripts">
+// ========== show add target modal =============
+ecommerce.showAddTargetModal = function(
+    productId,
+    remainingAmount
+) {
+    if (productId) {
+        ecommerce.selectedProductId = productId;
+    }
+    $('#addTargetForProductCode').val(remainingAmount);
+    $('#add-target').modal('show');
+}
+
+// ========== add target =============
+ecommerce.onKeyDownToAddTarget = function() {
+    if(event.key === 'Enter') {
+    	ecommerce.addTarget();
+    }
+}
+
+ecommerce.addTarget = function() {
+    var formData = ezyadmin.formDataToObject('addTargetForm');
+    ezyadmin.setActualFormData(formData);
+    $.ajax({
+        type: 'POST',
+        url: '/ecommerce/api/v1/affiliate-tokens/' + ecommerce.selectedAffiliateTokenId +
+             '/targets/save',
+        data: formData,
+        success: function (data) {
+            $('#add-target').modal('hide');
+            if (ecommerce.fetchTargetList) {
+                ecommerce.fetchTargetList();
+            } else {
+                location.reload();
+            }
+        },
+        error: function (e) {
+        	var formView = {
+                addTargetForProductCode: true,
+                addTargetForUsername: true,
+                addTargetForProductCategoryNameName: true
+            };
+            var errors = e.responseJSON || {};
+        	errors.addTargetForProductCode = errors.forProductCode;
+        	errors.addTargetForUsername = errors.forUsername;
+        	errors.addTargetForProductCategoryName = errors.forProductCategoryName;
+            ezyadmin.processUpdateApiErrors(formView, e);
+        }
+    });
+}
+
+ezyadmin.registerUserAutocomplete('addTargetForUsername');
+ecommerce.registerProductAutocomplete('addTargetForProductCode');
+ecommerce.registerCategoryAutocomplete('addTargetForProductCategoryName');
+</script>
+</body>
+</html>

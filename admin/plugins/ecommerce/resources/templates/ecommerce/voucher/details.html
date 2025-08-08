@@ -1,0 +1,164 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~ 
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~ 
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~ 
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<head>
+    <script>
+        var ecommerce = {};
+    </script>
+</head>
+<body>
+<div layout:fragment="content" class="row">
+    <div class="col-md-3 col-4"><label>[[#{shop}]]:</label></div>
+    <div class="col-md-9 col-8">
+        <a th:if="${voucher.shop != null}"
+           th:href="${'/ecommerce/shops/' + voucher.shop.id}">
+            [[${voucher.shop.displayName}]]
+        </a>
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{code}]]:</label></div>
+    <div class="col-md-9 col-8">[[${voucher.code}]]</div>
+    <div class="col-md-3 col-4"><label>[[#{display_name}]]:</label></div>
+    <div class="col-md-9 col-8">[[${voucher.displayName}]]</div>
+    <div class="col-md-3 col-4"><label>[[#{created_by}]]:</label></div>
+    <div class="col-md-9 col-8">
+        <a th:if="${voucher.creatorAdmin != null}"
+           th:href="${'/admins/' + voucher.creatorAdmin.username}">
+            [[${voucher.creatorAdmin.name}]]
+        </a>
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{discount_amount}]]:</label></div>
+    <div class="col-md-9 col-8">[[${voucher.formattedDiscountAmount}]]</div>
+    <div class="col-md-3 col-4"><label>[[#{discount_percent}]]:</label></div>
+    <div class="col-md-9 col-8">[[${voucher.discountPercent}]]</div>
+    <div class="col-md-3 col-4"><label>[[#{max_discount_amount}]]:</label></div>
+    <div class="col-md-9 col-8">[[${voucher.formattedMaxDiscountAmount}]]</div>
+    <div class="col-md-3 col-4"><label>[[#{min_amount_to_discount}]]:</label></div>
+    <div class="col-md-9 col-8">[[${voucher.formattedMinAmountToDiscount}]]</div>
+    <div class="col-md-3 col-4"><label>[[#{quantity}]]:</label></div>
+    <div class="col-md-9 col-8 commas-number-string">[[${voucher.quantity}]]</div>
+    <div class="col-md-3 col-4"><label>[[#{quantity_per_user}]]:</label></div>
+    <div class="col-md-9 col-8 commas-number-string">[[${voucher.quantityPerUser}]]</div>
+    <div class="col-md-3 col-4"><label>[[#{currency}]]:</label></div>
+    <div class="col-md-9 col-8">
+        [[${voucher.forCurrency.isoCode}]]
+        -
+        [[${voucher.forCurrency.displayName}]]
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{type}]]:</label></div>
+    <div class="col-md-9 col-8">
+        [[#{${voucher.voucherType.toString().toLowerCase()}}]]
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{commission_recipient}]]:</label></div>
+    <div class="col-md-9 col-8">
+        <a th:if="${voucher.referenceUser != null}"
+           th:href="${'/users/' + voucher.referenceUser.username}">
+            [[${voucher.referenceUser.name}]]
+        </a>
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{commission_percent}]]:</label></div>
+    <div class="col-md-9 col-8">[[${voucher.commissionPercent}]]</div>
+    <div class="col-md-3 col-4"><label>[[#{commission_amount}]]:</label></div>
+    <div class="col-md-9 col-8">[[${voucher.formattedCommissionAmountIncludeIsoCode}]]</div>
+    <div class="col-md-3 col-4"><label>[[#{status}]]:</label></div>
+    <div class="col-md-9 col-8 status-text" th:attr="status=|${voucher.status}|">
+        [[#{${voucher.status.toString().toLowerCase()}}]]
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{valid_from}]]:</label></div>
+    <div class="col-md-9 col-8 date-time-string">[[${voucher.validFrom}]]</div>
+    <div class="col-md-3 col-4"><label>[[#{expired_at}]]:</label></div>
+    <div class="col-md-9 col-8 date-time-string">[[${voucher.expiredAt}]]</div>
+    <div class="col-md-3 col-4"><label>[[#{created_at}]]:</label></div>
+    <div class="col-md-9 col-8 date-time-string">[[${voucher.createdAt}]]</div>
+    <div class="col-md-3 col-4"><label>[[#{updated_at}]]:</label></div>
+    <div class="col-md-9 col-8 date-time-string">[[${voucher.updatedAt}]]</div>
+    <div class="col-md-3 col-4"></div>
+    <div class="col-md-9 col-8">
+        <button type="button" class="btn btn-danger mb-2"
+                th:attr="onclick=|ecommerce.onDeleteVoucherClick(${voucher.id}, '${voucher.displayName}')|">
+            [[#{delete}]] <i class="fas fa-trash"></i>
+        </button>
+    </div>
+    <div class="col-12">
+        <hr class="mb-4" />
+    </div>
+    <div class="col-12">
+        <div class="d-flex">
+            <h3>[[#{for_targets}]]</h3>
+            <button type="button"
+                    class="btn btn-outline-primary button-next-to-title"
+                    onclick="ecommerce.showAddTargetModal();">
+                [[#{add_new}]] <i class="fas fa-plus-circle"></i>
+            </button>
+        </div>
+    </div>
+    <th:block th:replace="~{/ecommerce/voucher/target-list :: content}" />
+    <div class="col-12">
+        <hr class="mb-4" />
+    </div>
+    <div class="col-12">
+        <div class="d-flex">
+            <h3>[[#{usage_history}]]</h3>
+        </div>
+    </div>
+    <th:block th:replace="~{/ecommerce/voucher/usage-history-list :: content}" />
+</div>
+<th:block layout:fragment="modals">
+    <th:block th:replace="~{/ecommerce/voucher/add-target :: content}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='delete-voucher-modal', title=confirm, confirmButton=delete, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='delete-target-modal', title=confirm, confirmButton=delete, closeButton=close)}" />
+</th:block>
+<script layout:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ecommerce.selectedVoucherId = /*[[${voucher.id}]]*/ '';
+ecommerce.selectedVoucherDisplayName = /*[[${voucher.displayName}]]*/ '';
+/*]]>*/
+
+ezyadmin.onEditButtonClick = function() {
+    window.location = '/ecommerce/vouchers/' + ecommerce.selectedVoucherId +
+        '/edit' + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+}
+
+ecommerce.onVoucherTargetDeleted = function() {
+    $('#target-row-' + ecommerce.selectedVoucherTargetId).remove();
+}
+</script>
+<th:block layout:fragment="post-scripts">
+<script th:replace="~{scripts/suggestion :: input}" />
+<script th:replace="~{scripts/suggestion :: user}" />
+<script th:replace="~{ecommerce/scripts/suggestion :: product}" />
+<script th:replace="~{ecommerce/scripts/suggestion :: category}" />
+<script th:replace="~{ecommerce/voucher/add-target :: scripts}" />
+<script th:replace="~{ecommerce/voucher/target-list :: scripts}" />
+<script th:replace="~{ecommerce/voucher/usage-history-list :: scripts}" />
+<script th:replace="~{ecommerce/voucher/scripts :: delete}" />
+<script>
+ezyadmin.onPromptConfirmed = function(modalId) {
+    if (modalId == 'delete-target-modal') {
+        ecommerce.deleteVoucherTarget();
+    } else if (modalId == 'delete-voucher-modal') {
+        ecommerce.deleteVoucher();
+    }
+}
+</script>
+</th:block>
+</body>
+</html>

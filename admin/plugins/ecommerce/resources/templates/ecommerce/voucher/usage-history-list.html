@@ -1,0 +1,196 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<body>
+<th:block th:fragment="content">
+    <div class="col-lg-9 col-md-7 col-0"></div>
+    <div class="col-lg-3 col-md-5 col-12 page-search">
+        <label for="usageHistorySearchKeyword" class="text-nowrap">[[#{search}]]: </label>
+        <input type="search" class="form-control" th:placeholder="#{keyword}" id="usageHistorySearchKeyword"
+               onkeydown="ecommerce.onKeydownToSearchUsageHistory();">
+    </div>
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-body table-responsive p-0">
+                <table class="table table-bordered table-hover text-nowrap align-middle-cells">
+                    <thead>
+                    <tr>
+                        <th>[[#{id}]]</th>
+                        <th>[[#{user}]]</th>
+                        <th>[[#{order_title}]]</th>
+                        <th class="text-center">[[#{quantity}]]</th>
+                        <th>[[#{discount_amount}]]</th>
+                        <th class="text-center">[[#{status}]]</th>
+                        <th class="text-center">[[#{created_at}]]</th>
+                    </tr>
+                    </thead>
+                    <tbody id="usageHistoryListBody">
+                    </tbody>
+                </table>
+            </div>
+            <!-- /.card-body -->
+            <div class="card-footer clearfix">
+                <span><span id="usageHistoryCountText">0</span>
+                    [[${#strings.toLowerCase(#messages.msg('of'))}]]
+                    <span id="totalUsageHistoryText">0</span>
+                    [[${#strings.toLowerCase(#messages.msg('items'))}]]
+                </span>
+                <ul class="pagination pagination-sm m-0 float-right">
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="usageHistoryFirstPageButton">
+                            <i class="fas fa-arrow-circle-left pl-1 pr-1"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="usageHistoryPrevPageButton">[[#{prev}]]</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="usageHistoryNextPageButton">[[#{next}]]</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="usageHistoryLastPageButton">
+                            <i class="fas fa-arrow-circle-right pl-1 pr-1"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.card-footer -->
+        </div>
+    </div>
+</th:block>
+<script th:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.all = /*[[#{all}]]*/ '';
+ezyadmin.messages.cancelled = /*[[#{cancelled}]]*/ '';
+ezyadmin.messages.used = /*[[#{used}]]*/ '';
+/*]]>*/
+// ========== usageHistory search =============
+ecommerce.onKeydownToSearchUsageHistory = function() {
+    if(event.key === 'Enter') {
+        ecommerce.doSearchUsageHistory();
+    }
+}
+ecommerce.doSearchUsageHistory = function() {
+    ecommerce.usageHistorySearchKeyword = $('#usageHistorySearchKeyword').val();
+    ecommerce.fetchUsageHistoryList();
+}
+
+// ========== usageHistory pagination =============
+$('#usageHistoryFirstPageButton').click(() => {
+    ecommerce.fetchUsageHistoryList('first');
+});
+$('#usageHistoryLastPageButton').click(() => {
+    ecommerce.fetchUsageHistoryList('last');
+});
+$('#usageHistoryNextPageButton').click(() => {
+    ecommerce.fetchUsageHistoryList('next');
+});
+$('#usageHistoryPrevPageButton').click(() => {
+    ecommerce.fetchUsageHistoryList('prev');
+});
+
+// ========== usageHistory list =============
+ecommerce.fetchUsageHistoryList = function(action) {
+    var queryString = '';
+    if (ecommerce.usageHistorySearchKeyword) {
+        queryString += '&keyword=' + ecommerce.usageHistorySearchKeyword;
+    }
+    if (action == 'current') {
+        if (ecommerce.lastUsageHistoryQueryString) {
+            queryString = ecommerce.lastUsageHistoryQueryString;
+        }
+    } else if (action == 'next') {
+        if (ecommerce.lastUsageHistoryPageToken.next) {
+            queryString += '&nextPageToken=' + ecommerce.lastUsageHistoryPageToken.next;
+        } else {
+            return;
+        }
+    } else if (action == 'prev') {
+        if (ecommerce.lastUsageHistoryPageToken.prev) {
+            queryString += '&prevPageToken=' + ecommerce.lastUsageHistoryPageToken.prev;
+        } else {
+            return;
+        }
+    } else if (action == 'last') {
+        queryString += '&lastPage=true';
+    }
+    $.ajax({
+        url: '/ecommerce/api/v1/vouchers/' + ecommerce.selectedVoucherId +
+             '/usage-histories?limit=12' + queryString,
+        type: 'GET',
+        dataType: 'json'
+    })
+    .done(function(data) {
+        $('#usageHistoryCountText').text(data.count);
+        $('#totalUsageHistoryText').text(ezyadmin.formatNumberWithCommas(data.total));
+        ecommerce.lastUsageHistoryQueryString = queryString;
+        ecommerce.lastUsageHistoryPageToken = data.pageToken;
+        $('#usageHistoryListBody').html(ecommerce.buildUsageHistoryListBodyHtml(data.items));
+        if (data.continuation.hasNext) {
+            $('#usageHistoryNextPageButton').removeClass('text-secondary');
+        } else {
+            $('#usageHistoryNextPageButton').addClass('text-secondary');
+        }
+        if (data.continuation.hasPrevious) {
+            $('#usageHistoryPrevPageButton').removeClass('text-secondary');
+        } else {
+            $('#usageHistoryPrevPageButton').addClass('text-secondary');
+        }
+    })
+    .fail(function(e) {
+    	ezyadmin.processGetApiErrors(e);
+    });
+}
+
+ecommerce.buildUsageHistoryListBodyHtml = function(usageHistorys) {
+    var html = '';
+    usageHistorys.forEach((usageHistory) => {
+        html += ecommerce.buildUsageHistoryListItemHtml(usageHistory);
+    });
+    return html;
+}
+ecommerce.buildUsageHistoryListItemHtml = function(usageHistory) {
+    var html = `
+        <tr>
+            <td>${usageHistory.id}</td>
+            <td>
+                ${usageHistory.user
+                    ? `<a href="/users/${usageHistory.user.username}${ezyadmin.lang ? `?lang=${ezyadmin.lang}` : ''}">${usageHistory.user.name}</a>`
+                    : ''}
+            </td>
+            <td>
+                <a href="/ecommerce/orders/${usageHistory.orderId}${ezyadmin.lang ? `?lang=${ezyadmin.lang}` : ''}">
+                    ${usageHistory.orderId}
+                </a>
+            </td>
+            <td class="text-center">${usageHistory.quantity}</td>
+            <td>${usageHistory.formattedDiscountAmount}</td>
+            <td class="text-center">${ezyadmin.getI18nMessage(usageHistory.status.toLowerCase())}</td>
+            <td class="text-center">${ezyadmin.formatTimeStamp(usageHistory.createdAt)}</td>
+        </tr>
+    `;
+    return html;
+}
+ecommerce.fetchUsageHistoryList();
+</script>
+</body>
+</html>

@@ -1,0 +1,380 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<head>
+    <script>
+        var ecommerce = {};
+    </script>
+</head>
+<body>
+<div layout:fragment="content" class="row">
+    <div class="col-md-10 col-sm-12">
+        <form id="editShopBranchForm">
+            <div class="form-group row">
+                <label class="col-sm-3 col-form-label">[[#{shop}]]</label>
+                <div class="col-9">
+                    <a th:href="${'/ecommerce/shops/' + shop.id}">[[${shop.displayName}]]</a>
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="editShopBranchName" class="col-sm-3 col-form-label">
+                    [[#{branch_name}]] (<span class="text-danger">*</span>)
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="branchName" id="editShopBranchName"
+                           class="form-control" th:placeholder="#{branch_name}"
+                           th:value="${shopBranch.branchName}">
+                </div>
+                <label id="editShopBranchNameErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editShopBranchName">
+                    <i class="far fa-times-circle"></i> <span id="editShopBranchNameError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editShopBranchManagerAdmin" class="col-sm-3 col-form-label">
+                    [[#{manager_admin}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="managerAdminId" id="editShopBranchManagerAdmin"
+                           class="form-control" th:placeholder="#{manager_admin}"
+                           th:value="${managerAdmin != null ? (managerAdmin.name + '<' + managerAdmin.username + '>') : ''}">
+                </div>
+                <label id="editShopBranchManagerAdminErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editShopBranchManagerAdmin">
+                    <i class="far fa-times-circle"></i> <span id="editShopBranchManagerAdminError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editShopBranchManagerUser" class="col-sm-3 col-form-label">
+                    [[#{manager_user}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="managerUserId" id="editShopBranchManagerUser"
+                           class="form-control" th:placeholder="#{manager_user}"
+                           th:value="${managerUser != null ? (managerUser.name + '<' + managerUser.username + '>') : ''}">
+                </div>
+                <label id="editShopBranchManagerUserErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editShopBranchManagerUser">
+                    <i class="far fa-times-circle"></i> <span id="editShopBranchManagerUserError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editShopBranchCountry" class="col-md-3 col-form-label">
+                    [[#{country}]] (<span class="text-danger">*</span>)
+                </label>
+                <div class="col-lg-2 col-md-3">
+                    <select name="countryId" id="editShopBranchCountry" class="form-control"
+                            onchange="ecommerce.onCountryChange(this);">
+                        <option th:each="country : ${countries}"
+                                th:value="${country.id}"
+                                th:selected="${country.id == shopBranchCountry.id}">
+                            [[#{${country.internationalName}}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="editShopBranchCountryErrorLabel" class="col-lg-7 col-md-6 col-form-label text-danger d-none" for="editShopBranchCountry">
+                    <i class="far fa-times-circle"></i> <span id="editShopBranchCountryError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editShopBranchAreaName" class="col-sm-3 col-form-label">
+                    [[#{area_name}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="areaName" id="editShopBranchAreaName"
+                           class="form-control" th:placeholder="#{area_name}"
+                           th:value="${shopBranch.areaName}">
+                </div>
+                <label id="editShopBranchAreaNameErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editShopBranchAreaName">
+                    <i class="far fa-times-circle"></i> <span id="editShopBranchAreaNameError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editShopBranchProvince" class="col-md-3 col-form-label">
+                    [[#{province}]] (<span class="text-danger">*</span>)
+                </label>
+                <div class="col-lg-2 col-md-3">
+                    <select name="provinceId" id="editShopBranchProvince" class="form-control"
+                            onchange="ecommerce.onProvinceChange(this);">
+                        <option th:each="province : ${provinces}"
+                                th:value="${province.id}"
+                                th:selected="${province.id == shopBranchProvince.id}">
+                            [[#{${province.displayName}}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="editShopBranchProvinceErrorLabel" class="col-lg-7 col-md-6 col-form-label text-danger d-none" for="editShopBranchProvince">
+                    <i class="far fa-times-circle"></i> <span id="editShopBranchProvinceError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editShopBranchDistrict" class="col-md-3 col-form-label">
+                    [[#{district}]] (<span class="text-danger">*</span>)
+                </label>
+                <div class="col-lg-2 col-md-3">
+                    <select name="districtId" id="editShopBranchDistrict" class="form-control"
+                            onchange="ecommerce.onDistrictChange(this);">
+                        <option th:each="district : ${districts}"
+                                th:value="${district.id}"
+                                th:selected="${district.id == shopBranchDistrict.id}">
+                            [[#{${district.displayName}}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="editShopBranchDistrictErrorLabel" class="col-lg-7 col-md-6 col-form-label text-danger d-none" for="editShopBranchDistrict">
+                    <i class="far fa-times-circle"></i> <span id="editShopBranchDistrictError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editShopBranchWard" class="col-md-3 col-form-label">
+                    [[#{ward}]] (<span class="text-danger">*</span>)
+                </label>
+                <div class="col-lg-2 col-md-3">
+                    <select name="wardId" id="editShopBranchWard" class="form-control">
+                        <option th:each="ward : ${wards}"
+                                th:value="${ward.id}"
+                                th:selected="${ward.id == shopBranchWard.id}">
+                            [[#{${ward.displayName}}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="editShopBranchWardErrorLabel" class="col-lg-7 col-md-6 col-form-label text-danger d-none" for="editShopBranchWard">
+                    <i class="far fa-times-circle"></i> <span id="editShopBranchWardError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editShopBranchAddress" class="col-sm-3 col-form-label">
+                    [[#{branch_address}]] (<span class="text-danger">*</span>)
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="branchAddress" id="editShopBranchAddress"
+                           class="form-control" th:placeholder="#{branch_address}"
+                           th:value="${shopBranch.branchAddress}">
+                </div>
+                <label id="editShopBranchAddressErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editShopBranchAddress">
+                    <i class="far fa-times-circle"></i> <span id="editShopBranchAddressError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editShopBranchMapLocation" class="col-sm-3 col-form-label">
+                    [[#{map_location}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="mapLocation" id="editShopBranchMapLocation"
+                           class="form-control" th:placeholder="#{map_location}"
+                           th:value="${shopBranch.mapLocation}">
+                </div>
+                <label id="editShopBranchMapLocationErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editShopBranchMapLocation">
+                    <i class="far fa-times-circle"></i> <span id="editShopBranchMapLocationError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editShopBranchEmail" class="col-sm-3 col-form-label">
+                    [[#{email}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="email" id="editShopBranchEmail"
+                           class="form-control" th:placeholder="#{email}"
+                           th:value="${shopBranchDetails != null ? shopBranchDetails.email : ''}">
+                </div>
+                <label id="editShopBranchEmailErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editShopBranchEmail">
+                    <i class="far fa-times-circle"></i> <span id="editShopBranchEmailError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editShopBranchPhoneNumber" class="col-sm-3 col-form-label">
+                    [[#{phone_number}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="phoneNumber" id="editShopBranchPhoneNumber"
+                           class="form-control" th:placeholder="#{phone_number}"
+                           th:value="${shopBranch.phoneNumber}">
+                </div>
+                <label id="editShopBranchPhoneNumberErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editShopBranchPhoneNumber">
+                    <i class="far fa-times-circle"></i> <span id="editShopBranchPhoneNumberError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editShopBranchWorkingTime" class="col-md-3 col-form-label">
+                    [[#{working_time}]]
+                </label>
+                <div class="col-md-9">
+                    <div class="d-flex flex-md-row flex-column" id="editShopBranchWorkingTime">
+                        <div class="d-flex">
+                            <div class="d-flex align-items-center">
+                                <span class="mr-1">[[#{from}]]:</span>
+                                <input type="time" name="dailyWorkingTimeFrom" class="form-control"
+                                       th:value="${shopBranchDetails != null ? shopBranchDetails.dailyWorkingTimeFrom : ''}">
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <span class="mr-1">[[#{to}]]:</span>
+                                <input type="time" name="dailyWorkingTimeTo" class="form-control"
+                                       th:value="${shopBranchDetails != null ? shopBranchDetails.dailyWorkingTimeTo : ''}">
+                            </div>
+                        </div>
+                        <div class="d-flex ml-md-2 ml-0 mt-md-0 mt-2">
+                            <div class="d-flex align-items-center">
+                                <span class="mr-1">[[#{from}]]:</span>
+                                <select name="weeklyWorkingDayFrom" class="form-control">
+                                    <option th:each="dayOfWeek : ${dayOfWeeks}"
+                                            th:value="${dayOfWeek}"
+                                            th:selected="${shopBranchDetails != null ? (shopBranchDetails.weeklyWorkingDayFrom == dayOfWeek) : 'false'}">
+                                        [[#{${dayOfWeek.toString().toLowerCase()}}]]
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <span class="mr-1">[[#{to}]]:</span>
+                                <select name="weeklyWorkingDayTo" class="form-control">
+                                    <option th:each="dayOfWeek : ${dayOfWeeks}"
+                                            th:value="${dayOfWeek}"
+                                            th:selected="${shopBranchDetails != null ? (shopBranchDetails.weeklyWorkingDayTo == dayOfWeek) : 'false'}">
+                                        [[#{${dayOfWeek.toString().toLowerCase()}}]]
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="editShopBranchHeadquarters" class="col-sm-3 col-form-label">
+                    [[#{headquarters}]]
+                </label>
+                <div class="col-9 d-flex align-items-center">
+                    <input type="checkbox" name="headquarters" id="editShopBranchHeadquarters" class="wh-1rem"
+                           th:checked="${shopBranch.id == shop.headquartersId}">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="editShopBranchAllowUserReceivedStock" class="col-sm-3 col-form-label">
+                    [[#{allow_user_received_stock}]]
+                </label>
+                <div class="col-9 d-flex align-items-center">
+                    <input type="checkbox" name="allowUserReceivedStock" id="editShopBranchAllowUserReceivedStock" class="wh-1rem"
+                           th:checked="${shopBranchDetails != null ? shopBranchDetails.allowUserReceivedStock : false}">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="editShopBranchWarehouse" class="col-sm-3 col-form-label">
+                    [[#{it_is_also_a_warehouse}]]
+                </label>
+                <div class="col-9 d-flex align-items-center">
+                    <input type="checkbox" name="warehouse" id="editShopBranchWarehouse" class="wh-1rem"
+                           th:checked="${shopBranchDetails != null ? (shopBranchDetails.warehouseId > 0) : false}">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="editShopBranchStatus" class="col-md-3 col-form-label">
+                    [[#{status}]]
+                </label>
+                <div class="col-lg-3 col-md-3">
+                    <select name="status" id="editShopBranchStatus" class="form-control">
+                        <option th:each="shopBranchStatus : ${shopBranchStatuses}"
+                                th:value="${shopBranchStatus.toString()}"
+                                th:selected="${shopBranch.status == shopBranchStatus}">
+                            [[#{${shopBranchStatus.toString().toLowerCase()}}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="editShopStatusErrorLabel" class="col-lg-6 col-md-6 col-form-label text-danger d-none" for="editShopBranchStatus">
+                    <i class="far fa-times-circle"></i> <span id="editShopStatusError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="row">
+                <div class="col-md-3"></div>
+                <div class="col-lg-2 col-md-3">
+                    <button type="button" class="btn btn-primary btn-block" onclick="ecommerce.editShopBranch();">
+                        [[#{submit}]]
+                    </button>
+                </div>
+                <div class="col-lg-7 col-md-6"></div>
+                <!-- /.col -->
+            </div>
+        </form>
+    </div>
+    <div class="col-md-2 col-sm-0"></div>
+    <div class="col-12 mb-3"></div>
+</div>
+<script layout:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ecommerce.selectedShopId = /*[[${shop.id}]]*/;
+ecommerce.editShopBranchId = /*[[${shopBranch.id}]]*/;
+ecommerce.managerAdmin = /*[[${managerAdmin}]]*/;
+ecommerce.managerUser = /*[[${managerUser}]]*/;
+/*]]>*/
+ecommerce.provincesSelectId = 'editShopBranchProvince';
+ecommerce.districtsSelectId = 'editShopBranchDistrict';
+ecommerce.wardsSelectId = 'editShopBranchWard';
+
+// ========== edit shopBranch =============
+ecommerce.editShopBranch = function() {
+    ecommerce.addOrEditShopBranch('edit');
+}
+</script>
+<th:block layout:fragment="post-scripts">
+    <script th:replace="~{scripts/suggestion :: input}" />
+    <script th:replace="~{scripts/suggestion :: admin}" />
+    <script th:replace="~{scripts/suggestion :: user}" />
+    <script th:replace="~{ecommerce/shop/branch/scripts :: add-edit}" />
+    <script th:replace="~{ecommerce/country/scripts :: change}" />
+</th:block>
+<script layout:fragment="final-scripts">
+ecommerce.latestSuggestedAdminByUsername = {};
+if (ecommerce.managerAdmin) {
+    ecommerce.latestSuggestedAdminByUsername[ecommerce.managerAdmin.username]
+        = ecommerce.managerAdmin;
+}
+
+ecommerce.latestSuggestedUserByUsername = {};
+if (ecommerce.managerUser) {
+    ecommerce.latestSuggestedUserByUsername[ecommerce.managerUser.username]
+        = ecommerce.managerUser;
+}
+
+ezyadmin.registerAdminAutocomplete('editShopBranchManagerAdmin');
+ezyadmin.registerUserAutocomplete('editShopBranchManagerUser');
+
+ecommerce.getBranchManagerAdminId = function() {
+    ezyadmin.latestSuggestedDataByKey = ecommerce.latestSuggestedAdminByUsername;
+    return ezyadmin.getSelectedAutocompleteFieldData(
+        'editShopBranchManagerAdmin',
+        (admin) => admin.adminId
+    ) || 0;
+}
+
+ecommerce.getBranchManagerUserId = function() {
+    ezyadmin.latestSuggestedDataByKey = ecommerce.latestSuggestedUserByUsername;
+    return ezyadmin.getSelectedAutocompleteFieldData(
+        'editShopBranchManagerUser',
+        (user) => user.userId
+    ) || 0;
+}
+
+$(document).ready(() => {
+    $('#editShopBranchManagerAdmin').autocomplete('option', 'select', function(event, ui) {
+        ecommerce.latestSuggestedAdminByUsername = ezyadmin.latestSuggestedDataByKey;
+    });
+    $('#editShopBranchManagerUser').autocomplete('option', 'select', function(event, ui) {
+        ecommerce.latestSuggestedUserByUsername = ezyadmin.latestSuggestedDataByKey;
+    });
+});
+</script>
+</body>
+</html>

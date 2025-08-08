@@ -1,0 +1,123 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="content">
+    <div class="modal fade pt-4rem" id="update-monthly-commission-status">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="update-monthly-commission-status-modal-title">
+                        [[#{update_monthly_commission_status}]]
+                    </h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="updateMonthlyCommissionStatusForm">
+                        <div class="form-group row">
+                            <label for="updateMonthlyCommissionStatusMonth" class="col-4 col-form-label">
+                                [[#{month}]]
+                            </label>
+                            <div class="col-8 d-flex flex-column justify-content-center">
+                                <span id="updateMonthlyCommissionStatusMonth"></span>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="updateMonthlyCommissionStatusStatus" class="col-4 col-form-label">
+                                [[#{status}]]
+                            </label>
+                            <div class="col-8">
+                                <label class="col-form-label text-danger d-none" id="updateMonthlyCommissionStatusStatusErrorLabel" for="updateMonthlyCommissionStatusStatus">
+                                    <i class="far fa-times-circle"></i> <span id="updateMonthlyCommissionStatusStatusError"></span>
+                                </label>
+                                <select class="form-control form-select" name="status" id="updateMonthlyCommissionStatusStatus"
+                                       onkeydown="ecommerce.onKeyDownToEditSeller();">
+                                    <option th:each="shopSellerMonthlyCommissionStatus : ${shopSellerMonthlyCommissionStatuses}"
+                                            th:value="${shopSellerMonthlyCommissionStatus}">
+                                        [[#{${shopSellerMonthlyCommissionStatus.toString().toLowerCase()}}]]
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <div>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">[[#{cancel}]]</button>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="ecommerce.updateMonthlyCommissionStatus();">
+                        [[#{update}]]
+                    </button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+</th:block>
+<script th:fragment="scripts">
+// ========== show add seller modal =============
+ecommerce.showUpdateMonthlyCommissionStatusModal = function(
+    month,
+    currentStatus
+) {
+    ecommerce.selectedCommissionMonth = month;
+    var statusMap = ecommerce.newCommissionMonthlyStatusMap || {};
+    var actualStatus = statusMap[`${ecommerce.selectedCommissionYear}${month}`] || currentStatus;
+    $('#updateMonthlyCommissionStatusMonth').text(month);
+    $('#updateMonthlyCommissionStatusStatus').val(actualStatus);
+    $('#update-monthly-commission-status').modal('show');
+}
+
+ecommerce.updateMonthlyCommissionStatus = function() {
+    var formData = ezyadmin.formDataToObject('updateMonthlyCommissionStatusForm');
+    formData.currencyId = ecommerce.selectedCurrencyId;
+    $.ajax({
+        type: 'PUT',
+        url: '/ecommerce/api/v1/shops/' + ecommerce.selectedShopId +
+             '/sellers/' + ecommerce.selectedSellerUserId +
+             '/commissions/' + ecommerce.selectedCommissionYear +
+             '/' + ecommerce.selectedCommissionMonth + '/status',
+        data: formData,
+        success: function (data) {
+            $(`#year-${ecommerce.selectedCommissionYear}-month-${ecommerce.selectedCommissionMonth}-status`)
+                .text(ezyadmin.getI18nMessage(formData.status.toLowerCase()));
+            $('#update-monthly-commission-status').modal('hide');
+            var statusMap = ecommerce.newCommissionMonthlyStatusMap || {};
+            statusMap[`${ecommerce.selectedCommissionYear}${ecommerce.selectedCommissionMonth}`] = formData.status;
+            ecommerce.newCommissionMonthlyStatusMap = statusMap;
+            if (ecommerce.fetchSellerTotalBalance) {
+                ecommerce.fetchSellerTotalBalance();
+            }
+        },
+        error: function (e) {
+        	var formView = {
+                updateMonthlyCommissionStatusStatus: true
+            };
+            var errors = e.responseJSON || {};
+        	errors.updateMonthlyCommissionStatusStatus = errors.commissionPercent;
+            ezyadmin.processUpdateApiErrors(formView, e);
+        }
+    });
+}
+</script>
+</body>
+</html>

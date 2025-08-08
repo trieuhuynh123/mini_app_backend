@@ -1,0 +1,130 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="content">
+    <div class="modal fade pt-4rem" id="edit-warehouse-product">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="edit-warehouse-product-modal-title">
+                        [[#{edit_warehouse_product}]]
+                    </h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="editWarehouseProductForm">
+                        <div class="form-group row mb-0">
+                            <label for="editWarehouseProductRemainingAmount" class="col-4 col-form-label">
+                                [[#{amount}]] (<span class="text-danger">*</span>)
+                            </label>
+                            <div class="col-8">
+                                <label class="col-form-label text-danger d-none" id="editWarehouseProductRemainingAmountErrorLabel" for="editWarehouseProductRemainingAmount">
+                                    <i class="far fa-times-circle"></i> <span id="editWarehouseProductRemainingAmountError"></span>
+                                </label>
+                                <input type="number" name="remainingAmount" id="editWarehouseProductRemainingAmount"
+                                       class="form-control" th:placeholder="#{amount}"
+                                       onkeydown="ecommerce.onKeyDownToEditWarehouseProduct()">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <div>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">[[#{cancel}]]</button>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="ecommerce.editWarehouseProduct();"
+                            id="edit-warehouseProduct-modal-button">
+                        [[#{edit}]]
+                    </button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+</th:block>
+<script th:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.edit_warehouse_product = /*[[#{edit_warehouse_product}]]*/ '';
+/*]]>*/
+
+// ========== show edit warehouseProduct modal =============
+ecommerce.showEditWarehouseProductRemainingAmountProductModal = function(
+    productId,
+    remainingAmount
+) {
+    ecommerce.selectedProductId = productId;
+    ecommerce.showEditWarehouseProductModal(
+        ecommerce.selectedWarehouseId,
+        ecommerce.selectedWarehouseDisplayName,
+        remainingAmount
+    );
+}
+ecommerce.showEditWarehouseProductModal = function(
+    warehouseId,
+    warehouseDisplayName,
+    remainingAmount
+) {
+    ecommerce.selectWarehouseId = warehouseId;
+    $('#editWarehouseProductRemainingAmount').val(remainingAmount);
+    $('#edit-warehouse-product-modal-title').text(
+        ezyadmin.messages.edit_warehouse_product + ': ' + warehouseDisplayName
+    );
+    $('#edit-warehouse-product').modal('show');
+}
+
+// ========== edit warehouseProduct =============
+ecommerce.onKeyDownToEditWarehouseProduct = function() {
+    if(event.key === 'Enter') {
+    	ecommerce.editWarehouseProduct();
+    }
+}
+
+ecommerce.editWarehouseProduct = function() {
+    var formData = ezyadmin.formDataToObject('editWarehouseProductForm');
+    formData.warehouseId = ecommerce.selectWarehouseId;
+    formData.productId = ecommerce.selectedProductId;
+    $.ajax({
+        type: 'POST',
+        url: '/ecommerce/api/v1/warehouse-products/save',
+        data: formData,
+        success: function (data) {
+            $('#edit-warehouse-product').modal('hide');
+            if (ecommerce.fetchProductList) {
+                ecommerce.fetchProductList('current');
+            } else {
+                location.reload();
+            }
+        },
+        error: function (e) {
+        	var formView = {
+                editWarehouseProductRemainingAmount: true
+            };
+            var errors = e.responseJSON || {};
+        	errors.editWarehouseProductRemainingAmount = errors.remainingAmount;
+            ezyadmin.processUpdateApiErrors(formView, e);
+        }
+    });
+}
+</script>
+</body>
+</html>

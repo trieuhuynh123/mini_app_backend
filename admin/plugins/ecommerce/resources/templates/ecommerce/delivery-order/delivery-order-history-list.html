@@ -1,0 +1,214 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<body>
+<th:block th:fragment="content">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-body table-responsive p-0">
+                <table class="table table-bordered table-hover text-nowrap align-middle-cells">
+                    <thead>
+                    <tr>
+                        <th>[[#{id}]]</th>
+                        <th>[[#{warehouse}]]</th>
+                        <th>[[#{notes}]]</th>
+                        <th class="text-center">[[#{status}]]</th>
+                        <th class="text-center">[[#{created_at}]]</th>
+                    </tr>
+                    </thead>
+                    <tbody id="deliveryOrderHistoryListBody">
+                    </tbody>
+                </table>
+            </div>
+            <!-- /.card-body -->
+            <div class="card-footer clearfix">
+                <span><span id="deliveryOrderHistoryCountText">0</span>
+                    [[${#strings.toLowerCase(#messages.msg('of'))}]]
+                    <span id="totalUsageHistoryText">0</span>
+                    [[${#strings.toLowerCase(#messages.msg('items'))}]]
+                </span>
+                <ul class="pagination pagination-sm m-0 float-right">
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="deliveryOrderHistoryFirstPageButton">
+                            <i class="fas fa-arrow-circle-left pl-1 pr-1"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="deliveryOrderHistoryPrevPageButton">[[#{prev}]]</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="deliveryOrderHistoryNextPageButton">[[#{next}]]</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="deliveryOrderHistoryLastPageButton">
+                            <i class="fas fa-arrow-circle-right pl-1 pr-1"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.card-footer -->
+        </div>
+    </div>
+</th:block>
+<script th:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.user_shipping_requested = /*[[#{user_shipping_requested}]]*/ '';
+ezyadmin.messages.request_created = /*[[#{request_created}]]*/ '';
+ezyadmin.messages.request_send_failed = /*[[#{request_send_failed}]]*/ '';
+ezyadmin.messages.cancelled = /*[[#{cancelled}]]*/ '';
+ezyadmin.messages.request_sent = /*[[#{request_sent}]]*/ '';
+ezyadmin.messages.request_received = /*[[#{request_received}]]*/ '';
+ezyadmin.messages.retrieving_products = /*[[#{retrieving_products}]]*/ '';
+ezyadmin.messages.unable_to_pick_up = /*[[#{unable_to_pick_up}]]*/ '';
+ezyadmin.messages.pickup_postponed = /*[[#{pickup_postponed}]]*/ '';
+ezyadmin.messages.picked_up = /*[[#{picked_up}]]*/ '';
+ezyadmin.messages.packing = /*[[#{packing}]]*/ '';
+ezyadmin.messages.shipped = /*[[#{shipped}]]*/ '';
+ezyadmin.messages.in_transit = /*[[#{in_transit}]]*/ '';
+ezyadmin.messages.out_for_delivery = /*[[#{out_for_delivery}]]*/ '';
+ezyadmin.messages.delivered = /*[[#{delivered}]]*/ '';
+ezyadmin.messages.reconciled = /*[[#{reconciled}]]*/ '';
+ezyadmin.messages.failed_delivery_attempt = /*[[#{failed_delivery_attempt}]]*/ '';
+ezyadmin.messages.unable_to_deliver = /*[[#{unable_to_deliver}]]*/ '';
+ezyadmin.messages.delayed_delivery = /*[[#{delayed_delivery}]]*/ '';
+ezyadmin.messages.customs_clearance = /*[[#{customs_clearance}]]*/ '';
+ezyadmin.messages.refunded_order = /*[[#{refunded_order}]]*/ '';
+ezyadmin.messages.returning_to_sender = /*[[#{returning_to_sender}]]*/ '';
+ezyadmin.messages.returned_to_sender = /*[[#{returned_to_sender}]]*/ '';
+ezyadmin.messages.reconciled_return_debt = /*[[#{reconciled_return_debt}]]*/ '';
+ezyadmin.messages.exception = /*[[#{exception}]]*/ '';
+ezyadmin.messages.hold = /*[[#{hold}]]*/ '';
+ezyadmin.messages.unknown = /*[[#{unknown}]]*/ '';
+ezyadmin.messages.rejected = /*[[#{rejected}]]*/ '';
+ezyadmin.messages.deleted = /*[[#{deleted}]]*/ '';
+ezyadmin.messages.not_at_input_warehouse = /*[[#{not_at_input_warehouse}]]*/ '';
+ezyadmin.messages.scanned_at_input_warehouse = /*[[#{scanned_at_input_warehouse}]]*/ '';
+ezyadmin.messages.declared_at_input_warehouse = /*[[#{declared_at_input_warehouse}]]*/ '';
+ezyadmin.messages.packed_at_input_warehouse = /*[[#{packed_at_input_warehouse}]]*/ '';
+ezyadmin.messages.in_transit_to_customs = /*[[#{in_transit_to_customs}]]*/ '';
+ezyadmin.messages.awaiting_clearance = /*[[#{awaiting_clearance}]]*/ '';
+ezyadmin.messages.in_customs = /*[[#{in_customs}]]*/ '';
+ezyadmin.messages.cleared_customs = /*[[#{cleared_customs}]]*/ '';
+ezyadmin.messages.delivered_to_receiving_warehouse = /*[[#{delivered_to_receiving_warehouse}]]*/ '';
+ezyadmin.messages.in_package_at_receiving_warehouse = /*[[#{in_package_at_receiving_warehouse}]]*/ '';
+ezyadmin.messages.merged_at_receiving_warehouse = /*[[#{merged_at_receiving_warehouse}]]*/ '';
+ezyadmin.messages.at_receiving_warehouse = /*[[#{at_receiving_warehouse}]]*/ '';
+ezyadmin.messages.unknown_at_warehouse = /*[[#{unknown_at_warehouse}]]*/ '';
+ezyadmin.messages.no_customer_at_warehouse = /*[[#{no_customer_at_warehouse}]]*/ '';
+ezyadmin.messages.allocated_at_warehouse = /*[[#{allocated_at_warehouse}]]*/ '';
+ezyadmin.messages.unallocated_at_warehouse = /*[[#{unallocated_at_warehouse}]]*/ '';
+/*]]>*/
+
+// ========== deliveryOrderHistory pagination =============
+$('#deliveryOrderHistoryFirstPageButton').click(() => {
+    ecommerce.fetchUsageHistoryList('first');
+});
+$('#deliveryOrderHistoryLastPageButton').click(() => {
+    ecommerce.fetchUsageHistoryList('last');
+});
+$('#deliveryOrderHistoryNextPageButton').click(() => {
+    ecommerce.fetchUsageHistoryList('next');
+});
+$('#deliveryOrderHistoryPrevPageButton').click(() => {
+    ecommerce.fetchUsageHistoryList('prev');
+});
+
+// ========== deliveryOrderHistory list =============
+ecommerce.fetchUsageHistoryList = function(action) {
+    var queryString = '';
+    if (ecommerce.deliveryOrderHistorySearchKeyword) {
+        queryString += '&keyword=' + ecommerce.deliveryOrderHistorySearchKeyword;
+    }
+    if (action == 'current') {
+        if (ecommerce.lastUsageHistoryQueryString) {
+            queryString = ecommerce.lastUsageHistoryQueryString;
+        }
+    } else if (action == 'next') {
+        if (ecommerce.lastUsageHistoryPageToken.next) {
+            queryString += '&nextPageToken=' + ecommerce.lastUsageHistoryPageToken.next;
+        } else {
+            return;
+        }
+    } else if (action == 'prev') {
+        if (ecommerce.lastUsageHistoryPageToken.prev) {
+            queryString += '&prevPageToken=' + ecommerce.lastUsageHistoryPageToken.prev;
+        } else {
+            return;
+        }
+    } else if (action == 'last') {
+        queryString += '&lastPage=true';
+    }
+    $.ajax({
+        url: '/ecommerce/api/v1/delivery-orders/' + ecommerce.selectedDeliveryOrderId +
+             '/histories?limit=30' + queryString,
+        type: 'GET',
+        dataType: 'json'
+    })
+    .done(function(data) {
+        $('#deliveryOrderHistoryCountText').text(data.count);
+        $('#totalUsageHistoryText').text(ezyadmin.formatNumberWithCommas(data.total));
+        ecommerce.lastUsageHistoryQueryString = queryString;
+        ecommerce.lastUsageHistoryPageToken = data.pageToken;
+        $('#deliveryOrderHistoryListBody').html(ecommerce.buildUsageHistoryListBodyHtml(data.items));
+        if (data.continuation.hasNext) {
+            $('#deliveryOrderHistoryNextPageButton').removeClass('text-secondary');
+        } else {
+            $('#deliveryOrderHistoryNextPageButton').addClass('text-secondary');
+        }
+        if (data.continuation.hasPrevious) {
+            $('#deliveryOrderHistoryPrevPageButton').removeClass('text-secondary');
+        } else {
+            $('#deliveryOrderHistoryPrevPageButton').addClass('text-secondary');
+        }
+    })
+    .fail(function(e) {
+    	ezyadmin.processGetApiErrors(e);
+    });
+}
+
+ecommerce.buildUsageHistoryListBodyHtml = function(deliveryOrderHistories) {
+    var html = '';
+    deliveryOrderHistories.forEach((deliveryOrderHistory) => {
+        html += ecommerce.buildUsageHistoryListItemHtml(deliveryOrderHistory);
+    });
+    return html;
+}
+ecommerce.buildUsageHistoryListItemHtml = function(deliveryOrderHistory) {
+    var html = `
+        <tr>
+            <td>${deliveryOrderHistory.id}</td>
+            <td>
+                ${deliveryOrderHistory.warehouse
+                    ? `<a href="/ecommerce/warehouses/${deliveryOrderHistory.warehouse.id}${ezyadmin.lang ? `?lang=${ezyadmin.lang}` : ''}">${deliveryOrderHistory.warehouse.displayName}</a>`
+                    : ''}
+            </td>
+            <td class="text-wrap">${deliveryOrderHistory.notes || ''}</td>
+            <td class="text-center">${ezyadmin.getI18nMessage(deliveryOrderHistory.status.toLowerCase())}</td>
+            <td class="text-center">${ezyadmin.formatTimeStamp(deliveryOrderHistory.createdAt)}</td>
+        </tr>
+    `;
+    return html;
+}
+ecommerce.fetchUsageHistoryList();
+</script>
+</body>
+</html>

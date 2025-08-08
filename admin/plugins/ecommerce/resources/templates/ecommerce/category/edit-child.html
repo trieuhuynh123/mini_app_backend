@@ -1,0 +1,101 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="content">
+    <div class="modal fade pt-4rem" id="edit-category-child">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="edit-category-child-modal-title">
+                        [[#{edit_category_child}]]
+                    </h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="editCategoryChildForm">
+                        <div class="form-group row">
+                            <label for="editCategoryNameForChild" class="col-4 col-form-label">
+                                [[#{category_name}]]
+                            </label>
+                            <div class="col-8 d-flex align-items-center" id="editCategoryNameForChild">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="editCategoryChildDisplayName" class="col-4 col-form-label">
+                                [[#{category_child}]]
+                            </label>
+                            <div class="col-8 d-flex align-items-center" id="editCategoryChildDisplayName">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="editCategoryDisplayOrderForChild" class="col-4 col-form-label">
+                                [[#{display_order}]]
+                            </label>
+                            <div class="col-8">
+                                <label class="col-form-label text-danger d-none" id="editCategoryDisplayOrderForChildErrorLabel" for="editCategoryDisplayOrderForChild">
+                                    <i class="far fa-times-circle"></i> <span id="editCategoryDisplayOrderForChildError"></span>
+                                </label>
+                                <input type="number" name="displayOrder" id="editCategoryDisplayOrderForChild"
+                                       class="form-control" th:placeholder="#{display_order}"
+                                       onkeydown="ecommerce.onKeyDownToEditCategoryChild();">
+                                <span>[[#{display_order_input_guide}]]</span>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <div>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">[[#{cancel}]]</button>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="ecommerce.saveCategoryChild('edit');">
+                        [[#{edit}]]
+                    </button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+</th:block>
+<script th:fragment="scripts">
+// ========== show edit child modal =============
+ecommerce.showEditCategoryChildModal = function(
+    categoryChildId,
+    categoryChildDisplayName,
+    displayOrder
+) {
+    ecommerce.selectedCategoryChildId = categoryChildId;
+    $('#editCategoryNameForChild').text(ecommerce.selectedCategoryDisplayName);
+    $('#editCategoryChildDisplayName').text(unescape(categoryChildDisplayName));
+    $('#editCategoryDisplayOrderForChild').val(displayOrder);
+    $('#edit-category-child').modal('show');
+}
+
+// ========== edit child =============
+ecommerce.onKeyDownToEditCategoryChild = function() {
+    if(event.key === 'Enter') {
+    	ecommerce.saveCategoryChild('edit');
+    }
+}
+</script>
+</body>
+</html>

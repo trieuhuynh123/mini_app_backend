@@ -1,0 +1,259 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<head>
+    <script>
+        var ecommerce = {};
+    </script>
+</head>
+<body>
+<div layout:fragment="content" class="row">
+    <div class="col-12 mb-2 selected-tag-count d-none"></div>
+    <div class="col-lg-3 col-md-4 col-12 page-search d-block">
+        <div class="d-flex align-items-center">
+            <select class="form-control form-select" id="tagBulkAction">
+                <option value="">[[#{bulk_action}]]</option>
+                <option value="DELETE">[[#{delete_tags}]]</option>
+            </select>
+            <button type="button" class="btn btn-outline-primary text-nowrap ml-1"
+                    onclick="ecommerce.performTagBulkAction();">
+                [[#{perform}]]
+            </button>
+        </div>
+    </div>
+    <div class="col-lg-3 d-lg-block d-md-none"></div>
+    <div class="col-lg-3 col-md-4 col-12 page-search">
+        <label for="tagSearchKeyword" class="text-nowrap">[[#{search}]]: </label>
+        <input type="search" class="form-control" th:placeholder="#{keyword}" id="tagSearchKeyword"
+               onkeydown="ecommerce.onKeydownToSearchTag();">
+    </div>
+    <div class="col-lg-3 col-md-4 col-12 page-search">
+        <label for="tagSearchName" class="text-nowrap">[[#{name}]]: </label>
+        <input type="text" class="form-control" th:placeholder="#{name}" id="tagSearchName"
+               onkeydown="ecommerce.onKeydownToSearchTag();">
+    </div>
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-body table-responsive p-0">
+                <table class="table table-bordered table-hover text-nowrap align-middle-cells">
+                    <thead>
+                    <tr>
+                        <th class="text-center px-3">
+                            <input type="checkbox" onclick="ecommerce.onMultiTagsClick(this)" class="wh-1rem" />
+                        </th>
+                        <th class="text-center">[[#{id}]]</th>
+                        <th>[[#{name}]]</th>
+                        <th class="text-center">[[#{created_at}]]</th>
+                        <th class="text-center">[[#{updated_at}]]</th>
+                        <th class="text-center">[[#{actions}]]</th>
+                    </tr>
+                    </thead>
+                    <tbody id="tagListBody">
+                    </tbody>
+                </table>
+            </div>
+            <!-- /.card-body -->
+            <div class="card-footer clearfix">
+                <span><span id="tagCountText">0</span>
+                    [[${#strings.toLowerCase(#messages.msg('of'))}]]
+                    <span id="totalTagText">0</span>
+                    [[${#strings.toLowerCase(#messages.msg('tags'))}]]
+                </span>
+                <ul class="pagination pagination-sm m-0 float-right">
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="firstPageButton">
+                            <i class="fas fa-arrow-circle-left pl-1 pr-1"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="prevPageButton">[[#{prev}]]</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="nextPageButton">[[#{next}]]</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="lastPageButton">
+                            <i class="fas fa-arrow-circle-right pl-1 pr-1"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.card-footer -->
+        </div>
+    </div>
+</div>
+<th:block layout:fragment="modals">
+    <th:block th:replace="~{ecommerce/tag/add :: content}" />
+    <th:block th:replace="~{ecommerce/tag/edit :: content}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='delete-tag-modal', title=confirm, confirmButton=delete, closeButton=close)}" />
+</th:block>
+<script layout:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.do_you_want_to_paction_tags = /*[[#{do_you_want_to_paction_tags}]]*/;
+/*]]>*/
+ecommerce.tagIdChecks = {}
+
+// ========== tags init =============
+ezyadmin.onNewButtonClick = function() {
+    ecommerce.showAddTagModal();
+}
+
+// ========== tag search =============
+ecommerce.onKeydownToSearchTag = function() {
+    if(event.key === 'Enter') {
+        ecommerce.tagSearchName = $('#tagSearchName').val();
+        ecommerce.tagSearchKeyword = $('#tagSearchKeyword').val();
+        ecommerce.fetchTagList();
+    }
+}
+
+// ========== tag pagination =============
+$('#firstPageButton').click(() => {
+    ecommerce.fetchTagList('first');
+});
+$('#lastPageButton').click(() => {
+    ecommerce.fetchTagList('last');
+});
+$('#nextPageButton').click(() => {
+    ecommerce.fetchTagList('next');
+});
+$('#prevPageButton').click(() => {
+    ecommerce.fetchTagList('prev');
+});
+
+// ========== tag list =============
+ecommerce.fetchTagList = function(action) {
+    var queryString = '';
+    if (ecommerce.tagSearchName) {
+        queryString += '&name=' + ecommerce.tagSearchName;
+    }
+    if (ecommerce.tagSearchKeyword) {
+        queryString += '&keyword=' + ecommerce.tagSearchKeyword;
+    }
+    if (action == 'current') {
+        if (ecommerce.lastProductQueryString) {
+            queryString = ecommerce.lastProductQueryString;
+        }
+    } else if (action == 'next') {
+        if (ecommerce.lastTagPageToken.next) {
+            queryString += '&nextPageToken=' + ecommerce.lastTagPageToken.next;
+        } else {
+            return;
+        }
+    } else if (action == 'prev') {
+        if (ecommerce.lastTagPageToken.prev) {
+            queryString += '&prevPageToken=' + ecommerce.lastTagPageToken.prev;
+        } else {
+            return;
+        }
+    } else if (action == 'last') {
+        queryString += '&lastPage=true';
+    }
+    $.ajax({
+        url: '/ecommerce/api/v1/product-tags?limit=12' + queryString,
+        type: 'GET',
+        dataType: 'json'
+    })
+    .done(function(data) {
+        $('#tagCountText').text(data.count);
+        $('#totalTagText').text(ezyadmin.formatNumberWithCommas(data.total));
+        ecommerce.lastProductQueryString = queryString;
+        ecommerce.lastTagPageToken = data.pageToken;
+        $('#tagListBody').html(ecommerce.buildTagListBodyHtml(data.items));
+        if (data.continuation.hasNext) {
+            $('#nextPageButton').removeClass('text-secondary');
+        } else {
+            $('#nextPageButton').addClass('text-secondary');
+        }
+        if (data.continuation.hasPrevious) {
+            $('#prevPageButton').removeClass('text-secondary');
+        } else {
+            $('#prevPageButton').addClass('text-secondary');
+        }
+    })
+    .fail(function(e) {
+    	ezyadmin.processGetApiErrors(e);
+    });
+}
+
+ecommerce.buildTagListBodyHtml = function(tags) {
+    var html = '';
+    tags.forEach((tag) => {
+        html += ecommerce.buildTagListItemHtml(tag);
+    });
+    return html;
+}
+ecommerce.buildTagListItemHtml = function(tag) {
+    var statusColor = ezyadmin.getTextColorByStatus(tag.status);
+    var html = `
+        <tr id="tag-row-${tag.id}">
+            <td class="text-center px-3">
+                <input name="tagIds" type="checkbox" value="${tag.id}"
+                    onclick="ecommerce.onTagCheckChange(this)"
+                    ${ecommerce.tagIdChecks[tag.id] ? 'checked' : ''}
+                    class="wh-1rem">
+            </td>
+            <td class="text-center">${tag.id}</td>
+            <td>
+                <a href="/ecommerce/product-tags/${tag.id}${ezyadmin.lang ? `?lang=${ezyadmin.lang}` : ''}">
+                    ${tag.name}
+                </a>
+            </td>
+            <td class="text-center">${ezyadmin.formatTimeStamp(tag.createdAt)}</td>
+            <td class="text-center">${ezyadmin.formatTimeStamp(tag.updatedAt)}</td>
+            <td class="text-center">
+                <button type="button" class="btn pr-1" onclick="ecommerce.showEditTagModal(${tag.id}, '${escape(tag.name)}');">
+                    <i class="fas fa-edit text-primary"></i>
+                </button>
+                <a class="btn px-1" href="/ecommerce/product-tags/${tag.id}${ezyadmin.lang ? `?lang=${ezyadmin.lang}` : ''}">
+                    <i class="fas fa-eye text-info"></i>
+                </a>
+                <button type="button" class="btn pl-1" onclick="ecommerce.onDeleteTagClick(${tag.id}, '${escape(tag.name)}');">
+                    <i class="fas fa-trash text-danger"></i>
+                </button>
+            </td>
+        </tr>
+        `;
+	return html;
+}
+ecommerce.fetchTagList();
+</script>
+<th:block layout:fragment="post-scripts">
+    <script th:replace="~{ecommerce/tag/add :: scripts}" />
+    <script th:replace="~{ecommerce/tag/edit :: scripts}" />
+    <script th:replace="~{ecommerce/tag/scripts :: add-edit}" />
+    <script th:replace="~{ecommerce/tag/scripts :: delete}" />
+    <script th:replace="~{ecommerce/tag/scripts :: bulk-actions}" />
+</th:block>
+<script layout:fragment="final-scripts">
+ecommerce.onPromptTagActionConfirmed = ezyadmin.onPromptConfirmed;
+ezyadmin.onPromptConfirmed = function(modalId) {
+    if (ecommerce.selectedTagId) {
+        ecommerce.onPromptTagActionConfirmed(modalId);
+        ecommerce.selectedTagId = 0;
+    } else {
+        ecommerce.onPromptTagBulkActionConfirmed(modalId);
+    }
+}
+</script>
+</body>
+</html>

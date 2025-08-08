@@ -1,0 +1,135 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~ 
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~ 
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~ 
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<head>
+    <script>
+        var ecommerce = {};
+    </script>
+</head>
+<body>
+<div layout:fragment="content" class="row">
+    <div class="col-md-3 col-4"><label>[[#{book_name}]]:</label></div>
+    <div class="col-md-9 col-8">
+        <a th:href="${'/ecommerce/products/' + product.id}">
+            [[${product.productName}]]
+        </a>
+    </div>
+    <th:block th:if="${book != null}">
+        <div class="col-md-3 col-4"><label>[[#{author}]]:</label></div>
+        <div class="col-md-9 col-8">
+            <th:block th:if="${bookAuthor == null}">
+                [[${book.author}]]
+            </th:block>
+            <th:block th:if="${bookAuthor != null}">
+                <a th:href="${'/users/' + bookAuthor.username}">
+                    [[${bookAuthor.name}]]
+                </a>
+            </th:block>
+        </div>
+        <div class="col-md-3 col-4"><label>[[#{author_url}]]:</label></div>
+        <div class="col-md-9 col-8">
+            <a th:href="${book.authorUrl}">
+                [[${book.authorUrl}]]
+            </a>
+        </div>
+        <div class="col-md-3 col-4"><label>[[#{book_type}]]:</label></div>
+        <div class="col-md-9 col-8">[[#{${book.bookType.toLowerCase()}}]]</div>
+        <div class="col-md-3 col-4"><label>[[#{number_of_pages}]]:</label></div>
+        <div class="col-md-9 col-8">[[${book.pages}]]</div>
+        <div class="col-md-3 col-4"><label>[[#{cover_type}]]:</label></div>
+        <div class="col-md-9 col-8">[[#{${book.coverType.toLowerCase()}}]]</div>
+        <div class="col-md-3 col-4"><label>[[#{affiliate}]]:</label></div>
+        <div class="col-md-9 col-8">[[${book.affiliate}]]</div>
+        <div class="col-md-3 col-4"><label>[[#{preview_link}]]:</label></div>
+        <div class="col-md-9 col-8">
+            <a th:href="${book.previewLink}">
+                [[${book.authorUrl}]]
+            </a>
+        </div>
+        <div class="col-md-3 col-4"><label>[[#{distribution_company}]]:</label></div>
+        <div class="col-md-9 col-8">[[${book.distributionCompany}]]</div>
+        <div class="col-md-3 col-4"><label>[[#{publisher}]]:</label></div>
+        <div class="col-md-9 col-8">[[${book.publisher}]]</div>
+        <div class="col-md-3 col-4"><label>[[#{released_at}]]:</label></div>
+        <div class="col-md-9 col-8 date-time-string">[[${book.releasedAt}]]</div>
+        <div class="col-md-3 col-4"></div>
+        <div class="col-md-9 col-8">
+            <button type="button" class="btn btn-danger mb-2"
+                    th:attr="onclick=|ecommerce.onDeleteProductBookClick()|">
+                [[#{delete}]] <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    </th:block>
+</div>
+<th:block layout:fragment="modals">
+    <th:block th:replace="~{fragments/prompt :: content(id='delete-product-book-modal', title=confirm, confirmButton=delete, closeButton=close)}" />
+</th:block>
+<script layout:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ecommerce.selectedProductId = /*[[${product.id}]]*/ '';
+ecommerce.selectedProductName = /*[[${product.productName}]]*/ '';
+ezyadmin.messages.do_you_want_to_delete_book_information_pname = /*[[#{do_you_want_to_delete_book_information_pname}]]*/;
+/*]]>*/
+ecommerce.productDescriptionLanguage = '';
+
+ezyadmin.onEditButtonClick = function() {
+    window.location = '/ecommerce/products/' + ecommerce.selectedProductId + '/book/edit';
+}
+
+// ========== product book delete =============
+ecommerce.onDeleteProductBookClick = function() {
+    $('#delete-product-book-modal-body-content')
+        .text(
+            ezyadmin
+                .messages
+                .do_you_want_to_delete_book_information_pname
+                .replace('{0}', ecommerce.selectedProductName)
+        );
+    $('#delete-product-book-modal').modal('show');
+}
+
+ecommerce.deleteProductBook = function() {
+    $.ajax({
+        type: 'DELETE',
+        url: '/ecommerce/api/v1/products/' + ecommerce.selectedProductId + '/book',
+        success: function () {
+            window.location = '/ecommerce/products/' + ecommerce.selectedProductId
+                + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+        },
+        error: function (data, e) {
+            ezyadmin.processUpdateApiErrors({}, data);
+        }
+    });
+}
+</script>
+<th:block layout:fragment="post-scripts">
+<script th:replace="~{ecommerce/product/scripts :: delete}" />
+<script>
+ezyadmin.onPromptConfirmed = function(modalId) {
+    if (modalId == 'delete-product-book-modal') {
+        ecommerce.deleteProductBook();
+    }
+}
+</script>
+</th:block>
+</body>
+</html>

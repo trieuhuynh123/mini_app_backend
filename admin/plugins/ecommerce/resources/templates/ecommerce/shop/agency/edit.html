@@ -1,0 +1,256 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<head>
+    <script>
+        var ecommerce = {};
+    </script>
+</head>
+<body>
+<div layout:fragment="content" class="row">
+    <div class="col-md-10 col-sm-12">
+        <form id="editShopAgencyForm">
+            <div class="form-group row">
+                <label class="col-sm-3 col-form-label">[[#{shop}]]</label>
+                <div class="col-9">
+                    <a th:href="${'/ecommerce/shops/' + shop.id}">[[${shop.displayName}]]</a>
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="editShopAgencyType" class="col-md-3 col-form-label">
+                    [[#{type}]]
+                </label>
+                <div class="col-lg-3 col-md-3">
+                    <select name="type" id="editShopAgencyType" class="form-control">
+                        <option th:each="shopAgencyType : ${shopAgencyTypes}"
+                                th:value="${shopAgencyType.toString()}"
+                                th:selected="${shopAgencyType.toString() == shopAgency.type}">
+                            [[#{${shopAgencyType.toString().toLowerCase()}}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="editShopAgencyTypeErrorLabel" class="col-lg-3 col-md-6 col-form-label text-danger d-none" for="editShopAgencyType">
+                    <i class="far fa-times-circle"></i> <span id="editShopAgencyTypeError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editShopAgencyCode" class="col-sm-3 col-form-label">
+                    [[#{code}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="code" id="editShopAgencyCode"
+                           class="form-control" th:placeholder="#{code}"
+                           th:value="${shopAgency.code}">
+                </div>
+                <label id="editShopAgencyCodeErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editShopAgencyCode">
+                    <i class="far fa-times-circle"></i> <span id="editShopAgencyCodeError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editShopAgencyDisplayName" class="col-sm-3 col-form-label">
+                    [[#{display_name}]] (<span class="text-danger">*</span>)
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="displayName" id="editShopAgencyDisplayName"
+                           class="form-control" th:placeholder="#{display_name}"
+                           th:value="${shopAgency.displayName}">
+                </div>
+                <label id="editShopAgencyDisplayNameErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editShopAgencyDisplayName">
+                    <i class="far fa-times-circle"></i> <span id="editShopAgencyDisplayNameError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editShopAgencyCountry" class="col-md-3 col-form-label">
+                    [[#{country}]] (<span class="text-danger">*</span>)
+                </label>
+                <div class="col-lg-2 col-md-3">
+                    <select name="countryId" id="editShopAgencyCountry" class="form-control"
+                            onchange="ecommerce.onCountryChange(this);">
+                        <option th:each="country : ${countries}"
+                                th:value="${country.id}"
+                                th:selected="${country.id == shopAgencyCountry.id}">
+                            [[#{${country.internationalName}}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="editShopAgencyCountryErrorLabel" class="col-lg-7 col-md-6 col-form-label text-danger d-none" for="editShopAgencyCountry">
+                    <i class="far fa-times-circle"></i> <span id="editShopAgencyCountryError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editShopAgencyProvince" class="col-md-3 col-form-label">
+                    [[#{province}]]
+                </label>
+                <div class="col-lg-2 col-md-3">
+                    <select name="provinceId" id="editShopAgencyProvince" class="form-control"
+                            onchange="ecommerce.onProvinceChange(this);">
+                        <option th:each="province : ${provinces}"
+                                th:value="${province.id}"
+                                th:selected="${province.id == shopAgencyProvince.id}">
+                            [[#{${province.displayName}}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="editShopAgencyProvinceErrorLabel" class="col-lg-7 col-md-6 col-form-label text-danger d-none" for="editShopAgencyProvince">
+                    <i class="far fa-times-circle"></i> <span id="editShopAgencyProvinceError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editShopAgencyDistrict" class="col-md-3 col-form-label">
+                    [[#{district}]]
+                </label>
+                <div class="col-lg-2 col-md-3">
+                    <select name="districtId" id="editShopAgencyDistrict" class="form-control"
+                            onchange="ecommerce.onDistrictChange(this);">
+                        <option th:each="district : ${districts}"
+                                th:value="${district.id}"
+                                th:selected="${district.id == shopAgencyDistrict.id}">
+                            [[#{${district.displayName}}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="editShopAgencyDistrictErrorLabel" class="col-lg-7 col-md-6 col-form-label text-danger d-none" for="editShopAgencyDistrict">
+                    <i class="far fa-times-circle"></i> <span id="editShopAgencyDistrictError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editShopAgencyWard" class="col-md-3 col-form-label">
+                    [[#{ward}]]
+                </label>
+                <div class="col-lg-2 col-md-3">
+                    <select name="wardId" id="editShopAgencyWard" class="form-control">
+                        <option th:each="ward : ${wards}"
+                                th:value="${ward.id}"
+                                th:selected="${ward.id == shopAgencyWard.id}">
+                            [[#{${ward.displayName}}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="editShopAgencyWardErrorLabel" class="col-lg-7 col-md-6 col-form-label text-danger d-none" for="editShopAgencyWard">
+                    <i class="far fa-times-circle"></i> <span id="editShopAgencyWardError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editShopAgencyAddress" class="col-sm-3 col-form-label">
+                    [[#{address}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="detailedAddress" id="editShopAgencyAddress"
+                           class="form-control" th:placeholder="#{address}"
+                           th:value="${shopAgency.detailedAddress}">
+                </div>
+                <label id="editShopAgencyAddressErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editShopAgencyAddress">
+                    <i class="far fa-times-circle"></i> <span id="editShopAgencyAddressError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editShopAgencyEmail" class="col-sm-3 col-form-label">
+                    [[#{email}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="email" id="editShopAgencyEmail"
+                           class="form-control" th:placeholder="#{email}"
+                           th:value="${shopAgency.email}">
+                </div>
+                <label id="editShopAgencyEmailErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editShopAgencyEmail">
+                    <i class="far fa-times-circle"></i> <span id="editShopAgencyEmailError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editShopAgencyPhoneNumber" class="col-sm-3 col-form-label">
+                    [[#{phone_number}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="phoneNumber" id="editShopAgencyPhoneNumber"
+                           class="form-control" th:placeholder="#{phone_number}"
+                           th:value="${shopAgency.phoneNumber}">
+                </div>
+                <label id="editShopAgencyPhoneNumberErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editShopAgencyPhoneNumber">
+                    <i class="far fa-times-circle"></i> <span id="editShopAgencyPhoneNumberError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editShopAgencyTier" class="col-sm-3 col-form-label">
+                    [[#{agency_tier}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="number" name="tier" id="editShopAgencyTier"
+                           class="form-control" th:placeholder="#{agency_tier}"
+                           th:value="${shopAgency.tier}">
+                </div>
+                <label id="editShopAgencyTierErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editShopAgencyTier">
+                    <i class="far fa-times-circle"></i> <span id="editShopAgencyTierError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editShopAgencyStatus" class="col-md-3 col-form-label">
+                    [[#{status}]]
+                </label>
+                <div class="col-lg-3 col-md-3">
+                    <select name="status" id="editShopAgencyStatus" class="form-control">
+                        <option th:each="shopAgencyStatus : ${shopAgencyStatuses}"
+                                th:value="${shopAgencyStatus.toString()}"
+                                th:selected="${shopAgency.status == shopAgencyStatus}">
+                            [[#{${shopAgencyStatus.toString().toLowerCase()}}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="editShopAgencyStatusErrorLabel" class="col-lg-6 col-md-6 col-form-label text-danger d-none" for="editShopAgencyStatus">
+                    <i class="far fa-times-circle"></i> <span id="editShopAgencyStatusError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="row">
+                <div class="col-md-3"></div>
+                <div class="col-lg-2 col-md-3">
+                    <button type="button" class="btn btn-primary btn-block" onclick="ecommerce.editShopAgency();">
+                        [[#{submit}]]
+                    </button>
+                </div>
+                <div class="col-lg-7 col-md-6"></div>
+                <!-- /.col -->
+            </div>
+        </form>
+    </div>
+    <div class="col-md-2 col-sm-0"></div>
+    <div class="col-12 mb-3"></div>
+</div>
+<script layout:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ecommerce.selectedShopId = /*[[${shop.id}]]*/;
+ecommerce.editShopAgencyId = /*[[${shopAgency.id}]]*/;
+/*]]>*/
+ecommerce.provincesSelectId = 'editShopAgencyProvince';
+ecommerce.districtsSelectId = 'editShopAgencyDistrict';
+ecommerce.wardsSelectId = 'editShopAgencyWard';
+
+// ========== edit shopAgency =============
+ecommerce.editShopAgency = function() {
+    ecommerce.addOrEditShopAgency('edit');
+}
+</script>
+<th:block layout:fragment="post-scripts">
+    <script th:replace="~{ecommerce/shop/agency/scripts :: add-edit}" />
+    <script th:replace="~{ecommerce/country/scripts :: change}" />
+</th:block>
+</body>
+
+</html>

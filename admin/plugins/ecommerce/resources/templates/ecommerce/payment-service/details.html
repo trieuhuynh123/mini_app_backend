@@ -1,0 +1,118 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~ 
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~ 
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~ 
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<head>
+    <script>
+        var ecommerce = {};
+    </script>
+</head>
+<body>
+<div layout:fragment="content" class="row">
+    <div class="col-lg-2 col-md-3 col-4"><label>[[#{id}]]:</label></div>
+    <div class="col-lg-10 col-md-9 col-8">[[${paymentServiceSetting.id}]]</div>
+    <div class="col-lg-2 col-md-3 col-4"><label>[[#{code}]]:</label></div>
+    <div class="col-lg-10 col-md-9 col-8">[[${paymentServiceSetting.code}]]</div>
+    <div class="col-lg-2 col-md-3 col-4"><label>[[#{name}]]:</label></div>
+    <div class="col-lg-10 col-md-9 col-8">[[${paymentServiceSetting.name}]]</div>
+    <div class="col-lg-2 col-md-3 col-4"><label>[[#{version}]]:</label></div>
+    <div class="col-lg-10 col-md-9 col-8">[[${paymentServiceSetting.version}]]</div>
+    <div class="col-lg-2 col-md-3 col-4"><label>[[#{bank}]]:</label></div>
+    <div class="col-lg-10 col-md-9 col-8">
+        <th:block th:if="${paymentServiceSetting.bank != null}">
+            <th:block th:if="${paymentServiceSetting.bank.name == null}">
+                [[${paymentServiceSetting.bank.code}]]
+            </th:block>
+            <th:block th:if="${paymentServiceSetting.bank.name != null}">
+                [[${paymentServiceSetting.bank.name}]] ([[${paymentServiceSetting.bank.code}]])
+            </th:block>
+        </th:block>
+    </div>
+    <div class="col-lg-2 col-md-3 col-4"><label>[[#{currency}]]:</label></div>
+    <div class="col-lg-10 col-md-9 col-8">
+        [[${paymentServiceSetting.currency.isoCode}]]
+        -
+        [[${paymentServiceSetting.currency.displayName}]]
+    </div>
+    <div class="col-lg-2 col-md-3 col-4"><label>[[#{priority}]]:</label></div>
+    <div class="col-lg-10 col-md-9 col-8">
+        [[${paymentServiceSetting.priority}]]
+    </div>
+    <div class="col-2 d-flex align-items-center">
+        <label>[[#{logo}]]:</label>
+    </div>
+    <div class="col-10 mt-2 mb-2">
+        <img th:src="${paymentServiceSetting.logoImage != null ? paymentServiceSetting.logoImage.getUrlOrDefault('') : ''}"
+             class="object-fit-cover" width="64">
+    </div>
+    <div class="col-2 d-flex align-items-center">
+        <label>[[#{banner}]]:</label>
+    </div>
+    <div class="col-10 mt-2 mb-2">
+        <img th:src="${paymentServiceSetting.bannerImage != null ? paymentServiceSetting.bannerImage.getUrlOrDefault('') : ''}"
+             class="object-fit-cover" width="256">
+    </div>
+    <div class="col-lg-2 col-md-3 col-4"><label>[[#{service_url}]]:</label></div>
+    <div class="col-lg-10 col-md-9 col-8">
+        <a th:href="${paymentServiceSetting.serviceUrl}" target="_blank">[[${paymentServiceSetting.serviceUrl}]]</a>
+    </div>
+    <div class="col-lg-2 col-md-3 col-4"><label>[[#{service_api_url}]]:</label></div>
+    <div class="col-lg-10 col-md-9 col-8">
+        [[${paymentServiceSetting.serviceApiUrl}]]
+    </div>
+    <div class="col-lg-2 col-md-3 col-4"><label>[[#{callback_url}]]:</label></div>
+    <div class="col-lg-10 col-md-9 col-8">[[${webUrl + paymentServiceSetting.callbackUrl}]]</div>
+    <div class="col-lg-2 col-md-3 col-4"><label>[[#{styles}]]:</label></div>
+    <div class="col-lg-10 col-md-9 col-8">
+        <textarea class="form-control" disabled>[[${paymentServiceSetting.styles}]]</textarea>
+    </div>
+    <div class="col-lg-2 col-md-3 col-4"><label>[[#{scripts}]]:</label></div>
+    <div class="col-lg-10 col-md-9 col-8">
+        <textarea class="form-control" disabled>[[${paymentServiceSetting.scripts}]]</textarea>
+    </div>
+    <div class="col-lg-2 col-md-3 col-4"><label>[[#{client_key}]]:</label></div>
+    <div class="col-lg-10 col-md-9 col-8">[[${paymentServiceSetting.clientKey}]]</div>
+    <div class="col-lg-2 col-md-3 col-4"><label>[[#{secret_key}]]:</label></div>
+    <div class="col-lg-10 col-md-9 col-8">[[${paymentServiceSetting.secretKey}]]</div>
+    <div class="col-lg-2 col-md-3 col-4"><label>[[#{status}]]:</label></div>
+    <div class="col-lg-10 col-md-9 col-8 date-time-string">
+        <span th:attr="status=|${paymentServiceSetting.status}|" class="status-text">
+            [[#{${paymentServiceSetting.status.toString().toLowerCase()}}]]
+        </span>
+    </div>
+    <div class="col-lg-2 col-md-3 col-4"><label>[[#{created_at}]]:</label></div>
+    <div class="col-lg-10 col-md-9 col-8 date-time-string">[[${paymentServiceSetting.createdAt}]]</div>
+    <div class="col-lg-2 col-md-3 col-4"><label>[[#{updated_at}]]:</label></div>
+    <div class="col-lg-10 col-md-9 col-8 date-time-string">[[${paymentServiceSetting.updatedAt}]]</div>
+    <div class="col-12 mb-3"></div>
+</div>
+<script layout:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ecommerce.selectedPaymentServiceCode = /*[[${paymentServiceSetting.code}]]*/ '';
+/*]]>*/
+
+ezyadmin.onEditButtonClick = function() {
+    window.location = '/ecommerce/payment-services/' + ecommerce.selectedPaymentServiceCode + '/edit'
+        + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+}
+</script>
+</body>
+</html>

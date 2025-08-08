@@ -1,0 +1,114 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~ 
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~ 
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~ 
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org">
+<body>
+<script th:fragment="add-edit">
+// =========== images ===================
+ecommerce.selectShopBankAccountAccountQrCodeImage = function(action) {
+    ezyadmin.showMediaModal('shopBankAccountBankBannerImage')
+        .onMediaShow(media => {
+            if (media.type != 'IMAGE') {
+                $('#selectMediaButton').attr('disabled', true);
+            }
+        })
+        .onMediaSelected(media => {
+            $('#shopBankAccountAccountQrCodeImage').attr(
+                'src',
+                ezyadmin.extractMediaUrl(media)
+            )
+            .removeClass('d-none')
+            .show();
+            ecommerce.shopBankAccountAccountQrCodeImage = media;
+            $('#' + action + 'ShopBankAccountAccountQrCodeImage').val(media.originalName);
+            ezyadmin.closeMediaModal();
+        });
+}
+
+// ========== add or edit shopBankAccount ===========
+ecommerce.addOrEditShopBankAccount = function(action) {
+    var formData = ezyadmin.formDataToObject(action + 'ShopBankAccountForm');
+    if (ecommerce.shopBankAccountAccountQrCodeImage) {
+        formData['accountQrCodeImageId'] = ecommerce.shopBankAccountAccountQrCodeImage.id;
+    }
+    var url = (action == 'add')
+        ? '/ecommerce/api/v1/shops/' + ecommerce.selectedShopId + '/bank-accounts/add'
+        : '/ecommerce/api/v1/shops/' + ecommerce.selectedShopId + '/bank-accounts/' + ecommerce.editShopBankAccountId;
+    $.ajax({
+        type: action == 'add' ? 'POST' : 'PUT',
+        url: url,
+        data: JSON.stringify(formData),
+        contentType: 'application/json',
+        success: function (data) {
+            window.location = '/ecommerce/shops/' + ecommerce.selectedShopId
+                + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+        },
+        error: function (data, e) {
+            ezyadmin.processUpdateApiErrors(formData, data);
+        }
+    });
+};
+</script>
+<script th:fragment="delete" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.do_you_want_to_delete_bank_account_paccount_of_shop_pname = /*[[#{do_you_want_to_delete_bank_account_paccount_of_shop_pname}]]*/;
+/*]]>*/
+// ========== shopBankAccount delete =============
+ecommerce.onDeleteShopBankAccountClick = function(
+    shopBranchBankAccountId,
+    shopBranchBankAccountNumber,
+    shopName
+) {
+    ecommerce.selectedShopBankAccountId = shopBranchBankAccountId;
+    $('#delete-shop-bank-account-modal-body-content')
+        .text(
+            ezyadmin
+                .messages
+                .do_you_want_to_delete_bank_account_paccount_of_shop_pname
+                .replace('{0}', shopBranchBankAccountNumber)
+                .replace('{1}', shopName)
+        );
+    $('#delete-shop-bank-account-modal').modal('show');
+}
+
+ecommerce.deleteShopBankAccount = function() {
+    $.ajax({
+        type: 'DELETE',
+        url: '/ecommerce/api/v1/shops/' +
+            ecommerce.selectedShopId +
+            '/bank-accounts/' +
+            ecommerce.selectedShopBankAccountId,
+        success: function () {
+            window.location = '/ecommerce/shops/' + ecommerce.selectedShopId
+                + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+        },
+        error: function (data, e) {
+            ezyadmin.processUpdateApiErrors({}, data);
+        }
+    });
+}
+
+ezyadmin.onPromptConfirmed = function(modalId) {
+    if (modalId == 'delete-shop-bank-account-modal') {
+        ecommerce.deleteShopBankAccount();
+    }
+}
+</script>
+</body>
+</html>

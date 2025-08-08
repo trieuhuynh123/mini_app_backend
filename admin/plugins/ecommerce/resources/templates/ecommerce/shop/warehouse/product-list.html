@@ -1,0 +1,346 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<body>
+<th:block th:fragment="content">
+    <div class="col-12 mt-2 selected-product-count d-none"></div>
+    <div class="col-12 mt-3"></div>
+    <div class="col-lg-3 col-md-4 col-12">
+        <div class="d-flex align-items-center">
+            <select class="form-control form-select" id="productBulkAction">
+                <option value="">[[#{bulk_action}]]</option>
+                <option value="IMPORT_PRODUCT_PRICES_FROM_FILE">[[#{import_product_prices_from_file}]]</option>
+                <option value="EXPORT_PRODUCTS_TO_FILE">[[#{export_products_to_file}]]</option>
+                <option value="ARCHIVE">[[#{archive_products}]]</option>
+                <option value="DELETE">[[#{delete_products}]]</option>
+                <option value="DISCOUNT">[[#{discount_on_products}]]</option>
+                <option value="CANCEL_DISCOUNT">[[#{cancel_discount_on_products}]]</option>
+                <option value="DRAFT">[[#{draft_products}]]</option>
+                <option value="PUBLISH">[[#{publish_products}]]</option>
+                <option value="UPCOMING_LAUNCHES">[[#{upcoming_product_launches}]]</option>
+                <option value="STOP_SELLING">[[#{stop_selling_products}]]</option>
+            </select>
+            <button type="button" class="btn btn-outline-primary text-nowrap ml-1"
+                    onclick="ecommerce.performProductBulkAction();">
+                [[#{perform}]]
+            </button>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-0 col-0 d-lg-block d-md-none"></div>
+    <div class="col-lg-3 col-md-5 col-12 page-search">
+        <label for="productSearchKeyword" class="text-nowrap">[[#{search}]]: </label>
+        <input type="search" class="form-control" th:placeholder="#{keyword}" id="productSearchKeyword"
+               onkeydown="ecommerce.onKeydownToSearchProduct();">
+    </div>
+    <div class="col-lg-3 col-md-3 col-12 page-search">
+        <label for="productSearchStatus" class="text-nowrap">[[#{status}]]: </label>
+        <select class="form-control form-select" id="productSearchStatus"
+                onchange="ecommerce.onProductSearchStatusChanged();">
+            <option value="">[[#{all}]]</option>
+            <option th:each="productStatus : ${productStatuses}"
+                    th:value="${productStatus}"
+                    th:selected="${productStatus.toString() == productSearchStatus}">
+                [[#{${productStatus.toString().toLowerCase()}}]]
+            </option>
+        </select>
+    </div>
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-body table-responsive p-0">
+                <table class="table table-bordered table-hover text-nowrap align-middle-cells">
+                    <thead>
+                    <tr>
+                        <th class="text-center pl-2p5">
+                            <input type="checkbox" id="checkAllProductsCheckBox" class="wh-1rem"
+                                   onclick="ecommerce.onMultiProductsClick(this)" />
+                        </th>
+                        <th class="text-center">[[#{id}]]</th>
+                        <th>[[#{icon}]]</th>
+                        <th>[[#{code}]]</th>
+                        <th>[[#{display_name}]]</th>
+                        <th>[[#{price}]]</th>
+                        <th class="text-center">[[#{remain}]]</th>
+                        <th class="text-center">[[#{status}]]</th>
+                        <th class="text-center" id="savedAtTitle">[[#{created_at}]]</th>
+                        <th class="text-center">[[#{actions}]]</th>
+                    </tr>
+                    </thead>
+                    <tbody id="productListBody">
+                    </tbody>
+                </table>
+            </div>
+            <!-- /.card-body -->
+            <div class="card-footer clearfix">
+                <span><span id="productCountText">0</span>
+                    [[${#strings.toLowerCase(#messages.msg('of'))}]]
+                    <span id="totalProductText">0</span>
+                    [[${#strings.toLowerCase(#messages.msg('product'))}]]
+                </span>
+                <ul class="pagination pagination-sm m-0 float-right">
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="firstPageButton">
+                            <i class="fas fa-arrow-circle-left pl-1 pr-1"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="prevPageButton">[[#{prev}]]</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="nextPageButton">[[#{next}]]</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="lastPageButton">
+                            <i class="fas fa-arrow-circle-right pl-1 pr-1"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.card-footer -->
+        </div>
+    </div>
+</th:block>
+<script th:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ecommerce.defaultCurrencyIsoCode = /*[[${defaultCurrency.isoCode}]]*/ '';
+ezyadmin.messages.archive = /*[[#{archive}]]*/ '';
+ezyadmin.messages.archived = /*[[#{archived}]]*/ '';
+ezyadmin.messages.add_products_to_warehouse = /*[[#{add_products_to_warehouse}]]*/ '';
+ezyadmin.messages.add_to_warehouse = /*[[#{add_to_warehouse}]]*/ '';
+ezyadmin.messages.cancel_discount = /*[[#{cancel_discount}]]*/ '';
+ezyadmin.messages.closed = /*[[#{closed}]]*/ '';
+ezyadmin.messages.coming_soon = /*[[#{coming_soon}]]*/ '';
+ezyadmin.messages.created_at = /*[[#{created_at}]]*/ '';
+ezyadmin.messages.delete = /*[[#{delete}]]*/ '';
+ezyadmin.messages.deleted = /*[[#{deleted}]]*/ '';
+ezyadmin.messages.discount = /*[[#{discount}]]*/ '';
+ezyadmin.messages.draft = /*[[#{draft}]]*/ '';
+ezyadmin.messages.opened = /*[[#{opened}]]*/ '';
+ezyadmin.messages.publish = /*[[#{publish}]]*/ '';
+ezyadmin.messages.published = /*[[#{published}]]*/ '';
+ezyadmin.messages.register_opened = /*[[#{register_opened}]]*/ '';
+ezyadmin.messages.stop_selling = /*[[#{stop_selling}]]*/ '';
+ezyadmin.messages.remove_from_warehouse = /*[[#{remove_from_warehouse}]]*/ '';
+ezyadmin.messages.remove_products_from_warehouse = /*[[#{remove_products_from_warehouse}]]*/ '';
+ezyadmin.messages.upcoming_launches = /*[[#{upcoming_launches}]]*/ '';
+ezyadmin.messages.updated_at = /*[[#{updated_at}]]*/ '';
+ezyadmin.messages.do_you_want_to_paction_products = /*[[#{do_you_want_to_paction_products}]]*/;
+ezyadmin.messages.product_s = /*[[#{product_s}]]*/;
+/*]]>*/
+ecommerce.productIdChecks = {}
+ecommerce.productsType = 'IN_WAREHOUSE';
+
+// ========== add products buttons =======
+ecommerce.onAddNewProductsButtonClick = function() {
+    ecommerce.productsType = 'ALL';
+    ecommerce.doSearchProduct();
+    $('#addNewProductsButton').addClass('d-none');
+    $('#addProductsDoneButton').removeClass('d-none');
+    ecommerce.addWarehouseProductsBulkActionOption();
+}
+
+ecommerce.onAddNewProductsDoneButtonClick = function() {
+    ecommerce.productsType = 'IN_WAREHOUSE';
+    ecommerce.doSearchProduct();
+    $('#addNewProductsButton').removeClass('d-none');
+    $('#addProductsDoneButton').addClass('d-none');
+    ecommerce.addWarehouseProductsBulkActionOption();
+}
+
+ecommerce.addWarehouseProductsBulkActionOption = function() {
+    var html = '<option value="';
+    if (ecommerce.productsType == 'ALL') {
+        $('option[value="REMOVE_FROM_WAREHOUSE"]').remove();
+        html += 'ADD_TO_WAREHOUSE">' + ezyadmin.messages.add_products_to_warehouse;
+    } else {
+        $('option[value="ADD_TO_WAREHOUSE"]').remove();
+        html += 'REMOVE_FROM_WAREHOUSE">' + ezyadmin.messages.remove_products_from_warehouse;
+    }
+    html += '</option>';
+    $('#productBulkAction').append(html);
+}
+
+// ========== product search =============
+ecommerce.onKeydownToSearchProduct = function() {
+    if(event.key === 'Enter') {
+        ecommerce.doSearchProduct();
+    }
+}
+ecommerce.onProductSearchStatusChanged = function() {
+    ecommerce.productSearchStatus = $('#productSearchStatus').val();
+    ecommerce.fetchProductList();
+}
+ecommerce.doSearchProduct = function() {
+    ecommerce.productSearchKeyword = $('#productSearchKeyword').val();
+    ecommerce.fetchProductList();
+}
+
+// ========== product pagination =============
+$('#firstPageButton').click(() => {
+    ecommerce.fetchProductList('first');
+});
+$('#lastPageButton').click(() => {
+    ecommerce.fetchProductList('last');
+});
+$('#nextPageButton').click(() => {
+    ecommerce.fetchProductList('next');
+});
+$('#prevPageButton').click(() => {
+    ecommerce.fetchProductList('prev');
+});
+
+// ========== product list =============
+ecommerce.fetchProductList = function(action) {
+    var queryString = '';
+    if (ecommerce.productSearchStatus) {
+        queryString += '&status=' + ecommerce.productSearchStatus;
+    }
+    if (ecommerce.productSearchKeyword) {
+        queryString += '&keyword=' + ecommerce.productSearchKeyword;
+    }
+    if (action == 'next') {
+        if (ecommerce.lastProductPageToken.next) {
+            queryString += '&nextPageToken=' + ecommerce.lastProductPageToken.next;
+        } else {
+            return;
+        }
+    } else if (action == 'prev') {
+        if (ecommerce.lastProductPageToken.prev) {
+            queryString += '&prevPageToken=' + ecommerce.lastProductPageToken.prev;
+        } else {
+            return;
+        }
+    } else if (action == 'last') {
+        queryString += '&lastPage=true';
+    }
+    queryString += '&shopId=' + ecommerce.selectedShopId;
+    if (ecommerce.productsType == 'IN_WAREHOUSE') {
+        queryString += '&inclusiveWarehouseId=' + ecommerce.selectedWarehouseId;
+    } else {
+        queryString += '&exclusiveWarehouseId=' + ecommerce.selectedWarehouseId;
+    }
+    var uriPrefix = ecommerce.productsType == 'IN_WAREHOUSE'
+        ? 'warehouse-'
+        : '';
+    $.ajax({
+        url: '/ecommerce/api/v1/' + uriPrefix + 'products?limit=30' + queryString,
+        type: 'GET',
+        dataType: 'json'
+    })
+    .done(function(data) {
+        $('#productCountText').text(data.count);
+        $('#totalProductText').text(ezyadmin.formatNumberWithCommas(data.total));
+        ecommerce.lastProductPageToken = data.pageToken;
+        $('#savedAtTitle').text(
+            ecommerce.productsType == 'IN_WAREHOUSE'
+                ? ezyadmin.messages.updated_at
+                : ezyadmin.messages.created_at
+        );
+        $('#productListBody').html(ecommerce.buildProductListBodyHtml(data.items));
+        if (data.continuation.hasNext) {
+            $('#nextPageButton').removeClass('text-secondary');
+        } else {
+            $('#nextPageButton').addClass('text-secondary');
+        }
+        if (data.continuation.hasPrevious) {
+            $('#prevPageButton').removeClass('text-secondary');
+        } else {
+            $('#prevPageButton').addClass('text-secondary');
+        }
+    })
+    .fail(function(e) {
+        ezyadmin.processGetApiErrors(e);
+    });
+}
+
+ecommerce.buildProductListBodyHtml = function(products) {
+    var html = '';
+    products.forEach((product) => {
+        html += ecommerce.buildProductListItemHtml(product);
+    });
+    return html;
+}
+ecommerce.buildProductListItemHtml = function(product) {
+    var statusColor = ezyadmin.getTextColorByStatus(product.status);
+    var productImage = product.iconImage || product.bannerImage;
+    var html = `
+        <tr id="product-row-${product.id}">
+            <td class="text-center pl-2p5">
+                <input name="productIds" type="checkbox" value="${product.id}"
+                    onclick="ecommerce.onProductCheckChange(this)"
+                    ${ecommerce.productIdChecks[product.id] ? 'checked' : ''}>
+            </td>
+            <td class="text-center">${product.id}</td>
+            <td>
+                ${productImage
+                    ? `<img src="${ezyadmin.extractMediaUrl(productImage)}" width="64" class="object-fit-cover">`
+                    : ''}
+            </td>
+            <td class="text-break">${product.productCode}</td>
+            <td>
+                <a href="/ecommerce/products/${product.id}${ezyadmin.lang ? `?lang=${ezyadmin.lang}` : ''}">
+                    ${product.productName}
+                </a>
+            </td>
+            <td>
+                ${product.formattedPrice ? `${product.formattedPrice} ${ecommerce.defaultCurrencyIsoCode}` : ''}
+            </td>
+            <td class="text-center" id="product-row-${product.id}-amount">
+                ${ezyadmin.formatNumberWithCommas(
+                    ecommerce.productsType === 'IN_WAREHOUSE'
+                        ? product.remainingAmount
+                        : product.amount - product.soldAmount
+                )}
+            </td>
+            <td class="text-center ${statusColor}">
+                ${ezyadmin.getI18nMessage(product.status.toLowerCase())}
+            </td>
+            <td class="text-center">
+                ${ezyadmin.formatTimeStamp(
+                    ecommerce.productsType === 'IN_WAREHOUSE'
+                        ? product.updatedAt
+                        : product.createdAt
+                )}
+            </td>
+            <td class="text-center">
+                ${ecommerce.productsType === 'IN_WAREHOUSE' ? `
+                    <button type="button" class="btn pr-1"
+                        onclick="ecommerce.showEditWarehouseProductRemainingAmountProductModal(${product.id}, ${product.remainingAmount});">
+                        <i class="fas fa-edit text-primary"></i>
+                    </button>
+                    <button type="button" class="btn pl-1"
+                        onclick="ecommerce.onDeleteWarehouseProductInWarehouseClick(${product.id}, '${escape(product.productName)}');">
+                        <i class="fas fa-minus-circle text-danger"></i>
+                    </button>
+                ` : `
+                    <button type="button" class="btn pr-1"
+                        onclick="ecommerce.showAddWarehouseProductModal(${product.id}, ${product.amount - product.soldAmount});">
+                        <i class="fas fa-plus-circle text-primary"></i>
+                    </button>
+                `}
+            </td>
+        </tr>`;
+    return html;
+}
+ecommerce.fetchProductList();
+</script>
+</body>
+</html>

@@ -1,0 +1,285 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<body>
+<th:block th:fragment="content">
+    <div class="col-12 mb-2 selected-member-count d-none"></div>
+    <div class="col-12 mt-3"></div>
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-body table-responsive p-0">
+                <table class="table table-bordered table-hover text-nowrap">
+                    <thead>
+                    <tr>
+                        <th class="text-center">#</th>
+                        <th class="text-center">[[#{username}]]</th>
+                        <th class="text-center">[[#{display_name}]]</th>
+                        <th class="text-center">[[#{phone_number}]]</th>
+                        <th class="text-center">[[#{type}]]</th>
+                        <th class="text-center">[[#{added_at}]]</th>
+                        <th class="text-center">[[#{actions}]]</th>
+                    </tr>
+                    </thead>
+                    <tbody id="memberListBody">
+                    </tbody>
+                </table>
+            </div>
+            <!-- /.card-body -->
+            <div class="card-footer clearfix">
+                <span><span id="memberCountText">0</span>
+                    [[${#strings.toLowerCase(#messages.msg('of'))}]]
+                    <span id="totalMemberText">0</span>
+                    [[${#strings.toLowerCase(#messages.msg('members'))}]]
+                </span>
+                <ul class="pagination pagination-sm m-0 float-right">
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="firstPageButtonMember">
+                            <i class="fas fa-arrow-circle-left pl-1 pr-1"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="prevPageButtonMember">[[#{prev}]]</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="nextPageButtonMember">[[#{next}]]</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="lastPageButtonMember">
+                            <i class="fas fa-arrow-circle-right pl-1 pr-1"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.card-footer -->
+        </div>
+    </div>
+</th:block>
+<script th:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.admin = /*[[#{admin}]]*/ '';
+ezyadmin.messages.user = /*[[#{user}]]*/ '';
+/*]]>*/
+
+ecommerce.memberIdChecks = {}
+
+// ========== product package pagination =============
+$('#firstPageButtonMember').click(() => {
+    ecommerce.fetchMemberList('first');
+});
+$('#lastPageButtonMember').click(() => {
+    ecommerce.fetchMemberList('last');
+});
+$('#nextPageButtonMember').click(() => {
+    ecommerce.fetchMemberList('next');
+});
+$('#prevPageButtonMember').click(() => {
+    ecommerce.fetchMemberList('prev');
+});
+
+// ========== member list =============
+ecommerce.fetchMemberList = function(action) {
+    var queryString = '';
+    if (ecommerce.memberSearchCreatedAtStartInclusive) {
+        queryString += '&createdAtStartInclusive=' + ecommerce.memberSearchCreatedAtStartInclusive;
+    }
+    if (ecommerce.memberSearchCreatedAtEndExclusive) {
+        queryString += '&createdAtEndExclusive=' + ecommerce.memberSearchCreatedAtEndExclusive;
+    }
+    if (action == 'current') {
+        if (ecommerce.lastMemberQueryString) {
+            queryString = ecommerce.lastMemberQueryString;
+        }
+    } else if (action == 'next') {
+        if (ecommerce.lastMemberPageToken.next) {
+            queryString += '&nextPageToken=' + ecommerce.lastMemberPageToken.next;
+        } else {
+            return;
+        }
+    } else if (action == 'prev') {
+        if (ecommerce.lastMemberPageToken.prev) {
+            queryString += '&prevPageToken=' + ecommerce.lastMemberPageToken.prev;
+        } else {
+            return;
+        }
+    } else if (action == 'last') {
+        queryString += '&lastPage=true';
+    }
+    $.ajax({
+        url: '/ecommerce/api/v1/shop-agencies/' + ecommerce.selectedAgencyId +
+             '/members?limit=30' + queryString,
+        type: 'GET',
+        dataType: 'json'
+    })
+    .done(function(data) {
+        $('#memberCountText').text(data.count);
+        $('#totalMemberText').text(ezyadmin.formatNumberWithCommas(data.total));
+        ecommerce.lastMemberQueryString = queryString;
+        ecommerce.lastMemberPageToken = data.pageToken;
+        $('#memberListBody').html(ecommerce.buildMemberListBodyHtml(data.items));
+        if (data.continuation.hasNext) {
+            $('#nextPageButtonMember').removeClass('text-secondary');
+        } else {
+            $('#nextPageButtonMember').addClass('text-secondary');
+        }
+        if (data.continuation.hasPrevious) {
+            $('#prevPageButtonMember').removeClass('text-secondary');
+        } else {
+            $('#prevPageButtonMember').addClass('text-secondary');
+        }
+    })
+    .fail(function(e) {
+    	ezyadmin.processGetApiErrors(e);
+    });
+}
+ecommerce.buildMemberListBodyHtml = function(members) {
+    var html = '';
+    members.forEach((member, index) => {
+        html += ecommerce.buildMemberListItemHtml(member, index);
+    });
+    return html;
+}
+ecommerce.buildMemberListItemHtml = function(member, index) {
+    var statusColor = ezyadmin.getTextColorByStatus(member.status);
+    var packageId = member.member?.id || 0;
+    var packageLabel = member.member?.packageLabel || '';
+    var html = `
+        <tr id="member-row-${member.id}">
+            <td class="align-middle text-center">${index + 1}</td>
+            <td class="align-middle text-center">${member.username}</td>
+            <td class="align-middle text-center">${member.displayName || ''}</td>
+            <td class="align-middle text-center">
+                <a href="tel:${member.phoneNumber}">${member.phoneNumber || ''}</a>
+            </td>
+            <td class="align-middle text-center">${ezyadmin.getI18nMessage(member.memberType.toLowerCase())}</td>
+            <td class="align-middle text-center">${ezyadmin.formatTimeStamp(member.addedAt)}</td>
+            <td class="align-middle text-center">
+                <a class="btn pl-1 pr-1" href="/${member.memberType === 'ADMIN' ? 'admins' : 'users'}/${member.username}${ezyadmin.lang ? '?lang=' + ezyadmin.lang : ''}">
+                    <i class="fas fa-eye text-info"></i>
+                </a>
+                <button type="button" class="btn pl-1" onclick="ecommerce.onRemoveShopAgencyMemberClick(${member.id}, '${escape(member.displayName || member.username)}');">
+                    <i class="fas fa-trash-alt text-danger"></i>
+                </button>
+            </td>
+        </tr>
+    `;
+	return html;
+}
+ecommerce.fetchMemberList();
+</script>
+<script th:fragment="add-member">
+// ================= add member ==============
+ezyadmin.onSearchAdminModalCloseWithAdminData = function(adminData) {
+    var formData = {
+        memberType: 'ADMIN',
+        memberId: adminData.adminId
+    };
+    $.ajax({
+        type: 'POST',
+        url: '/ecommerce/api/v1/shop-agencies/' + ecommerce.selectedAgencyId + '/members/add',
+        data: JSON.stringify(formData),
+        contentType: 'application/json',
+        success: function () {
+            ecommerce.fetchMemberList();
+        },
+        error: function (e) {
+            ezyadmin.processUpdateApiErrors({}, e);
+            ezyadmin.shortToast(
+                'bg-danger',
+                ezyadmin.messages.add_failed + ": " + e.responseText
+            );
+        }
+    });
+}
+
+ezyadmin.onSearchUserModalCloseWithUserData = function(userData) {
+    var formData = {
+        memberType: 'USER',
+        memberId: userData.userId
+    };
+    $.ajax({
+        type: 'POST',
+        url: '/ecommerce/api/v1/shop-agencies/' + ecommerce.selectedAgencyId + '/members/add',
+        data: JSON.stringify(formData),
+        contentType: 'application/json',
+        success: function () {
+            ecommerce.fetchMemberList();
+        },
+        error: function (e) {
+            ezyadmin.processUpdateApiErrors({}, e);
+            ezyadmin.shortToast(
+                'bg-danger',
+                ezyadmin.messages.add_failed + ": " + e.responseText
+            );
+        }
+    });
+}
+</script>
+<script th:fragment="remove-member" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.do_you_want_to_remove_pmember_from_pagency = /*[[#{do_you_want_to_remove_pmember_from_pagency}]]*/;
+/*]]>*/
+
+// ========== shop agency delete =============
+ecommerce.onRemoveShopAgencyMemberClick = function(shopAgencyMemberId, memberName) {
+    ecommerce.selectedShopAgencyMemberId = shopAgencyMemberId;
+    $('#remove-shop-agency-member-modal-body-content')
+        .text(
+            ezyadmin
+                .messages
+                .do_you_want_to_remove_pmember_from_pagency
+                .replace('{0}', unescape(memberName))
+                .replace('{1}', unescape(ecommerce.selectedAgencyDisplayName))
+        );
+    $('#remove-shop-agency-member-modal').modal('show');
+}
+
+ecommerce.removeShopAgencyMember = function() {
+    $.ajax({
+        type: 'delete',
+        url: '/ecommerce/api/v1/shop-agency-members/' + ecommerce.selectedShopAgencyMemberId ,
+        success: function () {
+            $('#remove-shop-agency-member-modal').modal('hide');
+            if (ecommerce.fetchMemberList) {
+                ecommerce.fetchMemberList('current');
+            } else {
+                window.location = '/ecommerce/shop-agencies/' + ecommerce.selectedShopAgencyId
+                    + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+            }
+        },
+        error: function (data, e) {
+            ezyadmin.processUpdateApiErrors({}, data);
+        }
+    });
+}
+
+ezyadmin.onPromptConfirmed = function(modalId) {
+    ecommerce.onPromptShopAgencyActionConfirmed(modalId);
+}
+
+ecommerce.onPromptShopAgencyActionConfirmed = function(modalId) {
+    if (modalId == 'remove-shop-agency-member-modal') {
+        ecommerce.removeShopAgencyMember();
+    }
+}
+</script>
+</body>
+</html>

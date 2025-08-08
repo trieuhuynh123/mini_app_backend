@@ -1,0 +1,164 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~ 
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~ 
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~ 
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org">
+<body>
+<script th:fragment="add-edit">
+// =========== icon ===================
+ecommerce.selectIconImage = function(action) {
+    ezyadmin.showMediaModal('shopIconImage')
+        .onMediaSelected(media => {
+            $('#shopIconImage').attr(
+                'src',
+                ezyadmin.extractMediaUrl(media)
+            )
+            .removeClass('d-none')
+            .show();
+            ecommerce.shopIconImage = media;
+            $('#' + action + 'ShopIconImage').val(media.originalName);
+            ezyadmin.closeMediaModal();
+        });
+}
+
+// =========== banner ===================
+ecommerce.selectBannerImage = function(action) {
+    ezyadmin.showMediaModal('shopBannerImage')
+        .onMediaSelected(media => {
+            $('#shopBannerImage').attr(
+                'src',
+                ezyadmin.extractMediaUrl(media)
+            )
+            .removeClass('d-none')
+            .show();
+            ecommerce.shopBannerImage = media;
+            $('#' + action + 'ShopBannerImage').val(media.originalName);
+            ezyadmin.closeMediaModal();
+        });
+}
+
+// ========== add or edit shop ===========
+ecommerce.addOrEditShop = function(action) {
+    var formData = ezyadmin.formDataToObject(action + 'ShopForm');
+    var shopOwnerFieldName = action + 'ShopOwner';
+    var shopOwnerValue = formData[shopOwnerFieldName] || '';
+    if (shopOwnerValue.trim()) {
+        ezyadmin.setActualFormFieldData(
+            formData,
+            shopOwnerFieldName,
+            (user) => user.userId
+        );
+        formData.shopOwnerId = formData[shopOwnerFieldName];
+        if (!formData.shopOwnerId && ecommerce.selectedShopOwner) {
+            formData.shopOwnerId = ecommerce.selectedShopOwner.userId;
+        }
+        if (isNaN(formData.shopOwnerId)) {
+            formData.shopOwnerId = 0;
+        }
+    }
+    delete formData.editShopOwner;
+    if (ecommerce.shopIconImage) {
+        formData['shopIconImage'] = ecommerce.shopIconImage.id;
+    }
+    if (ecommerce.shopBannerImage) {
+        formData['shopBannerImage'] = ecommerce.shopBannerImage.id;
+    }
+    if (!formData.companyLicensedDate.trim().length) {
+        delete formData.companyLicensedDate;
+    }
+    formData.shopHeadquartersId = ecommerce.shopHeadquartersId || 0;
+    formData.shopMainWarehouseId = ecommerce.shopMainWarehouseId || 0;
+    var url = (action == 'add')
+        ? '/ecommerce/api/v1/shops/add'
+        : '/ecommerce/api/v1/shops/' + ecommerce.editShopId;
+    $.ajax({
+        type: action == 'add' ? 'POST' : 'PUT',
+        url: url,
+        data: JSON.stringify(formData),
+        contentType: 'application/json',
+        success: function (data) {
+            var shopId = ecommerce.editShopId || data.addedId;
+            window.location = '/ecommerce/shops/' + shopId
+                + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+        },
+        error: function (data, e) {
+            ezyadmin.processUpdateApiErrors(formData, data);
+        }
+    });
+};
+</script>
+<script th:fragment="set-as-default" th:inline="javascript">
+// ========== set as default shop =============
+ecommerce.setAsDefaultShop = function(shopId) {
+    $.ajax({
+        type: 'PUT',
+        url: '/ecommerce/api/v1/shops/' + shopId + '/set-as-default',
+        success: function () {
+            ecommerce.defaultShopId = shopId;
+            ecommerce.fetchShopList('current');
+        },
+        error: function (data, e) {
+            ezyadmin.processUpdateApiErrors({}, data);
+        }
+    });
+}
+</script>
+<script th:fragment="delete" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.do_you_want_to_delete_shop_pname = /*[[#{do_you_want_to_delete_shop_pname}]]*/;
+/*]]>*/
+// ========== shop delete =============
+ecommerce.onDeleteShopClick = function(shopId, shopName) {
+    ecommerce.selectedShopId = shopId;
+    $('#delete-shop-modal-body-content')
+        .text(
+            ezyadmin
+                .messages
+                .do_you_want_to_delete_shop_pname
+                .replace('{0}', shopName)
+        );
+    $('#delete-shop-modal').modal('show');
+}
+
+ecommerce.deleteShop = function() {
+    $.ajax({
+        type: 'DELETE',
+        url: '/ecommerce/api/v1/shops/' + ecommerce.selectedShopId,
+        success: function () {
+            $('#delete-shop-modal').modal('hide');
+            if (ecommerce.fetchShopList) {
+                ecommerce.fetchShopList('current');
+            } else {
+                window.location = '/ecommerce/shops'
+                    + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+            }
+        },
+        error: function (data, e) {
+            ezyadmin.processUpdateApiErrors({}, data);
+        }
+    });
+}
+
+ezyadmin.onPromptConfirmed = function(modalId) {
+    if (modalId == 'delete-shop-modal') {
+        ecommerce.deleteShop();
+    }
+}
+</script>
+</body>
+</html>

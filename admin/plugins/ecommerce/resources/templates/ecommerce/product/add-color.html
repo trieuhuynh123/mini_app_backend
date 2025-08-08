@@ -1,0 +1,202 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="content">
+    <div class="modal fade pt-4rem" id="add-product-color">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="add-product-color-modal-title">
+                        [[#{add_new_product_color}]]
+                    </h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="addColorForm">
+                        <div class="form-group row">
+                            <label for="addAvailableColors" class="col-4 col-form-label">
+                                [[#{available_colors}]]
+                            </label>
+                            <div class="col-8">
+                                <select name="availableColors" id="addAvailableColors"
+                                       class="form-control form-select"
+                                       onchange="ecommerce.onShopProductColorChange(this, 'add');">
+                                    <option value="">[[#{select}]]</option>
+                                    <option th:each="shopProductColor : ${shopProductColors}"
+                                            th:value="${shopProductColor.colorName + '||' + shopProductColor.colorDisplayName + '||' + shopProductColor.colorCode}">
+                                        [[${shopProductColor.colorName + '||' + shopProductColor.colorDisplayName + '||' + shopProductColor.colorCode}]]
+                                    </option>
+                                </select>
+                                <span>[[#{available_colors_guide}]]</span>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="addColorName" class="col-4 col-form-label">
+                                [[#{name}]] (<span class="text-danger">*</span>)
+                            </label>
+                            <div class="col-8">
+                                <label class="col-form-label text-danger d-none" id="addColorNameErrorLabel" for="addColorName">
+                                    <i class="far fa-times-circle"></i> <span id="addColorNameError"></span>
+                                </label>
+                                <input type="text" name="colorName" id="addColorName"
+                                       class="form-control" th:placeholder="#{name}"
+                                       value="default"
+                                       onkeydown="ecommerce.onKeyDownToAddColor();">
+                                <span class="text-dark">
+                                    [[#{name_input_guide}]]
+                                </span>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="addColorDisplayName" class="col-4 col-form-label">
+                                [[#{display_name}]] (<span class="text-danger">*</span>)
+                            </label>
+                            <div class="col-8">
+                                <label class="col-form-label text-danger d-none" id="addColorDisplayNameErrorLabel" for="addColorDisplayName">
+                                    <i class="far fa-times-circle"></i> <span id="addColorDisplayNameError"></span>
+                                </label>
+                                <input type="text" name="colorDisplayName" id="addColorDisplayName"
+                                       class="form-control" th:placeholder="#{display_name}"
+                                       th:value="#{default}"
+                                       onkeydown="ecommerce.onKeyDownToAddColor();">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="addColorCode" class="col-4 col-form-label">
+                                [[#{code}]]
+                            </label>
+                            <div class="col-8">
+                                <label class="col-form-label text-danger d-none" id="addColorCodeErrorLabel" for="addColorCode">
+                                    <i class="far fa-times-circle"></i> <span id="addColorCodeError"></span>
+                                </label>
+                                <input type="text" name="colorCode" id="addColorCode"
+                                       class="form-control" th:placeholder="#{example} + ': #aabbcc'"
+                                       onkeydown="ecommerce.onKeyDownToAddColor();">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="addColorProductAmount" class="col-4 col-form-label">
+                                [[#{product_amount}]]
+                            </label>
+                            <div class="col-8">
+                                <label class="col-form-label text-danger d-none" id="addColorProductAmountErrorLabel" for="addColorProductAmount">
+                                    <i class="far fa-times-circle"></i> <span id="addColorProductAmountError"></span>
+                                </label>
+                                <input type="number" name="amount" id="addColorProductAmount"
+                                       class="form-control" th:placeholder="#{product_amount}"
+                                       onkeydown="ecommerce.onKeyDownToEditColor();">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <div>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">[[#{cancel}]]</button>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="ecommerce.saveColor('add');">
+                        [[#{add}]]
+                    </button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+</th:block>
+<script th:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.default = /*[[#{default}]]*/ '';
+/*]]>*/
+
+// ========== show add color modal =============
+ecommerce.showAddColorModal = function() {
+    $('#add-product-color').modal('show');
+}
+
+ecommerce.hideAddColorModal = function() {
+    $('#add-product-color').modal('hide');
+}
+
+// ========== shop product color change =============
+ecommerce.onShopProductColorChange = function(e, action) {
+    var value = $(e).val();
+    var colorName = 'default';
+    var colorDisplayName = ezyadmin.messages.default;
+    var colorCode = '';
+    if (value) {
+        var strs = value.split('||');
+        colorName = strs[0].trim();
+        colorDisplayName = strs[1].trim();
+        colorCode = strs[2].trim();
+    }
+    $('#' + action + 'ColorName').val(colorName);
+    $('#' + action + 'ColorDisplayName').val(colorDisplayName);
+    $('#' + action + 'ColorCode').val(colorCode);
+}
+
+// ========== add color =============
+ecommerce.onKeyDownToAddColor = function() {
+    if(event.key === 'Enter') {
+        ecommerce.saveColor('add');
+    }
+}
+
+ecommerce.saveColor = function(action) {
+    var formData = ezyadmin.formDataToObject(action + 'ColorForm');
+    if (!formData.colorCode) {
+        formData.colorCode = '#ffffff';
+    }
+    delete formData.availableColors;
+    $.ajax({
+        type: action == 'add' ? 'POST' : 'PUT',
+        url: '/ecommerce/api/v1/products/' + ecommerce.selectedProductId +
+             '/colors/' + (action == 'add' ? 'add' : ecommerce.selectedColorId),
+        data: formData,
+        success: function (data) {
+            ecommerce.hideAddColorModal();
+            ecommerce.hideEditColorModal();
+            if (ecommerce.fetchProductColorNames) {
+                ecommerce.fetchProductColorNames();
+                if (ecommerce.fetchProductSizeColorPrices) {
+                    ecommerce.fetchProductSizeColorPrices();
+                }
+            } else {
+                location.reload();
+            }
+        },
+        error: function (e) {
+            var formView = {};
+            formView[action + 'ColorName'] = true;
+            formView[action + 'ColorDisplayName'] = true;
+            formView[action + 'ColorCode'] = true;
+            var errors = e.responseJSON || {};
+            errors[action + 'ColorName'] = errors.colorName;
+            errors[action + 'ColorDisplayName'] = errors.colorDisplayName;
+            errors[action + 'ColorCode'] = errors.colorCode;
+            errors[action + 'ProductAmount'] = errors.productAmount;
+            ezyadmin.processUpdateApiErrors(formView, e);
+        }
+    });
+}
+</script>
+</body>
+</html>

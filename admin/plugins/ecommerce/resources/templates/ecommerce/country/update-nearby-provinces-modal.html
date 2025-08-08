@@ -1,0 +1,118 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="content">
+    <div class="modal fade pt-4rem" id="update-nearby-provinces">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="update-nearby-provinces-modal-title">
+                        [[#{update_near_by_province}]]
+                    </h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="saveNearbyProvinceForm">
+                        <select name="nearbyProvinceIds" id="saveNearbyProvinces"
+                                class="form-control min-height-300"
+                                multiple>
+                        </select>
+                    </form>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <div>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">[[#{cancel}]]</button>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="ecommerce.saveNearbyProvinces();">
+                        [[#{update}]]
+                    </button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+</th:block>
+<script th:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.province_s = /*[[#{province_s}]]*/;
+ezyadmin.messages.update_nearby_provinces_of_pname = /*[[#{update_nearby_provinces_of_pname}]]*/;
+/*]]>*/
+// ========== show update nearby province modal =============
+ecommerce.showUpdateNearbyProvincesModal = function(
+    countryId,
+    provinceId,
+    provinceDisplayName
+) {
+    ecommerce.updateNearByCountryId = countryId;
+    ecommerce.updateNearByProvinceId = provinceId;
+    $('#update-nearby-provinces-modal-title').text(
+        ezyadmin.messages.update_nearby_provinces_of_pname
+            .replace('{0}', provinceDisplayName)
+    );
+    ezyadmin.showLoadingScreen();
+    $.ajax({
+        type: 'GET',
+        url: '/ecommerce/api/v1/countries/' + countryId +
+            '/provinces/' + provinceId + '/nearby',
+        success: function (data) {
+            ezyadmin.hideLoadingScreen();
+            var html = '';
+            data.forEach((province, index) => {
+                html += `<option value="${province.id}" ${province.selected ? 'selected' : ''}>
+                    ${index + 1}. ${province.displayName}
+                </option>`;
+            });
+            $('#saveNearbyProvinces').html(html);
+            $('#update-nearby-provinces').modal('show');
+        },
+        error: function (e) {
+            ezyadmin.hideLoadingScreen();
+            ezyadmin.processGetApiErrors(e);
+        }
+    });
+}
+
+// ========== add warehouseProduct =============
+ecommerce.saveNearbyProvinces = function() {
+    var formData = ezyadmin.formDataToObject('saveNearbyProvinceForm');
+    $.ajax({
+        type: 'PUT',
+        url: '/ecommerce/api/v1/countries/' + ecommerce.updateNearByCountryId +
+            '/provinces/' + ecommerce.updateNearByProvinceId + '/nearby',
+        contentType: 'application/json',
+        data: JSON.stringify(formData),
+        success: function (data) {
+            $('#update-nearby-provinces').modal('hide');
+            $('#showNearbyProvincesButton').text(
+                formData.nearbyProvinceIds.length + ' ' +
+                    ezyadmin.messages.province_s
+            );
+        },
+        error: function (e) {
+            ezyadmin.processGetApiErrors(e);
+        }
+    });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,288 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<body>
+<th:block th:fragment="content">
+    <div class="col-lg-3 col-md-0 col-0"></div>
+    <div class="col-lg-3 col-md-4 col-12 page-search">
+        <label for="deliveryOrderSearchKeyword" class="text-nowrap">[[#{search}]]: </label>
+        <input type="text" id="deliveryOrderSearchKeyword"
+               class="form-control" th:placeholder="#{keyword}"
+               onkeydown="ecommerce.onKeydownToSearchDeliveryOrder();">
+    </div>
+    <div class="col-lg-3 col-md-4 col-12 page-search">
+        <label for="deliveryOrderSearchTrackingId" class="text-nowrap">[[#{tracking_id}]]: </label>
+        <input type="text" id="deliveryOrderSearchTrackingId"
+               class="form-control" th:placeholder="#{tracking_id}"
+               onkeydown="ecommerce.onKeydownToSearchDeliveryOrder();">
+    </div>
+    <div class="col-lg-3 col-md-4 col-12 page-search">
+        <label for="deliveryOrderSearchStatus" class="text-nowrap">[[#{status}]]: </label>
+        <select class="form-control form-select" id="deliveryOrderSearchStatus"
+                onchange="ecommerce.onDeliveryOrderSearchStatusChanged();">
+            <option value="">[[#{all}]]</option>
+            <option th:each="deliveryOrderStatus : ${deliveryOrderStatuses}"
+                    th:value="${deliveryOrderStatus}"
+                    th:selected="${deliveryOrderStatus.toString() == deliveryOrderSearchStatus}">
+                [[#{${deliveryOrderStatus.toString().toLowerCase()}}]]
+            </option>
+        </select>
+    </div>
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-body table-responsive p-0">
+                <table class="table table-bordered table-hover text-nowrap align-middle-cells">
+                    <thead>
+                    <tr>
+                        <th class="text-center pl-2p5">[[#{id}]]</th>
+                        <th class="text-center text-wrap">[[#{order_id}]]</th>
+                        <th class="text-wrap">[[#{tracking_id}]]</th>
+                        <th>[[#{products}]]</th>
+                        <th class="text-wrap">[[#{delivery_service}]]</th>
+                        <th>[[#{recipient}]]</th>
+                        <th>[[#{phone_number}]]</th>
+                        <th class="text-center">[[#{status}]]</th>
+                        <th class="text-center">[[#{updated_at}]]</th>
+                        <th class="text-center">[[#{actions}]]</th>
+                    </tr>
+                    </thead>
+                    <tbody id="deliveryOrderListBody">
+                    </tbody>
+                </table>
+            </div>
+            <!-- /.card-body -->
+            <div class="card-footer clearfix">
+                <span><span id="deliveryOrderCountText">0</span>
+                    [[${#strings.toLowerCase(#messages.msg('of'))}]]
+                    <span id="totalDeliveryOrderText">0</span>
+                    [[${#strings.toLowerCase(#messages.msg('delivery_orders'))}]]
+                </span>
+                <ul class="pagination pagination-sm m-0 float-right">
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="firstPageButtonDeliveryOrder">
+                            <i class="fas fa-arrow-circle-left pl-1 pr-1"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="prevPageButtonDeliveryOrder">[[#{prev}]]</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="nextPageButtonDeliveryOrder">[[#{next}]]</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="lastPageButtonDeliveryOrder">
+                            <i class="fas fa-arrow-circle-right pl-1 pr-1"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.card-footer -->
+        </div>
+    </div>
+</th:block>
+<script th:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ecommerce.deliveryOrderSearchStatus = /*[[${deliveryOrderSearchStatus}]]*/ '';
+ezyadmin.messages.request_created = /*[[#{request_created}]]*/ '';
+ezyadmin.messages.request_sent = /*[[#{request_sent}]]*/ '';
+ezyadmin.messages.request_send_failed = /*[[#{request_send_failed}]]*/ '';
+ezyadmin.messages.request_received = /*[[#{request_received}]]*/ '';
+ezyadmin.messages.retrieving_products = /*[[#{retrieving_products}]]*/ '';
+ezyadmin.messages.packing = /*[[#{packing}]]*/ '';
+ezyadmin.messages.shipped = /*[[#{shipped}]]*/ '';
+ezyadmin.messages.in_transit = /*[[#{in_transit}]]*/ '';
+ezyadmin.messages.out_for_delivery = /*[[#{out_for_delivery}]]*/ '';
+ezyadmin.messages.delivered = /*[[#{delivered}]]*/ '';
+ezyadmin.messages.invalidated = /*[[#{invalidated}]]*/ '';
+ezyadmin.messages.failed_delivery_attempt = /*[[#{failed_delivery_attempt}]]*/ '';
+ezyadmin.messages.customs_clearance = /*[[#{customs_clearance}]]*/ '';
+ezyadmin.messages.returned_to_sender = /*[[#{returned_to_sender}]]*/ '';
+ezyadmin.messages.exception = /*[[#{exception}]]*/ '';
+ezyadmin.messages.hold = /*[[#{hold}]]*/ '';
+/*]]>*/
+
+// ========== deliveryOrder search =============
+ecommerce.onKeydownToSearchDeliveryOrder = function() {
+    if(event.key === 'Enter') {
+        ecommerce.deliveryOrderSearchKeyword = $('#deliveryOrderSearchKeyword').val().trim();
+        ecommerce.changeBrowserUrl();
+        ecommerce.fetchDeliveryOrderList();
+    }
+}
+
+ecommerce.onDeliveryOrderSearchStatusChanged = function() {
+    ecommerce.deliveryOrderSearchStatus = $('#deliveryOrderSearchStatus').val();
+    ecommerce.fetchDeliveryOrderList();
+}
+
+// ========== deliveryOrder pagination =============
+$('#firstPageButtonDeliveryOrder').click(() => {
+    ecommerce.fetchDeliveryOrderList('first');
+});
+$('#lastPageButtonDeliveryOrder').click(() => {
+    ecommerce.fetchDeliveryOrderList('last');
+});
+$('#nextPageButtonDeliveryOrder').click(() => {
+    ecommerce.fetchDeliveryOrderList('next');
+});
+$('#prevPageButtonDeliveryOrder').click(() => {
+    ecommerce.fetchDeliveryOrderList('prev');
+});
+
+// ========== deliveryOrder list =============
+ecommerce.fetchDeliveryOrderList = function(action) {
+    var queryString = '';
+    if (ecommerce.deliveryOrderSearchStatus) {
+        queryString += '&status=' + ecommerce.deliveryOrderSearchStatus;
+    }
+    if (ecommerce.deliveryOrderSearchKeyword) {
+        queryString += '&keyword=' + ecommerce.deliveryOrderSearchKeyword;
+    }
+    if (ecommerce.deliveryOrderSearchShoppingCartId) {
+        queryString += '&shoppingCartId=' + ecommerce.deliveryOrderSearchShoppingCartId;
+    }
+    if (action == 'current') {
+        if (ecommerce.lastDeliveryOrderQueryString) {
+            queryString = ecommerce.lastDeliveryOrderQueryString;
+        }
+    } else if (action == 'next') {
+        if (ecommerce.lastDeliveryOrderPageToken.next) {
+            queryString += '&nextPageToken=' + ecommerce.lastDeliveryOrderPageToken.next;
+        } else {
+            return;
+        }
+    } else if (action == 'prev') {
+        if (ecommerce.lastDeliveryOrderPageToken.prev) {
+            queryString += '&prevPageToken=' + ecommerce.lastDeliveryOrderPageToken.prev;
+        } else {
+            return;
+        }
+    } else if (action == 'last') {
+        queryString += '&lastPage=true';
+    }
+    $.ajax({
+        url: '/ecommerce/api/v1/delivery-orders?limit=12' + queryString,
+        type: 'GET',
+        dataType: 'json'
+    })
+    .done(function(data) {
+        $('#deliveryOrderCountText').text(data.count);
+        $('#totalDeliveryOrderText').text(ezyadmin.formatNumberWithCommas(data.total));
+        ecommerce.lastDeliveryOrderQueryString = queryString;
+        ecommerce.lastDeliveryOrderPageToken = data.pageToken;
+        $('#deliveryOrderListBody').html(ecommerce.buildDeliveryOrderListBodyHtml(data.items));
+        if (data.continuation.hasNext) {
+            $('#nextPageButtonDeliveryOrder').removeClass('text-secondary');
+        } else {
+            $('#nextPageButtonDeliveryOrder').addClass('text-secondary');
+        }
+        if (data.continuation.hasPrevious) {
+            $('#prevPageButtonDeliveryOrder').removeClass('text-secondary');
+        } else {
+            $('#prevPageButtonDeliveryOrder').addClass('text-secondary');
+        }
+    })
+    .fail(function(e) {
+    	ezyadmin.processGetApiErrors(e);
+    });
+}
+ecommerce.buildDeliveryOrderListBodyHtml = function(deliveryOrders) {
+    var html = '';
+    deliveryOrders.forEach((deliveryOrder) => {
+        html += ecommerce.buildDeliveryOrderListItemHtml(deliveryOrder);
+    });
+    return html;
+}
+ecommerce.buildDeliveryOrderListItemHtml = function(deliveryOrder) {
+    var statusColor = ezyadmin.getTextColorByStatus(deliveryOrder.status);
+    var html = `
+        <tr id="delivery-order-row-${deliveryOrder.id}">
+            <td class="text-center pl-2p5">
+                <a href="/ecommerce/delivery-orders/${deliveryOrder.id}${ezyadmin.lang ? `?lang=${ezyadmin.lang}` : ''}">
+                    ${deliveryOrder.id}
+                </a>
+            </td>
+            <td class="text-center">
+                <a href="/ecommerce/orders/${deliveryOrder.orderId}${ezyadmin.lang ? `?lang=${ezyadmin.lang}` : ''}">
+                    ${deliveryOrder.orderId}
+                </a>
+            </td>
+            <td>
+                ${deliveryOrder.trackingUrl
+                    ? `<a href="${deliveryOrder.trackingUrl}" target="_blank">${deliveryOrder.trackingId || ''}</a>`
+                    : (deliveryOrder.trackingId || '')}
+            </td>
+            <td>
+                <ol class="pl-3 mb-0">
+                    ${deliveryOrder.products.map(product => `
+                        <li>
+                            <a href="/ecommerce/products/${product.id}${ezyadmin.lang ? `?lang=${ezyadmin.lang}` : ''}">
+                                ${product.productName}
+                            </a>
+                        </li>
+                    `).join('')}
+                </ol>
+            </td>
+            <td>
+                <a href="/ecommerce/delivery-services/${deliveryOrder.deliveryService.code}${ezyadmin.lang ? `?lang=${ezyadmin.lang}` : ''}">
+                    ${deliveryOrder.deliveryService.name || ''}
+                </a>
+            </td>
+            <td>${deliveryOrder.recipientFullName || ''}</td>
+            <td>
+                <a href="tel:${deliveryOrder.recipientPhoneNumber}">
+                    ${deliveryOrder.recipientPhoneNumber || ''}
+                </a>
+            </td>
+            <td class="text-center ${statusColor}">
+                ${ezyadmin.getI18nMessage(deliveryOrder.status.toLowerCase())}
+            </td>
+            <td class="text-center">
+                ${ezyadmin.formatTimeStamp(deliveryOrder.updatedAt)}
+            </td>
+            <td class="text-center">
+                <a class="btn pr-1" href="/ecommerce/delivery-orders/${deliveryOrder.id}${ezyadmin.lang ? `?lang=${ezyadmin.lang}` : ''}">
+                    <i class="fas fa-eye text-info"></i>
+                </a>
+                ${['REQUEST_CREATED', 'REQUEST_SEND_FAILED', 'REJECTED'].includes(deliveryOrder.status) ? `
+                    <button type="button" class="btn pl-1 pr-1" onclick="ecommerce.onDeliverDeliveryOrderClick(${deliveryOrder.id});">
+                        <i class="fas fa-truck text-primary"></i>
+                    </button>
+                ` : ''}
+                ${deliveryOrder.status !== 'DELIVERED' ? `
+                    <button type="button" class="btn pl-1 pr-1" onclick="ecommerce.onDeliveredDeliveryOrderClick(${deliveryOrder.id});">
+                        <i class="fas fa-vote-yea text-success"></i>
+                    </button>
+                ` : ''}
+                ${deliveryOrder.status !== 'REJECTED' ? `
+                    <button type="button" class="btn pl-1" onclick="ecommerce.onRejectDeliveryOrderClick(${deliveryOrder.id});">
+                        <i class="fas fa-times-circle text-danger"></i>
+                    </button>
+                ` : ''}
+            </td>
+        </tr>`;
+	return html;
+}
+ecommerce.fetchDeliveryOrderList();
+</script>
+</body>
+</html>

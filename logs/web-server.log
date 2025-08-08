@@ -1,0 +1,88 @@
+2025-08-08 01:28:39.361 [main] INFO  c.t.e.b.i.EzySimpleBeanContext$Builder active profiles: null
+2025-08-08 01:28:39.563 [main] INFO  com.zaxxer.hikari.HikariDataSource HikariPool-1 - Starting...
+2025-08-08 01:28:40.034 [main] INFO  com.zaxxer.hikari.HikariDataSource HikariPool-1 - Start completed.
+2025-08-08 01:28:40.182 [main] INFO  o.h.jpa.internal.util.LogHelper HHH000204: Processing PersistenceUnitInfo [name: Default]
+2025-08-08 01:28:40.321 [main] INFO  org.hibernate.Version HHH000412: Hibernate ORM core version 5.6.15.Final
+2025-08-08 01:28:40.630 [main] INFO  o.h.annotations.common.Version HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2025-08-08 01:28:40.852 [main] INFO  org.hibernate.dialect.Dialect HHH000400: Using dialect: org.hibernate.dialect.MySQL8Dialect
+2025-08-08 01:28:41.997 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2025-08-08 01:28:44.047 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/memory-usage - GET
+2025-08-08 01:28:44.051 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /health-check - GET
+2025-08-08 01:28:44.052 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /api/v1/web/features - GET
+2025-08-08 01:28:44.052 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/features - GET
+2025-08-08 01:28:44.053 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /api/v1/account/media/{name} - GET
+2025-08-08 01:28:44.053 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/total-request - GET
+2025-08-08 01:28:44.053 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/start-time - GET
+2025-08-08 01:28:44.054 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/thread-count - GET
+2025-08-08 01:28:44.054 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/request-per-second - GET
+2025-08-08 01:28:44.054 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: / - GET
+2025-08-08 01:28:44.054 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/live-time - GET
+2025-08-08 01:28:44.055 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/health-check - GET
+2025-08-08 01:28:44.055 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/disk-space - GET
+2025-08-08 01:28:44.055 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/feature-names - GET
+2025-08-08 01:28:44.055 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /api/v1/media/{name} - GET
+2025-08-08 01:28:44.056 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/cpu-usage - GET
+2025-08-08 01:28:44.056 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/response-per-second - GET
+2025-08-08 01:28:44.056 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/active-threads - GET
+2025-08-08 01:28:44.056 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/apis - GET
+2025-08-08 01:28:44.061 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /css/style.css - GET
+2025-08-08 01:28:44.061 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /js/ezyweb.js - GET
+2025-08-08 01:28:44.062 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /favicon.ico - GET
+2025-08-08 01:28:44.074 [main] INFO  org.eclipse.jetty.util.log Logging initialized @5861ms to org.eclipse.jetty.util.log.Slf4jLog
+2025-08-08 01:28:44.144 [main] INFO  c.t.e.s.j.JettyApplicationBootstrap cors.enable = true
+2025-08-08 01:28:44.164 [main] INFO  org.eclipse.jetty.server.Server jetty-9.4.56.v20240826; built: 2024-08-26T17:15:05.868Z; git: ec6782ff5ead824dabdcf47fa98f90a4aedff401; jvm 1.8.0_462-8u462-ga~us1-0ubuntu2~24.04.2-b08
+2025-08-08 01:28:44.188 [main] INFO  o.e.j.server.handler.ContextHandler Started o.e.j.s.ServletContextHandler@255482cb{/,null,AVAILABLE}
+2025-08-08 01:28:44.204 [main] INFO  o.e.jetty.server.AbstractConnector Started ServerConnector@50eae15a{HTTP/1.1, (http/1.1)}{0.0.0.0:8080}
+2025-08-08 01:28:44.205 [main] INFO  o.e.jetty.server.AbstractConnector Started ServerConnector@395c21ee{HTTP/1.1, (http/1.1)}{0.0.0.0:18080}
+2025-08-08 01:28:44.206 [main] INFO  org.eclipse.jetty.server.Server Started @5993ms
+2025-08-08 01:28:44.206 [main] INFO  c.t.e.s.j.JettyApplicationBootstrap http server started on: 0.0.0.0:8080
+2025-08-08 01:28:44.206 [main] INFO  c.t.e.s.j.JettyApplicationBootstrap management started on: 0.0.0.0:18080
+2025-08-08 01:28:44.208 [main] INFO  c.t.e.server.core.EzyHttpApplication 
+
+  _____ _______   ___   _ _____ _____ ____    ____  _____    _    ______   __
+ | ____|__  /\ \ / / | | |_   _|_   _|  _ \  |  _ \| ____|  / \  |  _ \ \ / /
+ |  _|   / /  \ V /| |_| | | |   | | | |_) | | |_) |  _|   / _ \ | | | \ V / 
+ | |___ / /_   | | |  _  | | |   | | |  __/  |  _ <| |___ / ___ \| |_| || |  
+ |_____/____|  |_| |_| |_| |_|   |_| |_|     |_| \_\_____/_/   \_\____/ |_|  
+                                                                             
+
+
+2025-08-08 01:31:53.403 [main] INFO  c.t.e.b.i.EzySimpleBeanContext$Builder active profiles: null
+2025-08-08 01:31:54.267 [main] INFO  com.zaxxer.hikari.HikariDataSource HikariPool-1 - Starting...
+2025-08-08 01:31:54.968 [main] INFO  com.zaxxer.hikari.HikariDataSource HikariPool-1 - Start completed.
+2025-08-08 01:31:55.393 [main] INFO  o.h.jpa.internal.util.LogHelper HHH000204: Processing PersistenceUnitInfo [name: Default]
+2025-08-08 01:31:55.466 [main] INFO  org.hibernate.Version HHH000412: Hibernate ORM core version 5.6.15.Final
+2025-08-08 01:31:55.694 [main] INFO  o.h.annotations.common.Version HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2025-08-08 01:31:55.899 [main] INFO  org.hibernate.dialect.Dialect HHH000400: Using dialect: org.hibernate.dialect.MySQL8Dialect
+2025-08-08 01:31:59.775 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2025-08-08 01:32:08.841 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/memory-usage - GET
+2025-08-08 01:32:08.846 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /api/v1/affiliate-tokens/voucher - GET
+2025-08-08 01:32:08.849 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /api/v1/account/media/{name} - GET
+2025-08-08 01:32:08.850 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/features - GET
+2025-08-08 01:32:08.850 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/live-time - GET
+2025-08-08 01:32:08.850 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/apis - GET
+2025-08-08 01:32:08.850 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/start-time - GET
+2025-08-08 01:32:08.851 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/total-request - GET
+2025-08-08 01:32:08.851 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/request-per-second - GET
+2025-08-08 01:32:08.851 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /referral - GET
+2025-08-08 01:32:08.851 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /health-check - GET
+2025-08-08 01:32:08.851 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/cpu-usage - GET
+2025-08-08 01:32:08.851 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/response-per-second - GET
+2025-08-08 01:32:08.851 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /api/v1/web/features - GET
+2025-08-08 01:32:08.851 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/disk-space - GET
+2025-08-08 01:32:08.851 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/active-threads - GET
+2025-08-08 01:32:08.851 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /api/v1/media/{name} - GET
+2025-08-08 01:32:08.851 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: / - GET
+2025-08-08 01:32:08.851 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/thread-count - GET
+2025-08-08 01:32:08.852 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/health-check - GET
+2025-08-08 01:32:08.852 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/feature-names - GET
+2025-08-08 01:32:08.864 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /css/style.css - GET
+2025-08-08 01:32:08.864 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /js/ezyweb.js - GET
+2025-08-08 01:32:08.864 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /ecommerce/js/qrcode.min.js - GET
+2025-08-08 01:32:08.864 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /favicon.ico - GET
+2025-08-08 01:32:08.889 [main] INFO  org.eclipse.jetty.util.log Logging initialized @17322ms to org.eclipse.jetty.util.log.Slf4jLog
+2025-08-08 01:32:09.053 [main] INFO  c.t.e.s.j.JettyApplicationBootstrap cors.enable = true
+2025-08-08 01:32:09.106 [main] INFO  org.eclipse.jetty.server.Server jetty-9.4.56.v20240826; built: 2024-08-26T17:15:05.868Z; git: ec6782ff5ead824dabdcf47fa98f90a4aedff401; jvm 1.8.0_462-8u462-ga~us1-0ubuntu2~24.04.2-b08
+2025-08-08 01:32:09.170 [main] INFO  o.e.j.server.handler.ContextHandler Started o.e.j.s.ServletContextHandler@32472631{/,null,AVAILABLE}
+2025-08-08 01:36:04.202 [qtp598588779-30] INFO  c.t.e.s.c.m.ExceptionHandlerManager add exception handler for: com.tvd12.ezyhttp.core.exception.DeserializeValueException
+2025-08-08 01:36:04.203 [qtp598588779-30] INFO  c.t.e.s.c.m.ExceptionHandlerManager add exception handler for: com.tvd12.ezyhttp.core.exception.HttpRequestException

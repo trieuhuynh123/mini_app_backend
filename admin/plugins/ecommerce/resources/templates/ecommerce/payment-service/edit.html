@@ -1,0 +1,381 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<head>
+    <script>
+        var ecommerce = {};
+    </script>
+</head>
+<body>
+<div layout:fragment="content" class="row">
+    <div class="col-md-10 col-sm-12">
+        <form id="editPaymentServiceSettingForm">
+            <div class="form-group row">
+                <label class="col-sm-3 col-form-label">
+                    [[#{code}]]
+                </label>
+                <div class="col-lg-9">
+                    [[${paymentServiceSetting.code}]]
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="paymentServiceSettingName" class="col-sm-3 col-form-label">
+                    [[#{name}]] (<span class="text-danger">*</span>)
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="name" id="paymentServiceSettingName"
+                           class="form-control" th:placeholder="#{name}"
+                           th:value="${paymentServiceSetting.name}">
+                </div>
+                <label id="paymentServiceSettingNameErrorLabel"
+                       class="col-lg-2 col-md-3 col-form-label text-danger d-none"
+                       for="paymentServiceSettingName">
+                    <i class="far fa-times-circle"></i> <span id="paymentServiceSettingNameError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="paymentServiceSettingVersion" class="col-sm-3 col-form-label">
+                    [[#{version}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="version" id="paymentServiceSettingVersion"
+                           class="form-control" th:placeholder="#{version}"
+                           th:value="${paymentServiceSetting.version}">
+                </div>
+                <label id="paymentServiceSettingVersionErrorLabel"
+                       class="col-lg-2 col-md-3 col-form-label text-danger d-none"
+                       for="paymentServiceSettingVersion">
+                    <i class="far fa-times-circle"></i> <span id="paymentServiceSettingVersionError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="paymentServiceSettingLogoImage" class="col-md-3 col-form-label">
+                    [[#{logo}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <div class="input-group cursor-pointer" onclick="ecommerce.selectLogoImage('add');">
+                        <input type="text" name="paymentServiceSettingLogoImage"
+                               id="paymentServiceSettingLogoImage"
+                               class="form-control" th:placeholder="#{select_an_image}"
+                               th:value="${paymentServiceSetting.logoImage != null ? paymentServiceSetting.logoImage.originalName : ''}">
+                        <div class="input-group-append">
+                            <div class="input-group-text">
+                                <span>[[#{browse}]]</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <label id="paymentServiceSettingLogoImageErrorLabel"
+                       class="col-lg-2 col-md-3 col-form-label text-danger d-none"
+                       for="paymentServiceSettingLogoImage">
+                    <i class="far fa-times-circle"></i> <span id="paymentServiceSettingLogoImageError">[[#{invalid}]]</span>
+                </label>
+                <div class="col-md-3"></div>
+                <div class="col-md-4">
+                    <img id="paymentServiceSettingLogoImageImage" class="object-fit-cover mt-1"
+                         th:classappend="${paymentServiceSetting.logoImage != null ? '' : 'd-none'}"
+                         th:src="${paymentServiceSetting.logoImage != null ? paymentServiceSetting.logoImage.getUrlOrDefault('#') : '#'}"
+                         height="64">
+                </div>
+                <div class="col-md-5"></div>
+            </div>
+            <div class="form-group row">
+                <label for="paymentServiceSettingBannerImage" class="col-md-3 col-form-label">
+                    [[#{banner_image}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <div class="input-group cursor-pointer" onclick="ecommerce.selectBannerImage('add');">
+                        <input type="text" name="paymentServiceSettingBannerImage"
+                               id="paymentServiceSettingBannerImage"
+                               class="form-control" th:placeholder="#{select_an_image}"
+                               th:value="${paymentServiceSetting.bannerImage != null ? paymentServiceSetting.bannerImage.originalName : ''}">
+                        <div class="input-group-append">
+                            <div class="input-group-text">
+                                <span>[[#{browse}]]</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <label id="paymentServiceSettingBannerImageErrorLabel"
+                       class="col-lg-2 col-md-3 col-form-label text-danger d-none"
+                       for="paymentServiceSettingBannerImage">
+                    <i class="far fa-times-circle"></i> <span id="paymentServiceSettingBannerImageError">[[#{invalid}]]</span>
+                </label>
+                <div class="col-md-3"></div>
+                <div class="col-md-4">
+                    <img id="paymentServiceSettingBannerImageImage" class="object-fit-cover mt-1"
+                         th:classappend="${paymentServiceSetting.bannerImage != null ? '' : 'd-none'}"
+                         th:src="${paymentServiceSetting.bannerImage != null ? paymentServiceSetting.bannerImage.getUrlOrDefault('#') : '#'}"
+                         height="64">
+                </div>
+                <div class="col-md-5"></div>
+            </div>
+            <div class="form-group row">
+                <label for="paymentServiceSettingBank" class="col-sm-3 col-form-label">
+                    [[#{bank}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <select name="bankId" id="paymentServiceSettingBank" class="form-control">
+                        <option value="0">[[#{select}]]</option>
+                        <option th:each="bank : ${banks}"
+                                th:value="${bank.id}"
+                                th:selected="${paymentServiceSetting.bank != null
+                                                && bank.id == paymentServiceSetting.bank.id}">
+                            <th:block th:if="${bank.name == null}">
+                                [[${bank.code}]]
+                            </th:block>
+                            <th:block th:if="${bank.name != null}">
+                                [[${bank.name}]] ([[${bank.code}]])
+                            </th:block>
+                        </option>
+                    </select>
+                </div>
+                <label id="paymentServiceSettingBankErrorLabel"
+                       class="col-lg-2 col-md-3 col-form-label text-danger d-none"
+                       for="paymentServiceSettingBank">
+                    <i class="far fa-times-circle"></i> <span id="paymentServiceSettingBankError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="paymentServiceSettingCurrency" class="col-sm-3 col-form-label">
+                    [[#{currency}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <select name="currencyId" id="paymentServiceSettingCurrency" class="form-control">
+                        <option th:each="currency : ${currencies}"
+                                th:value="${currency.id}"
+                                th:selected="${currency.id == paymentServiceSetting.currency.id
+                                                || currency.id == defaultCurrency.id}">
+                        [[#{${currency.isoCode}}]]
+                        -
+                        [[#{${currency.displayName}}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="paymentServiceSettingCurrencyErrorLabel"
+                       class="col-lg-2 col-md-3 col-form-label text-danger d-none"
+                       for="paymentServiceSettingCurrency">
+                    <i class="far fa-times-circle"></i> <span id="paymentServiceSettingCurrencyError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="paymentServiceSettingPriority" class="col-sm-3 col-form-label">
+                    [[#{priority}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="number" name="priority"
+                           id="paymentServiceSettingPriority"
+                           class="form-control" th:placeholder="#{priority}"
+                           th:value="${paymentServiceSetting.priority}">
+                </div>
+                <label id="paymentServiceSettingPriorityErrorLabel"
+                       class="col-lg-2 col-md-3 col-form-label text-danger d-none"
+                       for="paymentServiceSettingPriority">
+                    <i class="far fa-times-circle"></i> <span id="paymentServiceSettingPriorityError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="paymentServiceSettingServiceUrl" class="col-sm-3 col-form-label">
+                    [[#{service_url}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="serviceUrl"
+                           id="paymentServiceSettingServiceUrl"
+                           class="form-control" th:placeholder="#{service_url}"
+                           th:value="${paymentServiceSetting.serviceUrl}">
+                </div>
+                <label id="paymentServiceSettingServiceUrlErrorLabel"
+                       class="col-lg-2 col-md-3 col-form-label text-danger d-none"
+                       for="paymentServiceSettingServiceUrl">
+                    <i class="far fa-times-circle"></i> <span id="paymentServiceSettingServiceUrlError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="paymentServiceSettingServiceApiUrl" class="col-sm-3 col-form-label">
+                    [[#{service_api_url}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="serviceApiUrl" id="paymentServiceSettingServiceApiUrl"
+                           class="form-control" th:placeholder="#{service_api_url}"
+                           th:value="${paymentServiceSetting.serviceApiUrl}">
+                </div>
+                <label id="paymentServiceSettingServiceApiUrlErrorLabel"
+                       class="col-lg-2 col-md-3 col-form-label text-danger d-none"
+                       for="paymentServiceSettingServiceApiUrl">
+                    <i class="far fa-times-circle"></i> <span id="paymentServiceSettingServiceApiUrlError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="paymentServiceSettingCallbackUrl" class="col-sm-3 col-form-label">
+                    [[#{callback_url}]] (<span class="text-danger">*</span>)
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="callbackUrl" id="paymentServiceSettingCallbackUrl"
+                           class="form-control" th:placeholder="#{callback_url}"
+                           th:value="${paymentServiceSetting.callbackUrl}">
+                </div>
+                <label id="paymentServiceSettingCallbackUrlErrorLabel"
+                       class="col-lg-2 col-md-3 col-form-label text-danger d-none"
+                       for="paymentServiceSettingCallbackUrl">
+                    <i class="far fa-times-circle"></i> <span id="paymentServiceSettingCallbackUrlError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="paymentServiceSettingStyles" class="col-sm-3 col-form-label">
+                    [[#{styles}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <textarea name="styles" id="paymentServiceSettingStyles"
+                              class="form-control"
+                              th:placeholder="#{styles}">[[${paymentServiceSetting.styles}]]</textarea>
+                </div>
+                <label id="paymentServiceSettingStylesErrorLabel"
+                       class="col-lg-2 col-md-3 col-form-label text-danger d-none"
+                       for="paymentServiceSettingStyles">
+                    <i class="far fa-times-circle"></i> <span id="paymentServiceSettingStylesError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="paymentServiceSettingScripts" class="col-sm-3 col-form-label">
+                    [[#{scripts}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <textarea name="scripts" id="paymentServiceSettingScripts"
+                              class="form-control"
+                              th:placeholder="#{scripts}">[[${paymentServiceSetting.scripts}]]</textarea>
+                </div>
+                <label id="paymentServiceSettingScriptsErrorLabel"
+                       class="col-lg-2 col-md-3 col-form-label text-danger d-none"
+                       for="paymentServiceSettingScripts">
+                    <i class="far fa-times-circle"></i> <span id="paymentServiceSettingScriptsError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="paymentServiceSettingClientKey" class="col-sm-3 col-form-label">
+                    [[#{client_key}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <div class="d-flex">
+                        <input type="text" name="clientKey" id="paymentServiceSettingClientKey"
+                               class="form-control" th:placeholder="#{client_key}"
+                               th:value="${paymentServiceSetting.clientKey}">
+                        <button type="button" class="btn btn-outline-primary text-nowrap"
+                                onclick="ecommerce.randomClientKey();">
+                            [[#{random}]]
+                        </button>
+                    </div>
+                </div>
+                <label id="paymentServiceSettingClientKeyErrorLabel"
+                       class="col-lg-2 col-md-3 col-form-label text-danger d-none"
+                       for="paymentServiceSettingClientKey">
+                    <i class="far fa-times-circle"></i> <span id="paymentServiceSettingClientKeyError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="paymentServiceSettingSecretKey" class="col-sm-3 col-form-label">
+                    [[#{secret_key}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <div class="d-flex">
+                        <input type="text" name="secretKey" id="paymentServiceSettingSecretKey"
+                               class="form-control" th:placeholder="#{secret_key}"
+                               th:value="${paymentServiceSetting.secretKey}">
+                        <button type="button" class="btn btn-outline-primary text-nowrap"
+                                onclick="ecommerce.randomSecretKey();">
+                            [[#{random}]]
+                        </button>
+                    </div>
+                </div>
+                <label id="paymentServiceSettingSecretKeyErrorLabel"
+                       class="col-lg-2 col-md-3 col-form-label text-danger d-none"
+                       for="paymentServiceSettingSecretKey">
+                    <i class="far fa-times-circle"></i> <span id="paymentServiceSettingSecretKeyError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="paymentServiceSettingStatus" class="col-sm-3 col-form-label">
+                    [[#{status}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <select name="status" id="paymentServiceSettingStatus" class="form-control">
+                        <option th:each="status : ${statuses}"
+                                th:value="${status}"
+                                th:selected="${paymentServiceSetting.status == status}">
+                        [[#{${status.toString().toLowerCase()}}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="paymentServiceSettingStatusErrorLabel"
+                       class="col-lg-2 col-md-3 col-form-label text-danger d-none"
+                       for="paymentServiceSettingStatus">
+                    <i class="far fa-times-circle"></i> <span id="paymentServiceSettingStatusError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="row">
+                <div class="col-md-3"></div>
+                <div class="col-lg-2 col-md-3">
+                    <button type="button" class="btn btn-primary btn-block" onclick="ecommerce.savePaymentServiceSetting();">
+                        [[#{save}]]
+                    </button>
+                </div>
+                <div class="col-lg-7 col-md-6"></div>
+                <!-- /.col -->
+            </div>
+        </form>
+    </div>
+    <div class="col-md-2 col-sm-0"></div>
+    <div class="col-12 mb-3"></div>
+</div>
+<script layout:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ecommerce.paymentServiceSettingCode = /*[[${paymentServiceSetting.code}]]*/;
+ecommerce.paymentServiceSettingBannerId = /*[[${paymentServiceSetting.bannerImage != null ? paymentServiceSetting.bannerImage.id : 0}]]*/ '';
+ecommerce.paymentServiceSettingLogoId = /*[[${paymentServiceSetting.logoImage != null ? paymentServiceSetting.logoImage.id : 0}]]*/ '';
+/*]]>*/
+ecommerce.paymentServiceSettingLogoImage = {
+  id: ecommerce.paymentServiceSettingLogoId
+};
+
+ecommerce.paymentServiceSettingBannerImage = {
+  id: ecommerce.paymentServiceSettingBannerId
+};
+
+// ========== random keys ===============
+ecommerce.randomClientKey = function() {
+    $('#paymentServiceSettingClientKey').val(ezyadmin.randomString(32));
+}
+
+ecommerce.randomSecretKey = function() {
+    $('#paymentServiceSettingSecretKey').val(ezyadmin.randomString(32));
+}
+
+// ========== edit paymentServiceSetting =============
+ecommerce.paymentServiceSetting = function() {
+    ecommerce.addOrEditPaymentServiceSetting('edit')
+        + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+}
+</script>
+<th:block layout:fragment="post-scripts">
+    <script th:replace="~{ecommerce/payment-service/scripts :: edit}" />
+</th:block>
+</body>
+</html>

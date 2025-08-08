@@ -1,0 +1,137 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="content">
+    <div class="modal fade pt-4rem" id="edit-product-material">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="edit-product-material-modal-title">
+                        [[#{edit_product_material}]]
+                    </h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="editMaterialForm">
+                        <div class="form-group row">
+                            <label for="editAvailableMaterials" class="col-4 col-form-label">
+                                [[#{available_materials}]]
+                            </label>
+                            <div class="col-8">
+                                <select name="availableMaterials" id="editAvailableMaterials"
+                                        class="form-control form-select"
+                                        onchange="ecommerce.onShopProductMaterialChange(this, 'edit');">
+                                    <option value="">[[#{select}]]</option>
+                                    <option th:each="shopProductMaterial : ${shopProductMaterials}"
+                                            th:value="${shopProductMaterial.materialName + '||' + shopProductMaterial.materialDisplayName}">
+                                        [[${shopProductMaterial.materialName + '||' + shopProductMaterial.materialDisplayName}]]
+                                    </option>
+                                </select>
+                                <span>[[#{available_materials_guide}]]</span>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="editMaterialName" class="col-4 col-form-label">
+                                [[#{name}]] (<span class="text-danger">*</span>)
+                            </label>
+                            <div class="col-8">
+                                <label class="col-form-label text-danger d-none" id="editMaterialNameErrorLabel" for="editMaterialName">
+                                    <i class="far fa-times-circle"></i> <span id="editMaterialNameError"></span>
+                                </label>
+                                <input type="text" name="materialName" id="editMaterialName"
+                                       class="form-control" th:placeholder="#{name}"
+                                       onkeydown="ecommerce.onKeyDownToEditMaterial();">
+                                <span class="text-dark">
+                                    [[#{name_input_guide}]]
+                                </span>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="editMaterialDisplayName" class="col-4 col-form-label">
+                                [[#{display_name}]] (<span class="text-danger">*</span>)
+                            </label>
+                            <div class="col-8">
+                                <label class="col-form-label text-danger d-none" id="editMaterialDisplayNameErrorLabel" for="editMaterialDisplayName">
+                                    <i class="far fa-times-circle"></i> <span id="editMaterialDisplayNameError"></span>
+                                </label>
+                                <input type="text" name="materialDisplayName" id="editMaterialDisplayName"
+                                       class="form-control" th:placeholder="#{display_name}"
+                                       onkeydown="ecommerce.onKeyDownToEditMaterial();">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="editMaterialProductAmount" class="col-4 col-form-label">
+                                [[#{product_amount}]]
+                            </label>
+                            <div class="col-8">
+                                <label class="col-form-label text-danger d-none" id="editMaterialProductAmountErrorLabel" for="editMaterialProductAmount">
+                                    <i class="far fa-times-circle"></i> <span id="editMaterialProductAmountError"></span>
+                                </label>
+                                <input type="number" name="amount" id="editMaterialProductAmount"
+                                       class="form-control" th:placeholder="#{product_amount}"
+                                       onkeydown="ecommerce.onKeyDownToEditMaterial();">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <div>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">[[#{cancel}]]</button>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="ecommerce.saveMaterial('edit');">
+                        [[#{edit}]]
+                    </button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+</th:block>
+<script th:fragment="scripts">
+// ========== show edit material modal =============
+ecommerce.showEditMaterialModal = function(
+    materialId,
+    materialName,
+    materialDisplayName,
+    productAmount
+) {
+    ecommerce.selectedMaterialId = materialId;
+    $('#editMaterialName').val(materialName);
+    $('#editMaterialDisplayName').val(unescape(materialDisplayName));
+    $('#editMaterialProductAmount').val(productAmount);
+    $('#edit-product-material').modal('show');
+}
+
+ecommerce.hideEditMaterialModal = function() {
+    $('#edit-product-material').modal('hide');
+}
+
+// ========== edit material =============
+ecommerce.onKeyDownToEditMaterial = function() {
+    if(event.key === 'Enter') {
+    	ecommerce.saveMaterial('edit');
+    }
+}
+</script>
+</body>
+</html>

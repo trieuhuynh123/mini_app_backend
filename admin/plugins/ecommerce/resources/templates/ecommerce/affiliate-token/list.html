@@ -1,0 +1,292 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<head>
+    <script>
+        var ecommerce = {};
+    </script>
+    <style>
+        .min-width-120px { min-width: 120px; }
+    </style>
+</head>
+<body>
+<div layout:fragment="content" class="row">
+    <div class="col-lg-9 col-md-7 col-0"></div>
+    <div class="col-lg-3 col-md-5 col-12 page-search">
+        <label for="affiliateTokenSearchKeyword" class="text-nowrap">[[#{search}]]: </label>
+        <input type="search" class="form-control" th:placeholder="#{keyword}" id="affiliateTokenSearchKeyword"
+               onkeydown="ecommerce.onKeydownToSearchAffiliateToken();">
+    </div>
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-body table-responsive p-0">
+                <table class="table table-bordered table-hover text-nowrap align-middle-cells">
+                    <thead>
+                    <tr>
+                        <th>[[#{id}]]</th>
+                        <th>[[#{shop}]]</th>
+                        <th class="text-wrap">[[#{affiliate_token}]]</th>
+                        <th class="text-wrap">[[#{token_type}]]</th>
+                        <th>[[#{category}]]</th>
+                        <th>[[#{creator}]]</th>
+                        <th>[[#{voucher}]]</th>
+                        <th class="text-center">[[#{limited}]]</th>
+                        <th class="text-center">[[#{quantity}]]</th>
+                        <th class="text-center text-wrap min-width-120px">[[#{quantity_per_user}]]</th>
+                        <th class="text-center text-wrap min-width-120px">[[#{commission_percent}]]</th>
+                        <th class="text-center text-wrap min-width-120px">[[#{commission_amount}]]</th>
+                        <th class="text-wrap min-width-120px">[[#{linked_user}]]</th>
+                        <th>[[#{notes}]]</th>
+                        <th class="text-center">[[#{status}]]</th>
+                        <th class="text-center">[[#{valid_from}]]</th>
+                        <th class="text-center">[[#{expired_at}]]</th>
+                        <th class="text-center">[[#{created_at}]]</th>
+                        <th class="text-center">[[#{updated_at}]]</th>
+                        <th class="text-center">[[#{actions}]]</th>
+                    </tr>
+                    </thead>
+                    <tbody id="affiliateTokenListBody">
+                    </tbody>
+                </table>
+            </div>
+            <!-- /.card-body -->
+            <div class="card-footer clearfix">
+                <span><span id="affiliateTokenCountText">0</span>
+                    [[${#strings.toLowerCase(#messages.msg('of'))}]]
+                    <span id="totalAffiliateTokenText">0</span>
+                    [[${#strings.toLowerCase(#messages.msg('affiliate_tokens'))}]]
+                </span>
+                <ul class="pagination pagination-sm m-0 float-right">
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="firstPageButton">
+                            <i class="fas fa-arrow-circle-left pl-1 pr-1"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="prevPageButton">[[#{prev}]]</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="nextPageButton">[[#{next}]]</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="lastPageButton">
+                            <i class="fas fa-arrow-circle-right pl-1 pr-1"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.card-footer -->
+        </div>
+    </div>
+</div>
+<th:block layout:fragment="modals">
+    <th:block th:replace="~{fragments/prompt :: content(id='delete-affiliate-token-modal', title=confirm, confirmButton=delete, closeButton=close)}" />
+</th:block>
+<script layout:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.activated = /*[[#{activated}]]*/ '';
+ezyadmin.messages.commission = /*[[#{commission}]]*/ '';
+ezyadmin.messages.discount = /*[[#{discount}]]*/ '';
+ezyadmin.messages.false = /*[[#{false}]]*/ '';
+ezyadmin.messages.inactivated = /*[[#{inactivated}]]*/ '';
+ezyadmin.messages.true = /*[[#{true}]]*/ '';
+/*]]>*/
+
+// ========== affiliate-tokens init =============
+ezyadmin.onNewButtonClick = function() {
+    window.location = '/ecommerce/affiliate-tokens/add'
+        + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+}
+
+// ========== affiliateToken search =============
+ecommerce.onKeydownToSearchAffiliateToken = function() {
+    if(event.key === 'Enter') {
+        ecommerce.affiliateTokenSearchKeyword = $('#affiliateTokenSearchKeyword').val();
+        ecommerce.fetchAffiliateTokenList();
+    }
+}
+
+// ========== affiliateToken pagination =============
+$('#firstPageButton').click(() => {
+    ecommerce.fetchAffiliateTokenList('first');
+});
+$('#lastPageButton').click(() => {
+    ecommerce.fetchAffiliateTokenList('last');
+});
+$('#nextPageButton').click(() => {
+    ecommerce.fetchAffiliateTokenList('next');
+});
+$('#prevPageButton').click(() => {
+    ecommerce.fetchAffiliateTokenList('prev');
+});
+
+// ========== affiliateToken list =============
+ecommerce.fetchAffiliateTokenList = function(action) {
+    var queryString = '';
+    if (ecommerce.affiliateTokenSearchKeyword) {
+        queryString += '&keyword=' + ecommerce.affiliateTokenSearchKeyword;
+    }
+    if (action == 'current') {
+        if (ecommerce.lastAffiliateTokenQueryString) {
+            queryString = ecommerce.lastAffiliateTokenQueryString;
+        }
+    } else if (action == 'next') {
+        if (ecommerce.lastAffiliateTokenPageToken.next) {
+            queryString += '&nextPageToken=' + ecommerce.lastAffiliateTokenPageToken.next;
+        } else {
+            return;
+        }
+    } else if (action == 'prev') {
+        if (ecommerce.lastAffiliateTokenPageToken.prev) {
+            queryString += '&prevPageToken=' + ecommerce.lastAffiliateTokenPageToken.prev;
+        } else {
+            return;
+        }
+    } else if (action == 'last') {
+        queryString += '&lastPage=true';
+    }
+    $.ajax({
+        url: '/ecommerce/api/v1/affiliate-tokens?limit=12' + queryString,
+        type: 'GET',
+        dataType: 'json'
+    })
+    .done(function(data) {
+        $('#affiliateTokenCountText').text(data.count);
+        $('#totalAffiliateTokenText').text(ezyadmin.formatNumberWithCommas(data.total));
+        ecommerce.lastAffiliateTokenQueryString = queryString;
+        ecommerce.lastAffiliateTokenPageToken = data.pageToken;
+        $('#affiliateTokenListBody').html(ecommerce.buildAffiliateTokenListBodyHtml(data.items));
+        if (data.continuation.hasNext) {
+            $('#nextPageButton').removeClass('text-secondary');
+        } else {
+            $('#nextPageButton').addClass('text-secondary');
+        }
+        if (data.continuation.hasPrevious) {
+            $('#prevPageButton').removeClass('text-secondary');
+        } else {
+            $('#prevPageButton').addClass('text-secondary');
+        }
+    })
+    .fail(function(e) {
+    	ezyadmin.processGetApiErrors(e);
+    });
+}
+
+ecommerce.buildAffiliateTokenListBodyHtml = function(affiliateTokens) {
+    var html = '';
+    affiliateTokens.forEach((affiliateToken) => {
+        html += ecommerce.buildAffiliateTokenListItemHtml(affiliateToken);
+    });
+    return html;
+}
+ecommerce.buildAffiliateTokenListItemHtml = function(affiliateToken) {
+    var statusColor = ezyadmin.getTextColorByStatus(affiliateToken.status);
+    var html = `
+        <tr id="affiliateToken-row-${affiliateToken.id}">
+            <td>${affiliateToken.id}</td>
+            <td>
+                ${affiliateToken.shop ? `<a href="/ecommerce/shops/${affiliateToken.shop.id}">${affiliateToken.shop.displayName}</a>` : ''}
+            </td>
+            <td>
+                <a href="/ecommerce/affiliate-tokens/${affiliateToken.id}${ezyadmin.lang ? `?lang=${ezyadmin.lang}` : ''}">
+                    ${affiliateToken.affiliateToken}
+                </a>
+            </td>
+            <td>${ezyadmin.getI18nMessage(affiliateToken.affiliateTokenType.toLowerCase())}</td>
+            <td>${affiliateToken.categoryName || ''}</td>
+            <td>
+    `;
+    if (affiliateToken.creatorAdmin && affiliateToken.creatorAdmin.adminId) {
+        html += `<a href="/admins/${affiliateToken.creatorAdmin.username}${ezyadmin.lang ? `?lang=${ezyadmin.lang}` : ''}">
+            ${affiliateToken.creatorAdmin.name}
+        </a>`;
+    }
+    if (affiliateToken.creatorUser && affiliateToken.creatorUser.userId) {
+        html += `<a href="/users/${affiliateToken.creatorUser.username}${ezyadmin.lang ? `?lang=${ezyadmin.lang}` : ''}">
+            ${affiliateToken.creatorUser.name}
+        </a>`;
+    }
+    html += `
+            </td>
+            <td>
+    `;
+    if (affiliateToken.voucher) {
+        html += `<a href="/ecommerce/vouchers/${affiliateToken.voucher.id}${ezyadmin.lang ? `?lang=${ezyadmin.lang}` : ''}">
+            ${affiliateToken.voucher.displayName}
+        </a>`;
+    }
+    html += `
+            </td>
+            <td class="text-center">${ezyadmin.getI18nMessage(affiliateToken.limited)}</td>
+            <td class="text-center">${ezyadmin.formatNumberWithCommas(affiliateToken.quantity)}</td>
+            <td class="text-center">${ezyadmin.formatNumberWithCommas(affiliateToken.quantityPerUser)}</td>
+            <td class="text-center">${affiliateToken.commissionPercent || ''}</td>
+            <td class="text-center">
+                ${affiliateToken.formattedCommissionAmountIncludeIsoCode}
+            </td>
+            <td>
+    `;
+    if (affiliateToken.creatorUser && affiliateToken.affiliateUser.userId) {
+        html += `<a href="/users/${affiliateToken.affiliateUser.username}${ezyadmin.lang ? `?lang=${ezyadmin.lang}` : ''}">
+            ${affiliateToken.affiliateUser.name}
+        </a>`;
+    }
+    html +=`
+            </td>
+            <td>${affiliateToken.notes || ''}</td>
+            <td class="text-center ${statusColor}">${ezyadmin.getI18nMessage(affiliateToken.status.toLowerCase())}</td>
+            <td class="text-center">${ezyadmin.formatTimeStamp(affiliateToken.validFrom)}</td>
+            <td class="text-center">${ezyadmin.formatTimeStamp(affiliateToken.expiredAt)}</td>
+            <td class="text-center">${ezyadmin.formatTimeStamp(affiliateToken.createdAt)}</td>
+            <td class="text-center">${ezyadmin.formatTimeStamp(affiliateToken.updatedAt)}</td>
+            <td class="text-center">
+                <a class="btn btn-link pr-1" href="/ecommerce/affiliate-tokens/${affiliateToken.id}${ezyadmin.lang ? `?lang=${ezyadmin.lang}` : ''}">
+                    <i class="fas fa-eye text-info"></i>
+                </a>
+                <a class="btn btn-link px-1" href="/ecommerce/affiliate-tokens/${affiliateToken.id}/edit${ezyadmin.lang ? `?lang=${ezyadmin.lang}` : ''}">
+                    <i class="fas fa-edit text-primary"></i>
+                </a>
+                <button type="button" class="btn pl-1" onclick="ecommerce.onDeleteAffiliateTokenClick(${affiliateToken.id}, '${affiliateToken.affiliateToken}');">
+                    <i class="fas fa-trash text-danger"></i>
+                </button>
+            </td>
+        </tr>
+    `;
+	return html;
+}
+ecommerce.fetchAffiliateTokenList();
+
+// ============== affiliateToken actions =============
+ecommerce.editAffiliateToken = function(id) {
+    window.location = '/ecommerce/affiliate-tokens/' + id + '/edit'
+        + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+}
+
+ecommerce.onAffiliateTokenDeleted = function() {
+    $('#affiliateToken-row-' + ecommerce.selectedAffiliateTokenId).remove();
+}
+</script>
+<th:block layout:fragment="post-scripts">
+    <script th:replace="~{ecommerce/affiliate-token/scripts :: delete}" />
+</th:block>
+</body>
+</html>

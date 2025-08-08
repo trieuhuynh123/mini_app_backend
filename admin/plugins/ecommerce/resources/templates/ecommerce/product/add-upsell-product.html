@@ -1,0 +1,177 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="content">
+    <div class="modal fade pt-4rem" id="add-upsell-product">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="add-upsell-product-modal-title">
+                        [[#{add_upsell_product}]]
+                    </h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="addUpsellProductForm">
+                        <div class="form-group row">
+                            <label for="addUpsellProductDisplayOrder" class="col-4 col-form-label">
+                                [[#{display_order}]]
+                            </label>
+                            <div class="col-8">
+                                <label class="col-form-label text-danger d-none" id="addUpsellProductDisplayOrderErrorLabel" for="addUpsellProductDisplayOrder">
+                                    <i class="far fa-times-circle"></i> <span id="addUpsellProductDisplayOrderError"></span>
+                                </label>
+                                <input type="number" name="displayOrder" id="addUpsellProductDisplayOrder"
+                                       class="form-control" th:placeholder="#{display_order}"
+                                       onkeydown="ecommerce.onKeyDownToAddUpsellProduct()">
+                                <span>[[#{display_order_input_guide}]]</span>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="addUpsellProductType" class="col-4 col-form-label">
+                                [[#{type}]]
+                            </label>
+                            <div class="col-8">
+                                <label class="col-form-label text-danger d-none" id="addUpsellProductTypeErrorLabel" for="addUpsellProductType">
+                                    <i class="far fa-times-circle"></i> <span id="addUpsellProductTypeError"></span>
+                                </label>
+                                <select name="upsellProductType" id="addUpsellProductType"
+                                       class="form-control" th:placeholder="#{display_order}">
+                                    <option th:each="upsellProductType : ${upsellProductTypes}"
+                                            th:value="${upsellProductType}">
+                                        [[#{${upsellProductType.toString().toLowerCase()}}]]
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="addUpsellBonusType" class="col-4 col-form-label">
+                                [[#{bonus_type}]]
+                            </label>
+                            <div class="col-8">
+                                <label class="col-form-label text-danger d-none" id="addUpsellBonusTypeErrorLabel" for="addUpsellBonusType">
+                                    <i class="far fa-times-circle"></i> <span id="addUpsellBonusTypeError"></span>
+                                </label>
+                                <select name="bonusType" id="addUpsellBonusType"
+                                       class="form-control" th:placeholder="#{display_order}"
+                                       onkeydown="ecommerce.onKeyDownToAddSetProduct()">
+                                    <option th:each="upsellBonusType : ${upsellBonusTypes}"
+                                            th:value="${upsellBonusType}">
+                                        [[#{${upsellBonusType.toString().toLowerCase()}}]]
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="addUpsellBonusProduct" class="col-4 col-form-label">
+                                [[#{bonus_product}]]
+                            </label>
+                            <div class="col-8">
+                                <label class="col-form-label text-danger d-none" id="addUpsellBonusProductErrorLabel" for="addUpsellBonusProduct">
+                                    <i class="far fa-times-circle"></i> <span id="addUpsellBonusProductError"></span>
+                                </label>
+                                <input type="text" name="bonusItemId" id="addUpsellBonusProduct"
+                                       class="form-control" th:placeholder="#{bonus_product}"
+                                       autocomplete="off" inputmode="text">
+                            </div>
+                        </div>
+                        <div class="form-group row mb-0">
+                            <label for="addUpsellBonusProductQuantity" class="col-4 col-form-label">
+                                [[#{quantity}]]
+                            </label>
+                            <div class="col-8">
+                                <label class="col-form-label text-danger d-none" id="addUpsellBonusProductQuantityErrorLabel" for="addUpsellBonusProductQuantity">
+                                    <i class="far fa-times-circle"></i> <span id="addUpsellBonusProductQuantityError"></span>
+                                </label>
+                                <input type="number" name="bonusItemQuantity" id="addUpsellBonusProductQuantity"
+                                       class="form-control" th:placeholder="#{quantity}"
+                                       onkeydown="ecommerce.onKeyDownToAddUpsellProduct()">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <div>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">[[#{cancel}]]</button>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="ecommerce.addUpsellProduct();">
+                        [[#{add}]]
+                    </button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+</th:block>
+<script th:fragment="scripts">
+// ========== show add set product modal =============
+ecommerce.showAddUpsellProductModal = function(upsellProductId) {
+    ecommerce.selectedUpsellProductId = upsellProductId;
+    $('#addUpsellProductDisplayOrder').val('');
+    $('#add-upsell-product').modal('show');
+}
+
+// ========== add set product =============
+ecommerce.onKeyDownToAddUpsellProduct = function() {
+    if(event.key === 'Enter') {
+    	ecommerce.addUpsellProduct();
+    }
+}
+
+ecommerce.addUpsellProduct = function() {
+    var formData = ezyadmin.formDataToObject('addUpsellProductForm');
+    formData.upsellProductId = ecommerce.selectedUpsellProductId;
+    formData.bonusItemType = 'ecommerce_products';
+    ezyadmin.setActualFormFieldData(
+        formData,
+        'bonusItemId',
+        (product) => product.id
+    );
+    $.ajax({
+        type: 'POST',
+        url: '/ecommerce/api/v1/products/' + ecommerce.selectedProductId + '/upsell-product/save',
+        data: JSON.stringify(formData),
+        contentType: 'application/json',
+        success: function (data) {
+            $('#add-upsell-product').modal('hide');
+            if (ecommerce.fetchUpsellProductList) {
+                ecommerce.fetchUpsellProductList('current');
+            } else {
+                location.reload();
+            }
+        },
+        error: function (e) {
+        	var formView = {
+                addUpsellProductDisplayOrder: true
+            };
+            var errors = e.responseJSON || {};
+        	errors.addUpsellProductDisplayOrder = errors.displayOrder;
+            ezyadmin.processUpdateApiErrors(formView, e);
+        }
+    });
+}
+
+ecommerce.registerProductAutocomplete('addUpsellBonusProduct');
+</script>
+</body>
+</html>

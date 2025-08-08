@@ -1,0 +1,240 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<head>
+    <script>
+        var ecommerce = {};
+    </script>
+</head>
+<body>
+<div th:fragment="content" class="col-12">
+    <div class="row">
+        <div class="col-12">
+            <div class="text-center">
+                <ul class="media-list mt-3" id="categoryProductMediaList">
+                    <li th:each="categoryProductMedia : ${categoryProductMedias}"
+                        th:id="${'categoryProductMediaItem-' + categoryProductMedia.productId + '-' + categoryProductMedia.media.id}" role="button"
+                        th:attr="onclick=|ezyadmin.showMediaDetails(${categoryProductMedia.media.id})|">
+                        <th:block th:if="${categoryProductMedia.media.type.toString() == 'IMAGE' || categoryProductMedia.media.type.toString() == 'AVATAR'}">
+                            <img th:src="${categoryProductMedia.media.getUrlOrDefault('')}"
+                                 th:alt="${categoryProductMedia.media.originalName}" class="wh-150px img-thumbnail">
+                            <span class="text-danger delete-button" aria-hidden="true"
+                                  th:classappend="${addedProductCategoryProductMediaCount == 0 ? 'd-none' : (categoryProductMedia.notAdded ? 'd-none' : '')}"
+                                  th:id="${'category-product-media-delete-button-' + categoryProductMedia.productId + '-' + categoryProductMedia.media.id}"
+                                  th:attr="onclick=|ecommerce.onDeleteCategoryProductMediaItemClick(${categoryProductMedia.productId}, ${categoryProductMedia.media.id})|">
+                                &times;
+                            </span>
+                            <span class="text-success delete-button" aria-hidden="true"
+                                  th:classappend="${addedProductCategoryProductMediaCount == 0 ? 'd-none' : (categoryProductMedia.notAdded ? '' : 'd-none')}"
+                                  th:id="${'category-product-media-add-button-' + categoryProductMedia.productId + '-' + categoryProductMedia.media.id}"
+                                  th:attr="onclick=|ecommerce.onAddCategoryProductMediaItemClick(${categoryProductMedia.productId}, ${categoryProductMedia.media.id})|">
+                                &#43;
+                            </span>
+                        </th:block>
+                        <th:block th:if="${categoryProductMedia.media.type.toString() == 'VIDEO'}">
+                            <video class="video-thumbnail">
+                                <source th:src="${categoryProductMedia.media.getUrlOrDefault('')}" type="video/mp4">
+                                <source th:src="${categoryProductMedia.media.getUrlOrDefault('')}" type="video/ogg">
+                                Your browser does not support the video tag.
+                            </video>
+                            <span class="text-danger delete-button" aria-hidden="true"
+                                  th:classappend="${addedProductCategoryProductMediaCount == 0 ? 'd-none' : (categoryProductMedia.notAdded ? 'd-none' : '')}"
+                                  th:id="${'category-product-media-delete-button-' + categoryProductMedia.productId + '-' + categoryProductMedia.media.id}"
+                                  th:attr="onclick=|ecommerce.onDeleteCategoryProductMediaItemClick(${categoryProductMedia.productId}, ${categoryProductMedia.media.id})|">
+                                &times;
+                            </span>
+                            <span class="text-success delete-button" aria-hidden="true"
+                                  th:classappend="${addedProductCategoryProductMediaCount == 0 ? 'd-none' : (categoryProductMedia.notAdded ? '' : 'd-none')}"
+                                  th:id="${'category-product-media-add-button-' + categoryProductMedia.productId + '-' + categoryProductMedia.media.id}"
+                                  th:attr="onclick=|ecommerce.onAddCategoryProductMediaItemClick(${categoryProductMedia.productId}, ${categoryProductMedia.media.id})|">
+                                    &#43;
+                            </span>
+                        </span>
+                        </th:block>
+                        <th:block th:if="${categoryProductMedia.media.type.toString() == 'AUDIO'}">
+                            <div class="d-flex">
+                                <div class="file-thumbnail audio-thumbnail">
+                                    <audio controls>
+                                        <source th:src="${categoryProductMedia.media.getUrlOrDefault('')}" type="audio/mpeg">
+                                        <source th:src="${categoryProductMedia.media.getUrlOrDefault('')}" type="audio/ogg">
+                                        Your browser does not support the audio tag.'
+                                    </audio>
+                                    <span class="text-dark-always">[[${categoryProductMedia.media.originalName}]]</span>
+                                </div>
+                                <div>
+                                    <span class="text-danger delete-button" aria-hidden="true"
+                                          th:classappend="${addedProductCategoryProductMediaCount == 0 ? 'd-none' : (categoryProductMedia.notAdded ? 'd-none' : '')}"
+                                          th:id="${'category-product-media-delete-button-' + categoryProductMedia.productId + '-' + categoryProductMedia.media.id}"
+                                          th:attr="onclick=|ecommerce.onDeleteCategoryProductMediaItemClick(${categoryProductMedia.productId}, ${categoryProductMedia.media.id})|">
+                                        &times;
+                                    </span>
+                                </div>
+                                <div>
+                                    <span class="text-success delete-button" aria-hidden="true"
+                                          th:classappend="${addedProductCategoryProductMediaCount == 0 ? 'd-none' : (categoryProductMedia.notAdded ? '' : 'd-none')}"
+                                          th:id="${'category-product-media-add-button-' + categoryProductMedia.productId + '-' + categoryProductMedia.media.id}"
+                                          th:attr="onclick=|ecommerce.onAddCategoryProductMediaItemClick(${categoryProductMedia.productId}, ${categoryProductMedia.media.id})|">
+                                        &#43;
+                                    </span>
+                                </div>
+                            </div>
+                        </th:block>
+                        <th:block th:if="${categoryProductMedia.media.type.toString() != 'IMAGE'
+                                     && categoryProductMedia.media.type.toString() != 'AVATAR'
+                                     && categoryProductMedia.media.type.toString() != 'VIDEO'
+                                     && categoryProductMedia.media.type.toString() != 'AUDIO'}">
+                            <div class="d-flex">
+                                <div class="file-thumbnail">
+                                    <i class="far fa-file text-dark-always"></i>
+                                    <div>
+                                        <span class="text-dark-always">[[${categoryProductMedia.media.originalName}]]</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <span class="text-danger delete-button" aria-hidden="true"
+                                          th:classappend="${addedProductCategoryProductMediaCount == 0 ? 'd-none' : (categoryProductMedia.notAdded ? 'd-none' : '')}"
+                                          th:id="${'category-product-media-delete-button-' + categoryProductMedia.productId + '-' + categoryProductMedia.media.id}"
+                                          th:attr="onclick=|ecommerce.onDeleteCategoryProductMediaItemClick(${categoryProductMedia.productId}, ${categoryProductMedia.media.id})|">
+                                        &times;
+                                    </span>
+                                </div>
+                                <div>
+                                    <span class="text-success delete-button" aria-hidden="true"
+                                          th:classappend="${addedProductCategoryProductMediaCount == 0 ? 'd-none' : (categoryProductMedia.notAdded ? '' : 'd-none')}"
+                                          th:id="${'category-product-media-add-button-' + categoryProductMedia.productId + '-' + categoryProductMedia.media.id}"
+                                          th:attr="onclick=|ecommerce.onAddCategoryProductMediaItemClick(${categoryProductMedia.productId}, ${categoryProductMedia.media.id})|">
+                                        &#43;
+                                    </span>
+                                </div>
+                            </div>
+                        </th:block>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+<script th:fragment="scripts">
+ecommerce.onAddCategoryProductMediaItemClick = function(productId, mediaId) {
+    ecommerce.addCategoryProductMediaItemClick(productId, mediaId);
+    window.event.stopPropagation();
+}
+
+ecommerce.addCategoryProductMediaItemClick = function(productId, mediaId) {
+    var productMediaIds = [];
+    $('[id^="categoryProductMediaItem-"]').each(function() {
+        var strs = $(this).attr('id').split('-');
+        var parsedProductId = parseInt(strs[1]);
+        var parsedMediaId = parseInt(strs[2]);
+        var addButtonHide = $('#category-product-media-add-button-' + parsedProductId + '-' + parsedMediaId)
+            .hasClass('d-none');
+        if (addButtonHide || (parsedProductId == productId && mediaId == parsedMediaId)) {
+            productMediaIds.push({ productId: parsedProductId, mediaId: parsedMediaId });
+        }
+    });
+    ecommerce.saveCategoryProductMediaIds(productMediaIds);
+}
+
+ecommerce.onDeleteCategoryProductMediaItemClick = function(productId, mediaId) {
+    ezyadmin.deleteCategoryProductMediaItemClick(productId, mediaId);
+    window.event.stopPropagation();
+}
+
+ezyadmin.deleteCategoryProductMediaItemClick = function(productId, mediaId) {
+     $.ajax({
+        type: "DELETE",
+        url: '/ecommerce/api/v1/product-categories/' + ecommerce.selectedCategoryId +
+             '/products/' + productId +
+             '/medias/' + mediaId,
+        success: function (data) {
+            ezyadmin.shortToast('bg-success', ezyadmin.messages.delete_successfully);
+            $('#category-product-media-delete-button-' + productId + '-' + mediaId).addClass('d-none');
+            $('#category-product-media-add-button-' + productId + '-' + mediaId).removeClass('d-none');
+        },
+        error: function (data, e) {
+           ezyadmin.shortToast('bg-danger', ezyadmin.messages.delete_failed);
+        }
+    });
+}
+// ============== sort media list =============
+ecommerce.saveCategoryProductMediaIds = function(productMediaIds, reload) {
+    var formData = {
+        productMediaIds: productMediaIds
+    };
+    $.ajax({
+        type: 'PUT',
+        url: '/ecommerce/api/v1/product-categories/' + ecommerce.selectedCategoryId + '/product-medias',
+        contentType: 'application/json',
+        data: JSON.stringify(formData),
+        success: function () {
+            if (reload) {
+                location.reload();
+            } else {
+                ezyadmin.shortToast(
+                    'bg-success',
+                    ezyadmin.messages.save_successfully
+                );
+                productMediaIds.forEach((it) => {
+                    $('#category-product-media-delete-button-' + it.productId + '-' + it.mediaId)
+                        .removeClass('d-none');
+                    $('#category-product-media-add-button-' + it.productId + '-' + it.mediaId)
+                        .addClass('d-none');
+                });
+            }
+        },
+        error: function (data, e) {
+            ezyadmin.shortToast(
+                'bg-danger',
+                ezyadmin.messages.save_failed
+            );
+            ezyadmin.processUpdateApiErrors({}, data);
+        }
+    });
+}
+$(document).ready(() => {
+    $("#categoryProductMediaList").sortable({
+        opacity: 0.5,
+        helper : 'clone',
+        update: function(event, ui) {
+            var sortedIds = $(this).sortable("toArray");
+            var productMediaIds = [];
+            sortedIds.forEach((e) => {
+                var strs = e.split('-');
+                var parsedProductId = parseInt(strs[1]);
+                var parsedMediaId = parseInt(strs[2]);
+                var addButtonHide = $('#category-product-media-add-button-' + parsedProductId + '-' + parsedMediaId)
+                    .hasClass('d-none');
+                if (addButtonHide) {
+                    productMediaIds.push({
+                        productId: parsedProductId,
+                        mediaId: parsedMediaId
+                    });
+                }
+            });
+            ecommerce.saveCategoryProductMediaIds(productMediaIds);
+        }
+    });
+    $("#categoryProductMediaList").disableSelection();
+});
+</script>
+</body>
+</html>

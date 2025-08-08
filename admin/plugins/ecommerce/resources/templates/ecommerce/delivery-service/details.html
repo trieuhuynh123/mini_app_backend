@@ -1,0 +1,105 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~ 
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~ 
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~ 
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<head>
+    <script>
+        var ecommerce = {};
+    </script>
+</head>
+<body>
+<div layout:fragment="content" class="row">
+    <div class="col-lg-2 col-md-3 col-4"><label>[[#{id}]]:</label></div>
+    <div class="col-lg-10 col-md-9 col-8">[[${deliveryServiceSetting.id}]]</div>
+    <div class="col-lg-2 col-md-3 col-4"><label>[[#{code}]]:</label></div>
+    <div class="col-lg-10 col-md-9 col-8">[[${deliveryServiceSetting.code}]]</div>
+    <div class="col-lg-2 col-md-3 col-4"><label>[[#{name}]]:</label></div>
+    <div class="col-lg-10 col-md-9 col-8">[[${deliveryServiceSetting.name}]]</div>
+    <div class="col-lg-2 col-md-3 col-4"><label>[[#{version}]]:</label></div>
+    <div class="col-lg-10 col-md-9 col-8">[[${deliveryServiceSetting.version}]]</div>
+    <div class="col-lg-2 col-md-3 col-4"><label>[[#{delivery_fee_currency}]]:</label></div>
+    <div class="col-lg-10 col-md-9 col-8">
+        [[${deliveryServiceSetting.deliveryFeeCurrency.isoCode}]]
+        -
+        [[${deliveryServiceSetting.deliveryFeeCurrency.displayName}]]
+    </div>
+    <div class="col-lg-2 col-md-3 col-4"><label>[[#{minimum_delivery_fee}]]:</label></div>
+    <div class="col-lg-10 col-md-9 col-8">[[${deliveryServiceSetting.formattedMinDeliveryFee}]]</div>
+    <div class="col-lg-2 col-md-3 col-4"><label>[[#{default_goods_value}]]:</label></div>
+    <div class="col-lg-10 col-md-9 col-8">[[${deliveryServiceSetting.formattedDefaultGoodsValue}]]</div>
+    <div class="col-2 d-flex align-items-center">
+        <label>[[#{logo}]]:</label>
+    </div>
+    <div class="col-10 mt-2 mb-2">
+        <img th:src="${deliveryServiceSetting.logoImage != null ? deliveryServiceSetting.logoImage.getUrlOrDefault('') : ''}"
+             class="object-fit-cover" width="64">
+    </div>
+    <div class="col-2 d-flex align-items-center">
+        <label>[[#{banner}]]:</label>
+    </div>
+    <div class="col-10 mt-2 mb-2">
+        <img th:src="${deliveryServiceSetting.bannerImage != null ? deliveryServiceSetting.bannerImage.getUrlOrDefault('') : ''}"
+             class="object-fit-cover" width="256">
+    </div>
+    <div class="col-lg-2 col-md-3 col-4"><label>[[#{service_url}]]:</label></div>
+    <div class="col-lg-10 col-md-9 col-8">
+        <a th:href="${deliveryServiceSetting.serviceUrl}" target="_blank">[[${deliveryServiceSetting.serviceUrl}]]</a>
+    </div>
+    <div class="col-lg-2 col-md-3 col-4"><label>[[#{service_api_url}]]:</label></div>
+    <div class="col-lg-10 col-md-9 col-8">
+        [[${deliveryServiceSetting.serviceApiUrl}]]
+    </div>
+    <div class="col-lg-2 col-md-3 col-4"><label>[[#{callback_url}]]:</label></div>
+    <div class="col-lg-10 col-md-9 col-8">[[${webUrl + deliveryServiceSetting.callbackUrl}]]</div>
+    <div class="col-lg-2 col-md-3 col-4"><label>[[#{client_key}]]:</label></div>
+    <div class="col-lg-10 col-md-9 col-8">[[${deliveryServiceSetting.clientKey}]]</div>
+    <div class="col-lg-2 col-md-3 col-4"><label>[[#{secret_key}]]:</label></div>
+    <div class="col-lg-10 col-md-9 col-8">[[${deliveryServiceSetting.secretKey}]]</div>
+    <th:block th:if="${deliveryServiceSetting.authenticatedByUsernamePassword}">
+        <div class="col-lg-2 col-md-3 col-4"><label>[[#{username}]]:</label></div>
+        <div class="col-lg-10 col-md-9 col-8">[[${deliveryServiceSetting.username}]]</div>
+        <div class="col-lg-2 col-md-3 col-4"><label>[[#{password}]]:</label></div>
+        <div class="col-lg-10 col-md-9 col-8">[[${deliveryServiceSetting.password}]]</div>
+    </th:block>
+    <div class="col-lg-2 col-md-3 col-4"><label>[[#{status}]]:</label></div>
+    <div class="col-lg-10 col-md-9 col-8 date-time-string">
+        <span th:attr="status=|${deliveryServiceSetting.status}|" class="status-text">
+            [[#{${deliveryServiceSetting.status.toString().toLowerCase()}}]]
+        </span>
+    </div>
+    <div class="col-lg-2 col-md-3 col-4"><label>[[#{created_at}]]:</label></div>
+    <div class="col-lg-10 col-md-9 col-8 date-time-string">[[${deliveryServiceSetting.createdAt}]]</div>
+    <div class="col-lg-2 col-md-3 col-4"><label>[[#{updated_at}]]:</label></div>
+    <div class="col-lg-10 col-md-9 col-8 date-time-string">[[${deliveryServiceSetting.updatedAt}]]</div>
+    <div class="col-12 mb-3"></div>
+</div>
+<script layout:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ecommerce.selectedDeliveryServiceCode = /*[[${deliveryServiceSetting.code}]]*/ '';
+/*]]>*/
+
+ezyadmin.onEditButtonClick = function() {
+    window.location = '/ecommerce/delivery-services/' + ecommerce.selectedDeliveryServiceCode + '/edit'
+        + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+}
+</script>
+</body>
+</html>

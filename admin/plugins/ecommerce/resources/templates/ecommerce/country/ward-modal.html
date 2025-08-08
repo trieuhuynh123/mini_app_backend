@@ -1,0 +1,278 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="content">
+    <div class="modal fade pt-4rem" id="save-ward">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="save-ward-modal-title">
+                        [[#{add_new_ward}]]
+                    </h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="saveWardForm">
+                        <div class="form-group row">
+                            <label for="saveWardType" class="col-4 col-form-label">
+                                [[#{type}]]:
+                            </label>
+                            <div class="col-8">
+                                <label class="col-form-label text-danger d-none" id="saveWardTypeErrorLabel" for="saveWardType">
+                                    <i class="far fa-times-circle"></i> <span id="saveWardTypeError"></span>
+                                </label>
+                                <select name="type" id="saveWardType" class="form-control" aria-label="Type Select">
+                                    <option th:each="wardType : ${wardTypes}"
+                                            th:value="${wardType}">
+                                        [[#{${'ward_type_' + wardType.toLowerCase()}}]]
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="saveWardDisplayName" class="col-4 col-form-label">
+                                [[#{display_name}]] (<span class="text-danger">*</span>)
+                            </label>
+                            <div class="col-8">
+                                <label class="col-form-label text-danger d-none" id="saveWardDisplayNameErrorLabel" for="saveWardDisplayName">
+                                    <i class="far fa-times-circle"></i> <span id="saveWardDisplayNameError"></span>
+                                </label>
+                                <input type="text" name="displayName" id="saveWardDisplayName"
+                                       class="form-control" th:placeholder="#{name}"
+                                       onkeydown="ecommerce.onKeyDownToSaveWard('add')">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="saveWardStatus" class="col-4 col-form-label">
+                                [[#{status}]] (<span class="text-danger">*</span>)
+                            </label>
+                            <div class="col-8">
+                                <label class="col-form-label text-danger d-none" id="saveWardStatusErrorLabel" for="saveWardStatus">
+                                    <i class="far fa-times-circle"></i> <span id="saveWardStatusError"></span>
+                                </label>
+                                <select type="text" name="status" id="saveWardStatus"
+                                        class="form-control">
+                                    <option th:each="administrativeUnitStatus : ${administrativeUnitStatuses}"
+                                            th:value="${administrativeUnitStatus}">
+                                        [[#{${administrativeUnitStatus.toString().toLowerCase()}}]]
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <div>
+                        <button type="button" class="btn btn-default" data-dismiss="modal"
+                                onclick="ecommerce.resetSaveWardModal();">[[#{cancel}]]</button>
+                        <button type="button" class="btn btn-default"
+                                onclick="ecommerce.resetSaveWardModal();">[[#{reset}]]</button>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="ecommerce.saveWard();"
+                            id="save-ward-modal-button">
+                        [[#{add}]]
+                    </button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+</th:block>
+<script th:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.add = /*[[#{add}]]*/;
+ezyadmin.messages.add_new_ward = /*[[#{add_new_ward}]]*/;
+ezyadmin.messages.do_you_want_to_delete_ward_pname = /*[[#{do_you_want_to_delete_ward_pname}]]*/;
+ezyadmin.messages.edit = /*[[#{edit}]]*/;
+ezyadmin.messages.edit_ward = /*[[#{edit_ward}]]*/;
+ezyadmin.messages.wards = /*[[#{wards}]]*/;
+ezyadmin.messages.ward_type_town = /*[[#{ward_type_town}]]*/;
+ezyadmin.messages.ward_type_ward = /*[[#{ward_type_ward}]]*/;
+/*]]>*/
+
+// ========== show save ward modal =============
+ecommerce.showSaveWardModal = function(action, wardId) {
+    ecommerce.saveWardAction = action;
+    if (action == 'add') {
+        ecommerce.resetSaveWardModal();
+        $('#save-ward-modal-title').text(ezyadmin.messages.add_new_ward);
+        $('#save-ward-modal-button').text(ezyadmin.messages.add);
+    } else {
+        $('#save-ward-modal-title').text(ezyadmin.messages.edit_new_ward);
+        $('#save-ward-modal-button').text(ezyadmin.messages.edit);
+        ecommerce.selectedWardId = wardId;
+        ecommerce.selectedWard = ecommerce.wardById[wardId];
+        var ward = ecommerce.selectedWard;
+        if (ward) {
+            $('#saveWardDisplayName').val(ward.displayName);
+            $('#saveWardStatus').val(ward.status);
+        }
+    }
+    $('#save-ward').modal('show');
+}
+
+ecommerce.resetSaveWardModal = function() {
+    $('#saveWardDisplayName').val('');
+}
+
+// ========== get wards =============
+ecommerce.processWards = function(wards) {
+    ecommerce.wards = wards;
+    ecommerce.wardById = {};
+    ecommerce.wards.forEach((ward) => {
+        ecommerce.wardById[ward.id] = ward;
+    });
+    if (ecommerce.wards.length) {
+        var ward = ecommerce.selectedWard;
+        if (ward) {
+            ward = ecommerce.wardById[ecommerce.selectedWard.id];
+        }
+        if (!ward) {
+            ward = ecommerce.wards[0];
+        }
+        ecommerce.selectedWard = ward;
+    } else {
+        ecommerce.selectedWard = null;
+    }
+    ezyadmin.destroyDataTableIfExists('wardList');
+    $('#wardListBody').html(
+        ecommerce.buildWardListBodyHtml(ecommerce.wards)
+    );
+    ezyadmin.createDataTable('wardList', 5);
+}
+
+ecommerce.fetchWards = function() {
+    if (!ecommerce.selectedDistrict) {
+        ecommerce.processWards([]);
+        return;
+    }
+    $.ajax({
+        type: "GET",
+        url: '/ecommerce/api/v1/districts/' +
+            ecommerce.selectedDistrict.id +
+            '/wards',
+        success: function(data) {
+            ecommerce.processWards(data);
+        },
+        error: function(data, e) {
+            ezyadmin.processGetApiErrors(data);
+        }
+    });
+}
+
+ecommerce.buildWardListBodyHtml = function() {
+    var html = '';
+    ecommerce.wards.forEach((ward, index) => {
+        html += ecommerce.buildWardItemHtml(ward, index);
+    });
+    return html;
+}
+
+ecommerce.buildWardItemHtml = function(ward, index) {
+    return `
+        <tr>
+            <td class="text-center pl-2p5">${index + 1}</td>
+            <td class="text-center">${ward.type ? ezyadmin.getI18nMessage('ward_type_' + ward.type.toLowerCase()) : ''}</td>
+            <td>${ward.displayName}</td>
+            <td status="${ward.status}"
+                class="text-center status-text ${ezyadmin.getTextColorByStatus(ward.status)}">
+                ${ezyadmin.getI18nMessage(ward.status?.toLowerCase() || '')}
+            </td>
+            <td class="text-center">
+                <a class="text-primary pr-1 cursor-pointer"
+                   onclick="ecommerce.showSaveWardModal('edit', ${ward.id})">
+                    <i class="fas fa-edit"></i>
+                </a>
+                <a onclick="ecommerce.onDeleteWardClick(${ward.id}, '${ward.displayName}')"
+                   class="text-danger cursor-pointer">
+                    <i class="fas fa-trash"></i>
+                </a>
+            </td>
+        </tr>
+    `;
+}
+// ========== save ward =============
+ecommerce.onKeyDownToSaveWard = function() {
+    if(event.key === 'Enter') {
+    	ecommerce.saveWard();
+    }
+}
+
+ecommerce.saveWard = function() {
+    var formData = ezyadmin.formDataToObject('saveWardForm');
+    formData.active = $('#saveWardActive').prop('checked');
+    var action = ecommerce.saveWardAction;
+    $.ajax({
+        type: action == 'add' ? 'POST' : 'PUT',
+        url: '/ecommerce/api/v1/districts/' +
+            ecommerce.selectedDistrict.id +
+            '/wards/' +
+            (action == 'add' ? 'add' : ecommerce.selectedWardId),
+        data: formData,
+        success: function (data) {
+            if (action == 'add') {
+                ecommerce.selectedWard = null;
+            }
+            ecommerce.fetchWards();
+            $('#save-ward').modal('hide');
+        },
+        error: function (e) {
+        	var formView = {
+                saveWardDisplayName: true
+            };
+            var errors = e.responseJSON || {};
+        	errors.saveWardDisplayName = errors.displayName;
+            ezyadmin.processUpdateApiErrors(formView, e);
+        }
+    });
+}
+
+// ========== delete ward =============
+ecommerce.onDeleteWardClick = function(id, displayName) {
+    ecommerce.selectedWardId = id;
+    $('#delete-ward-modal-body-content')
+        .text(
+            ezyadmin
+                .messages
+                .do_you_want_to_delete_ward_pname
+                .replace('{0}', displayName)
+        );
+    $('#delete-ward-modal').modal('show');
+}
+
+ecommerce.deleteWard = function() {
+    $.ajax({
+        type: 'DELETE',
+        url: '/ecommerce/api/v1/wards/' + ecommerce.selectedWardId,
+        success: function () {
+            $('#delete-ward-modal').modal('hide');
+            ecommerce.fetchWards();
+        },
+        error: function (data, e) {
+            ezyadmin.processUpdateApiErrors({}, data);
+        }
+    });
+}
+</script>
+</body>
+</html>

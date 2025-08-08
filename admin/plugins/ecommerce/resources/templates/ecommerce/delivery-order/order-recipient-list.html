@@ -1,0 +1,285 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<body>
+<th:block th:fragment="content">
+    <div class="col-lg-3 col-md-0 col-0"></div>
+    <div class="col-lg-3 col-md-4 col-12 page-search">
+        <label for="orderSearchKeyword" class="text-nowrap">[[#{search}]]: </label>
+        <input type="text" id="orderSearchKeyword"
+               class="form-control" th:placeholder="#{keyword}"
+               onkeydown="ecommerce.onKeydownToSearchOrder();">
+    </div>
+    <div class="col-lg-3 col-md-4 col-12 page-search">
+        <label for="orderSearchShoppingCartId" class="text-nowrap">[[#{shopping_cart_id}]]: </label>
+        <input type="number" id="orderSearchShoppingCartId"
+               class="form-control" th:placeholder="#{shopping_cart_id}"
+               onkeydown="ecommerce.onKeydownToSearchOrder();">
+    </div>
+    <div class="col-lg-3 col-md-4 col-12 page-search">
+        <label for="orderRecipientSearchStatus" class="text-nowrap">[[#{status}]]: </label>
+        <select class="form-control form-select" id="orderRecipientSearchStatus"
+                onchange="ecommerce.onOrderSearchStatusChanged();">
+            <option value="">[[#{all}]]</option>
+            <option th:each="orderRecipientStatus : ${orderRecipientStatuses}"
+                    th:value="${orderRecipientStatus}"
+                    th:selected="${orderRecipientStatus.toString() == orderRecipientSearchStatus}">
+                [[#{${orderRecipientStatus.toString().toLowerCase()}}]]
+            </option>
+        </select>
+    </div>
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-body table-responsive p-0">
+                <table class="table table-bordered table-hover text-nowrap align-middle-cells">
+                    <thead>
+                    <tr>
+                        <th class="text-center pl-2p5">[[#{id}]]</th>
+                        <th>[[#{first_product}]]</th>
+                        <th>[[#{recipient}]]</th>
+                        <th>[[#{phone_number}]]</th>
+                        <th>[[#{address}]]</th>
+                        <th>[[#{total_money}]]</th>
+                        <th class="text-center text-wrap">[[#{order_status}]]</th>
+                        <th class="text-center">[[#{created_at}]]</th>
+                        <th class="text-center">[[#{actions}]]</th>
+                    </tr>
+                    </thead>
+                    <tbody id="orderListBody">
+                    </tbody>
+                </table>
+            </div>
+            <!-- /.card-body -->
+            <div class="card-footer clearfix">
+                <span><span id="orderCountText">0</span>
+                    [[${#strings.toLowerCase(#messages.msg('of'))}]]
+                    <span id="totalOrderText">0</span>
+                    [[${#strings.toLowerCase(#messages.msg('orders'))}]]
+                </span>
+                <ul class="pagination pagination-sm m-0 float-right">
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="firstPageButtonOrder">
+                            <i class="fas fa-arrow-circle-left pl-1 pr-1"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="prevPageButtonOrder">[[#{prev}]]</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="nextPageButtonOrder">[[#{next}]]</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="lastPageButtonOrder">
+                            <i class="fas fa-arrow-circle-right pl-1 pr-1"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.card-footer -->
+        </div>
+    </div>
+</th:block>
+<script th:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ecommerce.orderRecipientSearchStatus = /*[[${orderRecipientSearchStatus}]]*/ '';
+ezyadmin.messages.declared_at_input_warehouse = /*[[#{declared_at_input_warehouse}]]*/ '';
+ezyadmin.messages.unallocated_at_warehouse = /*[[#{unallocated_at_warehouse}]]*/ '';
+ezyadmin.messages.allocated_at_warehouse = /*[[#{allocated_at_warehouse}]]*/ '';
+ezyadmin.messages.approved = /*[[#{approved}]]*/ '';
+ezyadmin.messages.paid = /*[[#{paid}]]*/ '';
+ezyadmin.messages.paid_debt = /*[[#{paid_debt}]]*/ '';
+ezyadmin.messages.payment_error = /*[[#{payment_error}]]*/ '';
+ezyadmin.messages.received = /*[[#{received}]]*/ '';
+ezyadmin.messages.rejected = /*[[#{rejected}]]*/ '';
+ezyadmin.messages.unapproved = /*[[#{unapproved}]]*/ '';
+ezyadmin.messages.unpaid = /*[[#{unpaid}]]*/ '';
+ezyadmin.messages.waiting_for_confirmation=/*[[#{waiting_for_confirmation}]]*/ '';
+ezyadmin.messages.waiting_for_payment=/*[[#{waiting_for_payment}]]*/ '';
+/*]]>*/
+
+ecommerce.onOrderActionFinished = function() {
+    $('#order-row-' + ecommerce.selectedOrderId).remove();
+}
+
+// ========== order search =============
+ecommerce.onKeydownToSearchOrder = function() {
+    if(event.key === 'Enter') {
+        ecommerce.orderSearchKeyword = $('#orderSearchKeyword').val().trim();
+        ecommerce.orderSearchShoppingCartId = $('#orderSearchShoppingCartId').val().trim();
+        ecommerce.fetchOrderList();
+    }
+}
+
+ecommerce.onOrderSearchStatusChanged = function() {
+    ecommerce.orderRecipientSearchStatus = $('#orderRecipientSearchStatus').val();
+    ecommerce.changeBrowserUrl();
+    ecommerce.fetchOrderList();
+}
+
+// ========== order pagination =============
+$('#firstPageButtonOrder').click(() => {
+    ecommerce.fetchOrderList('first');
+});
+$('#lastPageButtonOrder').click(() => {
+    ecommerce.fetchOrderList('last');
+});
+$('#nextPageButtonOrder').click(() => {
+    ecommerce.fetchOrderList('next');
+});
+$('#prevPageButtonOrder').click(() => {
+    ecommerce.fetchOrderList('prev');
+});
+
+// ========== order list =============
+ecommerce.fetchOrderList = function(action) {
+    var queryString = '&orderStatuses=UNPAID,PAID';
+    if (ecommerce.orderRecipientSearchStatus) {
+        queryString += '&status=' + ecommerce.orderRecipientSearchStatus;
+    }
+    if (ecommerce.orderSearchKeyword) {
+        queryString += '&keyword=' + ecommerce.orderSearchKeyword;
+    }
+    if (ecommerce.orderSearchShoppingCartId) {
+        queryString += '&shoppingCartId=' + ecommerce.orderSearchShoppingCartId;
+    }
+    if (action == 'current') {
+        if (ecommerce.lastOrderRecipientQueryString) {
+            queryString = ecommerce.lastOrderRecipientQueryString;
+        }
+    } else if (action == 'next') {
+        if (ecommerce.lastOrderPageToken.next) {
+            queryString += '&nextPageToken=' + ecommerce.lastOrderPageToken.next;
+        } else {
+            return;
+        }
+    } else if (action == 'prev') {
+        if (ecommerce.lastOrderPageToken.prev) {
+            queryString += '&prevPageToken=' + ecommerce.lastOrderPageToken.prev;
+        } else {
+            return;
+        }
+    } else if (action == 'last') {
+        queryString += '&lastPage=true';
+    }
+    $.ajax({
+        url: '/ecommerce/api/v1/order-recipients?limit=12' + queryString,
+        type: 'GET',
+        dataType: 'json'
+    })
+    .done(function(data) {
+        $('#orderCountText').text(data.count);
+        $('#totalOrderText').text(ezyadmin.formatNumberWithCommas(data.total));
+        ecommerce.lastOrderRecipientQueryString = queryString;
+        ecommerce.lastOrderPageToken = data.pageToken;
+        $('#orderListBody').html(ecommerce.buildOrderListBodyHtml(data.items));
+        if (data.continuation.hasNext) {
+            $('#nextPageButtonOrder').removeClass('text-secondary');
+        } else {
+            $('#nextPageButtonOrder').addClass('text-secondary');
+        }
+        if (data.continuation.hasPrevious) {
+            $('#prevPageButtonOrder').removeClass('text-secondary');
+        } else {
+            $('#prevPageButtonOrder').addClass('text-secondary');
+        }
+    })
+    .fail(function(e) {
+    	ezyadmin.processGetApiErrors(e);
+    });
+}
+ecommerce.buildOrderListBodyHtml = function(orders) {
+    var html = '';
+    orders.forEach((order) => {
+        html += ecommerce.buildOrderListItemHtml(order);
+    });
+    return html;
+}
+ecommerce.buildOrderListItemHtml = function(order) {
+    var statusColor = ezyadmin.getTextColorByStatus(order.orderStatus);
+    var html = `
+        <tr id="order-row-${order.orderId}">
+            <td class="text-center pl-2p5">
+                <a href="/ecommerce/orders/${order.orderId}${ezyadmin.lang ? `?lang=${ezyadmin.lang}` : ''}">
+                    ${order.orderId}
+                </a>
+            </td>
+            <td>
+                ${order.firstProduct ? `
+                    ${order.firstProduct.iconImageUrl ? `<img src="${order.firstProduct.iconImageUrl}" width="64" class="object-fit-cover">` : ''}
+                    <a href="/ecommerce/products/${order.firstProduct.id}${ezyadmin.lang ? `?lang=${ezyadmin.lang}` : ''}" class="ml-1">
+                        ${order.firstProduct.productName}
+                    </a>
+                ` : ''}
+            </td>
+            <td>
+                ${order.creatorUser ? `
+                    <a href="/users/${order.creatorUser.username}${ezyadmin.lang ? `?lang=${ezyadmin.lang}` : ''}">
+                        ${order.recipient || ''}
+                    </a>
+                ` : order.recipient}
+            </td>
+            <td>
+                <a href="tel:${order.phoneNumber}">${order.phoneNumber || ''}</a>
+            </td>
+            <td>
+                <div class="recipient-address">
+                    <a href="https://www.google.com/maps/search/?api=1&query=${order.address}" target="_blank">
+                        ${order.address}
+                    </a>
+                </div>
+            </td>
+            <td>
+                ${order.formattedTotalAmountMoney} ${order.currency.isoCode}
+            </td>
+            <td class="text-center ${statusColor}">
+                ${ezyadmin.getI18nMessage(order.orderStatus.toLowerCase())}
+            </td>
+            <td class="text-center">
+                ${ezyadmin.formatTimeStamp(order.updatedAt)}
+            </td>
+            <td class="text-center">
+                <a class="btn pr-1" href="/ecommerce/orders/${order.orderId}${ezyadmin.lang ? `?lang=${ezyadmin.lang}` : ''}">
+                    <i class="fas fa-eye text-info"></i>
+                </a>
+                ${['APPROVED', 'REQUEST_DELIVERY_FAILED', 'REJECTED'].includes(order.status) ? `
+                    <button type="button" class="btn pl-1 pr-1" onclick="ecommerce.onDeliverOrderClick(${order.orderId});">
+                        <i class="fas fa-truck text-primary"></i>
+                    </button>
+                ` : ''}
+                ${order.status !== 'DELIVERED' ? `
+                    <button type="button" class="btn pl-1 pr-1" onclick="ecommerce.onDeliveredOrderClick(${order.orderId});">
+                        <i class="fas fa-vote-yea text-success"></i>
+                    </button>
+                ` : ''}
+                ${order.status !== 'REJECTED' ? `
+                    <button type="button" class="btn pl-1" onclick="ecommerce.onRejectOrderRecipientClick(${order.orderId});">
+                        <i class="fas fa-times-circle text-danger"></i>
+                    </button>
+                ` : ''}
+            </td>
+        </tr>`;
+	return html;
+}
+ecommerce.fetchOrderList();
+</script>
+</body>
+</html>

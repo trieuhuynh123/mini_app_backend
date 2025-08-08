@@ -1,0 +1,498 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~ 
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~ 
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~ 
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<head>
+    <script>
+        var ecommerce = {};
+    </script>
+    <style>
+        .min-width-120px { min-width: 120px; }
+    </style>
+</head>
+<body>
+<div layout:fragment="content" class="row">
+    <div class="col-md-3 col-4"><label>[[#{shop_id}]]:</label></div>
+    <div class="col-md-9 col-8">[[${shop.id}]]</div>
+    <div class="col-md-3 col-4"><label>[[#{display_name}]]:</label></div>
+    <div class="col-md-9 col-8">[[${shop.displayName}]]</div>
+    <div class="col-3 d-flex align-items-center">
+        <label>[[#{icon}]]:</label>
+    </div>
+    <div class="col-9 mt-2 mb-2">
+        <img th:src="${shop.iconImage != null ? shop.iconImage.getUrlOrDefault('') : ''}"
+             class="object-fit-cover" width="64">
+    </div>
+    <div class="col-3 d-flex align-items-center">
+        <label>[[#{banner}]]:</label>
+    </div>
+    <div class="col-9 mt-2 mb-2">
+        <img th:src="${shop.bannerImage != null ? shop.bannerImage.getUrlOrDefault('') : ''}"
+             class="object-fit-cover" width="256">
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{tax_percentage_on_each_order}]]:</label></div>
+    <div class="col-md-9 col-8">
+        <th:block th:if="${taxPercent != null && taxPercent != 0}">
+            [[${taxPercent}]]%
+        </th:block>
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{owner}]]:</label></div>
+    <div class="col-md-9 col-8">
+        <a th:if="${shop.owner != null}"
+           th:href="${'/users/' + shop.owner.username}">
+            [[${shop.owner.name}]]
+        </a>
+    </div>
+    <th:block th:if="${shopDetails != null}">
+        <div class="col-md-3 col-4"><label>[[#{company_name}]]:</label></div>
+        <div class="col-md-9 col-8">[[${shopDetails.companyName}]]</div>
+        <div class="col-md-3 col-4"><label>[[#{company_email}]]:</label></div>
+        <div class="col-md-9 col-8">[[${shopDetails.companyEmail}]]</div>
+        <div class="col-md-3 col-4"><label>[[#{company_phone_number}]]:</label></div>
+        <div class="col-md-9 col-8">[[${shopDetails.companyPhoneNumber}]]</div>
+        <div class="col-md-3 col-4"><label>[[#{company_address}]]:</label></div>
+        <div class="col-md-9 col-8">[[${shopDetails.companyAddress}]]</div>
+        <div class="col-md-3 col-4"><label>[[#{company_legal_representative}]]:</label></div>
+        <div class="col-md-9 col-8">[[${shopDetails.companyLegalRepresentative}]]</div>
+        <div class="col-md-3 col-4"><label>[[#{company_tax_code}]]:</label></div>
+        <div class="col-md-9 col-8">[[${shopDetails.companyTaxCode}]]</div>
+        <div class="col-md-3 col-4"><label>[[#{company_licensed_date}]]:</label></div>
+        <div class="col-md-9 col-8">[[${shopDetails.companyLicensedDate}]]</div>
+        <div class="col-md-3 col-4"><label>[[#{company_tax_submission_location}]]:</label></div>
+        <div class="col-md-9 col-8">[[${shopDetails.companyTaxSubmissionLocation}]]</div>
+    </th:block>
+    <div class="col-md-3 col-4"><label>[[#{status}]]:</label></div>
+    <div class="col-md-9 col-8 status-text">[[#{${shop.status.toLowerCase()}}]]</div>
+    <div class="col-md-3 col-4"><label>[[#{created_at}]]:</label></div>
+    <div class="col-md-9 col-8 date-time-string">[[${shop.createdAt}]]</div>
+    <div class="col-md-3 col-4"><label>[[#{updated_at}]]:</label></div>
+    <div class="col-md-9 col-8 date-time-string">[[${shop.updatedAt}]]</div>
+    <div class="col-md-3 col-4"></div>
+    <div class="col-md-9 col-8">
+        <button type="button" class="btn btn-danger mb-2"
+                th:attr="onclick=|ecommerce.onDeleteShopClick(${shop.id}, '${shop.displayName}')|">
+            [[#{delete}]] <i class="fas fa-trash"></i>
+        </button>
+    </div>
+    <th:block th:if="${adminRoles.isAccessible('/ecommerce/shops/{shopId}/bank-accounts/{bankAccountId}')}">
+        <div class="col-12">
+            <hr class="mb-4" />
+        </div>
+        <div class="col-12">
+            <div class="d-flex">
+                <h3>[[#{bank_accounts}]]</h3>
+                <a th:href="${'/ecommerce/shops/' + shop.id + '/bank-accounts/add'}"
+                   class="btn btn-outline-primary button-next-to-title">
+                    [[#{add_new}]] <i class="fas fa-plus-circle"></i>
+                </a>
+            </div>
+        </div>
+        <div class="col-12 mt-3">
+            <table id="bankAccountList" class="table table-bordered table-hover bg-white">
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>[[#{logo}]]</th>
+                    <th>[[#{name}]]</th>
+                    <th>[[#{account_number}]]</th>
+                    <th>[[#{account_owner}]]</th>
+                    <th>[[#{bank_branch}]]</th>
+                    <th>[[#{order}]]</th>
+                    <th>[[#{status}]]</th>
+                    <th>[[#{created_at}]]</th>
+                    <th>[[#{actions}]]</th>
+                </tr>
+                </thead>
+                <tbody id="bankAccountListBody">
+                <tr th:each="bankAccount, iterator : ${bankAccounts}">
+                    <td class="align-middle">[[${iterator.index + 1}]]</td>
+                    <td th:if="${bankAccount.bankLogoImage != null}"
+                        class="align-middle">
+                        <a th:href="${'/ecommerce/banks/' + bankAccount.bankId}">
+                            <img th:src="${bankAccount.bankLogoImage != null ? bankAccount.bankLogoImage.getUrlOrDefault('') : ''}"
+                                class="object-fit-cover" width="48">
+                        </a>
+                    </td>
+                    <td th:if="${bankAccount.bankLogoImage == null}"
+                        class="align-middle">
+                        <a th:href="${'/ecommerce/banks/' + bankAccount.bankId}">
+                            ###
+                        </a>
+                    </td>
+                    <td class="align-middle">
+                        <a th:href="${'/ecommerce/shops/' + bankAccount.shopId + '/bank-accounts/' + bankAccount.id}">
+                            [[${bankAccount.bankName}]]
+                            <th:block th:if="${bankAccount.bankCode != null}">
+                                ([[${bankAccount.bankCode}]])
+                            </th:block>
+                        </a>
+                    </td>
+                    <td class="align-middle">
+                        <a th:href="${'/ecommerce/shops/' + bankAccount.shopId + '/bank-accounts/' + bankAccount.id}">
+                            [[${bankAccount.accountNumber}]]
+                        </a>
+                    </td>
+                    <td class="align-middle">
+                        [[${bankAccount.accountOwnerName}]]
+                    </td>
+                    <td class="align-middle">
+                        [[${bankAccount.bankBranchOfAccount}]]
+                    </td>
+                    <td class="align-middle">
+                        [[${bankAccount.displayOrder}]]
+                    </td>
+                    <td class="align-middle status-text" th:attr="status=|${bankAccount.status}|">
+                        [[#{${bankAccount.status.toString().toLowerCase()}}]]
+                    </td>
+                    <td class="align-middle date-time-string">
+                        [[${bankAccount.createdAt}]]
+                    </td>
+                    <td class="align-middle">
+                        <a th:href="${'/ecommerce/shops/' + shop.id + '/bank-accounts/' + bankAccount.id}" class="text-info pr-1">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <a th:href="${'/ecommerce/shops/' + shop.id + '/bank-accounts/' + bankAccount.id + '/edit'}" class="text-primary pr-1">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <a th:attr="onclick=|ecommerce.onDeleteShopBankAccountClick(${bankAccount.id}, '${bankAccount.accountNumber}', '${shop.displayName}')|" class="text-danger cursor-pointer">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </th:block>
+    <th:block th:if="${adminRoles.isAccessible('/ecommerce/shops/{shopId}/branches/{branchId}')}">
+        <div class="col-12">
+            <hr class="mb-4" />
+        </div>
+        <div class="col-12">
+            <div class="d-flex">
+                <h3>[[#{branches}]]</h3>
+                <a th:href="${'/ecommerce/shops/' + shop.id + '/branches/add'}"
+                        class="btn btn-outline-primary button-next-to-title">
+                    [[#{add_new}]] <i class="fas fa-plus-circle"></i>
+                </a>
+            </div>
+        </div>
+        <div class="col-12 mt-3">
+            <table id="branchList" class="table table-bordered table-hover bg-white">
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>[[#{name}]]</th>
+                    <th>[[#{area}]]</th>
+                    <th>[[#{province}]]</th>
+                    <th>[[#{address}]]</th>
+                    <th>[[#{phone_number}]]</th>
+                    <th>[[#{headquarters}]]</th>
+                    <th>[[#{status}]]</th>
+                    <th>[[#{created_at}]]</th>
+                    <th>[[#{actions}]]</th>
+                </tr>
+                </thead>
+                <tbody id="branchListBody">
+                <tr th:each="shopBranch, iterator : ${branches}">
+                    <td class="align-middle">[[${iterator.index + 1}]]</td>
+                    <td class="align-middle">
+                        <a th:href="${'/ecommerce/shops/' + shop.id + '/branches/' + shopBranch.id}">
+                            [[${shopBranch.branchName}]]
+                        </a>
+                    </td>
+                    <td class="align-middle">
+                        [[${shopBranch.areaName}]]
+                    </td>
+                    <td class="align-middle">
+                        [[${shopBranch.cityName}]]
+                    </td>
+                    <td th:if="${shopBranch.mapLocation != null}"
+                        class="align-middle">
+                        <a th:if="${shopBranch.mapLocation.startsWith('http')}"
+                           th:href="${shopBranch.mapLocation}" target="_blank">
+                            [[${shopBranch.branchAddress}]]
+                        </a>
+                        <a th:if="${!shopBranch.mapLocation.startsWith('http')
+                            && !shopBranch.mapLocation.startsWith('<iframe')}"
+                           th:href="${'https://www.google.com/maps/search/?api=1&query=' + shopBranch.branchAddress}"
+                           target="_blank">
+                            [[${shopBranch.branchAddress}]]
+                        </a>
+                        <th:block th:if="${shopBranch.mapLocation.startsWith('<iframe')}">
+                            [[${shopBranch.branchAddress}]]
+                        </th:block>
+                    </td>
+                    <td th:if="${shopBranch.mapLocation == null}"
+                        class="align-middle">
+                        <a th:href="${'https://www.google.com/maps/search/?api=1&query=' + shopBranch.branchAddress}"
+                           target="_blank">
+                            [[${shopBranch.branchAddress}]]
+                        </a>
+                    </td>
+                    <td class="align-middle">
+                        <a th:href="${'tel:' + shopBranch.phoneNumber}">
+                            [[${shopBranch.phoneNumber}]]
+                        </a>
+                    </td>
+                    <td class="align-middle">
+                        [[#{${shop.headquartersId == shopBranch.id ? 'yes' : 'no'}}]]
+                    </td>
+                    <td class="align-middle status-text" th:attr="status=|${shopBranch.status}|">
+                        [[#{${shopBranch.status.toString().toLowerCase()}}]]
+                    </td>
+                    <td class="align-middle date-time-string">
+                        [[${shopBranch.createdAt}]]
+                    </td>
+                    <td class="align-middle">
+                        <a th:href="${'/ecommerce/shops/' + shop.id + '/branches/' + shopBranch.id}" class="text-info pr-1">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <a th:href="${'/ecommerce/shops/' + shop.id + '/branches/' + shopBranch.id + '/edit'}" class="text-primary pr-1">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <a th:attr="onclick=|ecommerce.onDeleteShopBranchClick(${shopBranch.id}, '${shopBranch.branchName}', '${shop.displayName}')|" class="text-danger cursor-pointer">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </th:block>
+    <th:block th:if="${adminRoles.isAccessible('/ecommerce/shops/{shopId}/warehouses/{warehouseId}')}">
+        <div class="col-12">
+            <hr class="mb-4" />
+        </div>
+        <div class="col-12">
+            <div class="d-flex">
+                <h3>[[#{warehouses}]]</h3>
+                <a th:href="${'/ecommerce/shops/' + shop.id + '/warehouses/add'}"
+                   class="btn btn-outline-primary button-next-to-title">
+                    [[#{add_new}]] <i class="fas fa-plus-circle"></i>
+                </a>
+            </div>
+        </div>
+        <div class="col-12 mt-3">
+            <table id="warehouseList" class="table table-bordered table-hover bg-white">
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>[[#{name}]]</th>
+                    <th>[[#{address}]]</th>
+                    <th>[[#{phone_number}]]</th>
+                    <th class="text-center">[[#{main_warehouse}]]</th>
+                    <th>[[#{status}]]</th>
+                    <th>[[#{created_at}]]</th>
+                    <th>[[#{actions}]]</th>
+                </tr>
+                </thead>
+                <tbody id="warehouseListBody">
+                <tr th:each="shopWarehouse, iterator : ${warehouses}">
+                    <td class="align-middle">[[${iterator.index + 1}]]</td>
+                    <td class="align-middle">
+                        <a th:href="${'/ecommerce/shops/' + shop.id + '/warehouses/' + shopWarehouse.id}">
+                            [[${shopWarehouse.displayName}]]
+                        </a>
+                    </td>
+                    <td class="align-middle">
+                        [[${shopWarehouse.detailedAddress}]]
+                    </td>
+                    <td class="align-middle">
+                        <a th:href="${'tel:' + shopWarehouse.phoneNumber}">
+                            [[${shopWarehouse.phoneNumber}]]
+                        </a>
+                    </td>
+                    <td class="align-middle text-center">
+                        <th:block th:if="${shopWarehouse.id == shop.mainWarehouseId}">
+                            [[#{yes}]]
+                        </th:block>
+                        <button th:if="${shopWarehouse.id != shop.mainWarehouseId}"
+                                type="button" class="btn btn-link" th:attr="onclick=|ecommerce.setAsMainShopWarehouse(${shopWarehouse.id})|">
+                            [[#{set_as}]]
+                        </button>
+                    </td>
+                    <td class="align-middle status-text" th:attr="status=|${shopWarehouse.status}|">
+                        [[#{${shopWarehouse.status.toString().toLowerCase()}}]]
+                    </td>
+                    <td class="align-middle date-time-string">
+                        [[${shopWarehouse.createdAt}]]
+                    </td>
+                    <td class="align-middle">
+                        <a th:href="${'/ecommerce/shops/' + shop.id + '/warehouses/' + shopWarehouse.id}" class="text-info pr-1">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <a th:href="${'/ecommerce/shops/' + shop.id + '/warehouses/' + shopWarehouse.id + '/edit'}" class="text-primary pr-1">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <a th:attr="onclick=|ecommerce.onDeleteShopWarehouseClick(${shopWarehouse.id}, '${shopWarehouse.displayName}', '${shop.displayName}')|" class="text-danger cursor-pointer">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </th:block>
+    <th:block th:if="${adminRoles.isAccessible('/ecommerce/api/v1/vouchers')}">
+        <div class="col-12">
+            <hr class="mb-4" />
+        </div>
+        <div class="col-12">
+            <div class="d-flex">
+                <h3>[[#{vouchers}]]</h3>
+                <a th:href="${'/ecommerce/vouchers/add?shopId=' + shop.id}"
+                   class="btn btn-outline-primary button-next-to-title">
+                    [[#{add_new}]] <i class="fas fa-plus-circle"></i>
+                </a>
+            </div>
+        </div>
+        <th:block th:replace="~{/ecommerce/shop/voucher/list :: content}" />
+    </th:block>
+    <th:block th:if="${adminRoles.isAccessible('/ecommerce/api/v1/affiliate-tokens')}">
+        <div class="col-12">
+            <hr class="mb-4" />
+        </div>
+        <div class="col-12">
+            <div class="d-flex">
+                <h3>[[#{affiliate_tokens}]]</h3>
+                <a th:href="${'/ecommerce/affiliate-tokens/add?shopId=' + shop.id}"
+                   class="btn btn-outline-primary button-next-to-title">
+                    [[#{add_new}]] <i class="fas fa-plus-circle"></i>
+                </a>
+            </div>
+        </div>
+        <th:block th:replace="~{/ecommerce/shop/affiliate-token/list :: content}" />
+    </th:block>
+    <th:block th:if="${adminRoles.isAccessible('/ecommerce/api/v1/agencies')}">
+        <div class="col-12">
+            <hr class="mb-4" />
+        </div>
+        <div class="col-12">
+            <div class="d-flex">
+                <h3>[[#{agencies}]]</h3>
+                <a th:href="${'/ecommerce/shops/' + shop.id + '/agencies/add'}"
+                   class="btn btn-outline-primary button-next-to-title">
+                    [[#{add_new}]] <i class="fas fa-plus-circle"></i>
+                </a>
+            </div>
+        </div>
+        <th:block th:replace="~{/ecommerce/shop/agency/list :: content}" />
+    </th:block>
+    <th:block th:if="${adminRoles.isAccessible('/ecommerce/api/v1/sellers')}">
+        <div class="col-12">
+            <hr class="mb-4" />
+        </div>
+        <div class="col-12">
+            <div class="d-flex">
+                <h3>[[#{sellers}]]</h3>
+                <button type="button"
+                        class="btn btn-outline-primary button-next-to-title"
+                        onclick="ecommerce.showAddSellerModal();">
+                    [[#{add_new}]] <i class="fas fa-plus-circle"></i>
+                </button>
+            </div>
+        </div>
+        <th:block th:replace="~{/ecommerce/shop/seller/list :: content}" />
+    </th:block>
+    <div class="col-12 mb-3"></div>
+</div>
+<th:block layout:fragment="modals">
+    <th:block th:replace="~{/ecommerce/shop/seller/add :: content}" />
+    <th:block th:replace="~{/ecommerce/shop/seller/edit :: content}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='delete-shop-modal', title=confirm, confirmButton=delete, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='delete-shop-bank-account-modal', title=confirm, confirmButton=delete, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='delete-shop-branch-modal', title=confirm, confirmButton=delete, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='delete-shop-warehouse-modal', title=confirm, confirmButton=delete, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='delete-voucher-modal', title=confirm, confirmButton=delete, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='delete-shop-agency-modal', title=confirm, confirmButton=delete, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='delete-seller-modal', title=confirm, confirmButton=delete, closeButton=close)}" />
+</th:block>
+<script layout:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ecommerce.selectedShopId = /*[[${shop.id}]]*/ '';
+ecommerce.selectedShopDisplayName = /*[[${shop.displayName}]]*/ '';
+ecommerce.defaultCurrency = /*[[${defaultCurrency}]]*/ '';
+/*]]>*/
+
+ezyadmin.onEditButtonClick = function() {
+    window.location = '/ecommerce/shops/' + ecommerce.selectedShopId + '/edit'
+        + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+}
+
+ecommerce.onVoucherDeleted = function() {
+    $('#voucher-row-' + ecommerce.selectedVoucherId).remove();
+}
+
+ecommerce.onSellerDeleted = function() {
+    $('#seller-row-' + ecommerce.selectedSellerUserId).remove();
+}
+
+ezyadmin.createDataTable('bankAccountList', 5);
+ezyadmin.createDataTable('branchList', 5);
+ezyadmin.createDataTable('warehouseList', 5);
+</script>
+<th:block layout:fragment="post-scripts">
+<script th:replace="~{scripts/suggestion :: input}" />
+<script th:replace="~{scripts/suggestion :: user}" />
+<script th:replace="~{ecommerce/shop/scripts :: delete}" />
+<script th:replace="~{ecommerce/shop/bank-account/scripts :: delete}" />
+<script th:replace="~{ecommerce/shop/branch/scripts :: delete}" />
+<script th:replace="~{ecommerce/shop/warehouse/scripts :: set-as-main}" />
+<script th:replace="~{ecommerce/shop/warehouse/scripts :: delete}" />
+<th:block th:if="${adminRoles.isAccessible('/ecommerce/api/v1/vouchers')}">
+    <script th:replace="~{ecommerce/shop/voucher/list :: scripts}" />
+</th:block>
+<th:block th:if="${adminRoles.isAccessible('/ecommerce/api/v1/affiliate-tokens')}">
+    <script th:replace="~{ecommerce/shop/affiliate-token/list :: scripts}" />
+</th:block>
+<th:block th:if="${adminRoles.isAccessible('/ecommerce/api/v1/agencies')}">
+    <script th:replace="~{ecommerce/shop/agency/list :: scripts}" />
+    <script th:replace="~{ecommerce/shop/agency/scripts :: delete}" />
+</th:block>
+<th:block th:if="${adminRoles.isAccessible('/ecommerce/api/v1/sellers')}">
+    <script th:replace="~{ecommerce/shop/seller/list :: scripts}" />
+</th:block>
+<script th:replace="~{ecommerce/shop/seller/add :: scripts}" />
+<script th:replace="~{ecommerce/shop/seller/edit :: scripts}" />
+<script th:replace="~{ecommerce/shop/seller/scripts :: delete}" />
+<script th:replace="~{ecommerce/voucher/scripts :: delete}" />
+<script>
+ezyadmin.onPromptConfirmed = function(modalId) {
+    if (modalId == 'delete-shop-modal') {
+        ecommerce.deleteShop();
+    } else if (modalId == 'delete-shop-bank-account-modal') {
+        ecommerce.deleteShopBankAccount();
+    } else if (modalId == 'delete-shop-branch-modal') {
+        ecommerce.deleteShopBranch();
+    } else if (modalId == 'delete-shop-warehouse-modal') {
+        ecommerce.deleteShopWarehouse();
+    } if (modalId == 'delete-shop-agency-modal') {
+        ecommerce.deleteShopAgency();
+    } else if (modalId == 'delete-voucher-modal') {
+        ecommerce.deleteVoucher();
+    } else if (modalId == 'delete-seller-modal') {
+        ecommerce.deleteSeller();
+    }
+}
+</script>
+</th:block>
+</body>
+</html>

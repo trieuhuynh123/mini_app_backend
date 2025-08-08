@@ -1,0 +1,424 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~ 
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~ 
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~ 
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<head>
+    <script>
+        var ecommerce = {};
+    </script>
+    <head>
+    <style>
+        .min-height-300 {
+            min-height: 300px;
+        }
+        .max-height-380 {
+            max-height: 380px;
+            overflow: auto;
+        }
+    </style>
+    </head>
+</head>
+<body>
+<div layout:fragment="content" class="row">
+    <div class="col-12 mt-3">
+        <table id="countryList" class="table table-bordered table-hover bg-white align-middle-cells">
+            <thead>
+            <tr>
+                <th class="text-center pl-2">#</th>
+                <th class="text-center">[[#{flag}]]</th>
+                <th class="text-center">[[#{image}]]</th>
+                <th class="text-center">[[#{code}]]</th>
+                <th>[[#{local_name}]]</th>
+                <th>[[#{international_name}]]</th>
+                <th class="text-center text-wrap">[[#{dialing_code}]]</th>
+                <th class="text-center text-wrap">[[#{currency_iso_code}]]</th>
+                <th>[[#{capital_name}]]</th>
+                <th class="text-center">[[#{default}]]</th>
+                <th class="text-center">[[#{status}]]</th>
+                <th class="text-center">[[#{actions}]]</th>
+            </tr>
+            </thead>
+            <tbody id="countryListBody">
+            <tr th:each="country, iterator : ${countries}">
+                <td class="align-middle text-center">[[${iterator.index + 1}]]</td>
+                <td class="align-middle text-center"><i th:class="${country.flagIcon}"></i></td>
+                <td class="align-middle text-center">
+                    <img th:if="${countryImageById.containsKey(country.imageId)}"
+                         th:src="${countryImageById.get(country.imageId).getUrlOrDefault('')}"
+                         class="object-fit-cover" width="32" height="32">
+                </td>
+                <td class="align-middle text-center">[[${country.code}]]</td>
+                <td class="align-middle">[[${country.localName}]]</td>
+                <td class="align-middle">[[${country.internationalName}]]</td>
+                <td class="align-middle text-center">[[${country.dialingCode}]]</td>
+                <td class="align-middle text-center">[[${country.currencyIsoCode}]]</td>
+                <td class="align-middle">[[${country.capitalName}]]</td>
+                <td class="align-middle text-center text-nowrap">
+                    <th:block th:if="${country.id == defaultCountryId}">
+                        [[#{yes}]]
+                    </th:block>
+                    <button th:if="${country.id != defaultCountryId}"
+                            type="button" class="btn btn-link"
+                            th:attr="onclick=|ecommerce.setAsDefaultCountry(${country.id})|">
+                        [[#{set_as}]]
+                    </button>
+                </td>
+                <td class="align-middle text-center status-text" th:attr="status=|${country.status}|">
+                    [[#{${country.status.toString().toLowerCase()}}]]
+                </td>
+                <td class="align-middle text-center">
+                    <a class="text-primary pr-1 cursor-pointer"
+                       th:attr="onclick=|ecommerce.selectCountry(${country.id})|">
+                        <i class="fas fa-hand-pointer"></i>
+                    </a>
+                    <a class="text-primary pr-1 cursor-pointer"
+                       th:attr="onclick=|ecommerce.showSaveCountryModal('edit', ${country.id})|">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <a th:attr="onclick=|ecommerce.onDeleteCountryClick(${country.id}, '${country.internationalName}')|"
+                       class="text-danger cursor-pointer">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="col-12">
+        <hr class="mb-4" />
+    </div>
+    <div class="col-12">
+        <div class="d-flex flex-column flex-md-row">
+            <h4 id="provincesTitle">
+                [[#{provinces}]]
+                <th:block th:if="${firstCountry != null}">
+                    [[#{of}]]
+                    [[${firstCountry.internationalName}]]
+                </th:block>
+            </h4>
+            <button type="button" class="btn btn-outline-primary ml-0 ml-md-2 pt-1 pb-1"
+                    th:classappend="${firstCountry != null ? '' : 'd-none'}"
+                    id="addProvinceButton"
+                    onclick="ecommerce.showSaveProvinceModal('add');">
+                [[#{add_new}]] <i class="fas fa-plus-circle"></i>
+            </button>
+            <div class="flex-column flex-md-row"
+                 th:classappend="${countryFetcherNames.isEmpty() ? 'd-none' : 'd-flex'}"
+                 id="fetchProvincesFromDiv">
+                <h4 class="mt-2 mt-md-0 ml-2 mr-2">[[#{or}]]</h4>
+                <div class="dropdown">
+                    <button type="button"
+                            class="btn btn-outline-primary dropdown-toggle pt-1 pb-1 w-100"
+                            data-toggle="dropdown">
+                        [[#{fetch_from}]]
+                    </button>
+                    <div class="dropdown-menu w-100" id="provincesFetchersDiv">
+                        <a th:each="countryFetcherName : ${countryFetcherNames}"
+                           class="dropdown-item cursor-pointer"
+                           th:attr="onclick=|ecommerce.onFetchCountryClick('${countryFetcherName}')|">
+                            [[${countryFetcherName}]]
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 mt-3">
+        <table id="provinceList" class="table table-bordered table-hover bg-white align-middle-cells">
+            <thead>
+            <tr>
+                <th class="text-center pl-2p5">#</th>
+                <th class="text-center">[[#{code}]]</th>
+                <th class="text-center">[[#{type}]]</th>
+                <th>[[#{display_name}]]</th>
+                <th class="text-center">[[#{nearby}]]</th>
+                <th class="text-center">[[#{status}]]</th>
+                <th class="text-center">[[#{actions}]]</th>
+            </tr>
+            </thead>
+            <tbody id="provinceListBody">
+            <tr th:each="province, iterator : ${provinces}">
+                <td class="text-center pl-2p5">[[${iterator.index + 1}]]</td>
+                <td class="text-center">
+                    [[${province.code}]]
+                </td>
+                <td class="text-center">
+                    <th:block th:if="${province.type != null}">
+                        [[#{${'province_type_' + province.type.toLowerCase()}}]]
+                    </th:block>
+                </td>
+                <td>
+                    [[${province.displayName}]]
+                </td>
+                <td class="text-center">
+                    <div>
+                        <button type="button" class="btn btn-link"
+                                th:attr="onclick=|ecommerce.showNearbyProvincesModal(${province.countryId}, ${province.id}, '${province.displayName}')|">
+                            [[${province.numberOfNearByProvinces}]]
+                            [[#{province_s}]]
+                        </button>
+                        <button type="button" class="btn btn-link"
+                                th:attr="onclick=|ecommerce.showUpdateNearbyProvincesModal(${province.countryId}, ${province.id}, '${province.displayName}')|">
+                            [[#{update}]] <i class="fas fa-exchange-alt ml-2"></i>
+                        </button>
+                    </div>
+                </td>
+                <td class="align-middle text-center status-text" th:attr="status=|${province.status}|">
+                    [[#{${province.status.toString().toLowerCase()}}]]
+                </td>
+                <td class="text-center">
+                    <a class="text-primary pr-1 cursor-pointer"
+                       th:attr="onclick=|ecommerce.selectProvince(${province.id})|">
+                        <i class="fas fa-hand-pointer"></i>
+                    </a>
+                    <a class="text-primary pr-1 cursor-pointer"
+                       th:attr="onclick=|ecommerce.showSaveProvinceModal('edit', ${province.id})|">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <a th:attr="onclick=|ecommerce.onDeleteProvinceClick(${province.id}, '${province.displayName}')|"
+                       class="text-danger cursor-pointer">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="col-12">
+        <hr class="mb-4" />
+    </div>
+    <div class="col-12">
+        <div class="d-flex flex-column flex-md-row">
+            <h4 id="districtsTitle">
+                [[#{districts}]]
+                <th:block th:if="${firstProvince != null}">
+                    [[#{of}]]
+                    [[${firstProvince.displayName}]]
+                </th:block>
+            </h4>
+            <button type="button" class="btn btn-outline-primary ml-0 ml-md-2 pt-1 pb-1"
+                    th:classappend="${firstProvince != null ? '' : 'd-none'}"
+                    id="addDistrictButton"
+                    onclick="ecommerce.showSaveDistrictModal('add');">
+                [[#{add_new}]] <i class="fas fa-plus-circle"></i>
+            </button>
+        </div>
+    </div>
+    <div class="col-12 mt-3">
+        <table id="districtList" class="table table-bordered table-hover bg-white align-middle-cells">
+            <thead>
+            <tr>
+                <th class="text-center pl-2p5">#</th>
+                <th class="text-center">[[#{code}]]</th>
+                <th class="text-center">[[#{type}]]</th>
+                <th>[[#{display_name}]]</th>
+                <th class="text-center">[[#{status}]]</th>
+                <th class="text-center">[[#{actions}]]</th>
+            </tr>
+            </thead>
+            <tbody id="districtListBody">
+            <tr th:each="district, iterator : ${districts}">
+                <td class="text-center pl-2p5">[[${iterator.index + 1}]]</td>
+                <td class="text-center">
+                    [[${district.code}]]
+                </td>
+                <td class="text-center">
+                    <th:block th:if="${district.type != null}">
+                        [[#{${'district_type_' + district.type.toLowerCase()}}]]
+                    </th:block>
+                </td>
+                <td>
+                    [[${district.displayName}]]
+                </td>
+                <td class="align-middle text-center status-text" th:attr="status=|${district.status}|">
+                    [[#{${district.status.toString().toLowerCase()}}]]
+                </td>
+                <td class="text-center">
+                    <a class="text-primary pr-1 cursor-pointer"
+                       th:attr="onclick=|ecommerce.selectDistrict(${district.id})|">
+                        <i class="fas fa-hand-pointer"></i>
+                    </a>
+                    <a class="text-primary pr-1 cursor-pointer"
+                       th:attr="onclick=|ecommerce.showSaveDistrictModal('edit', ${district.id})|">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <a th:attr="onclick=|ecommerce.onDeleteDistrictClick(${district.id}, '${district.displayName}')|"
+                       class="text-danger cursor-pointer">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="col-12">
+        <hr class="mb-4" />
+    </div>
+    <div class="col-12">
+        <div class="d-flex flex-column flex-md-row">
+            <h4 id="wardsTitle">
+                [[#{wards}]]
+                <th:block th:if="${firstDistrict != null}">
+                    [[#{of}]]
+                    [[${firstDistrict.displayName}]]
+                </th:block>
+            </h4>
+            <button type="button" class="btn btn-outline-primary ml-0 ml-md-2 pt-1 pb-1"
+                    th:classappend="${firstDistrict != null ? '' : 'd-none'}"
+                    id="addWardButton"
+                    onclick="ecommerce.showSaveWardModal('add');">
+                [[#{add_new}]] <i class="fas fa-plus-circle"></i>
+            </button>
+        </div>
+    </div>
+    <div class="col-12 mt-3">
+        <table id="wardList" class="table table-bordered table-hover bg-white align-middle-cells">
+            <thead>
+            <tr>
+                <th class="text-center pl-2p5">#</th>
+                <th class="text-center">[[#{type}]]</th>
+                <th>[[#{display_name}]]</th>
+                <th class="text-center">[[#{status}]]</th>
+                <th class="text-center">[[#{actions}]]</th>
+            </tr>
+            </thead>
+            <tbody id="wardListBody">
+            <tr th:each="ward, iterator : ${wards}">
+                <td class="text-center pl-2p5">[[${iterator.index + 1}]]</td>
+                <td class="text-center">
+                    <th:block th:if="${ward.type != null}">
+                        [[#{${'ward_type_' + ward.type.toLowerCase()}}]]
+                    </th:block>
+                </td>
+                <td>
+                    [[${ward.displayName}]]
+                </td>
+                <td class="align-middle text-center status-text" th:attr="status=|${ward.status}|">
+                    [[#{${ward.status.toString().toLowerCase()}}]]
+                </td>
+                <td class="text-center">
+                    <a class="text-primary pr-1 cursor-pointer"
+                       th:attr="onclick=|ecommerce.showSaveWardModal('edit', ${ward.id})|">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <a th:attr="onclick=|ecommerce.onDeleteWardClick(${ward.id}, '${ward.displayName}')|"
+                       class="text-danger cursor-pointer">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="col-12 mb-3"></div>
+</div>
+<th:block layout:fragment="modals">
+    <th:block th:replace="~{ecommerce/country/country-modal :: content}" />
+    <th:block th:replace="~{ecommerce/country/province-modal :: content}" />
+    <th:block th:replace="~{ecommerce/country/district-modal :: content}" />
+    <th:block th:replace="~{ecommerce/country/ward-modal :: content}" />
+    <th:block th:replace="~{ecommerce/country/nearby-provinces-modal :: content(id='update-nearby-province-modal', title=confirm, confirmButton=confirm, closeButton=close)}" />
+    <th:block th:replace="~{ecommerce/country/update-nearby-provinces-modal :: content(id='update-nearby-province-modal', title=confirm, confirmButton=confirm, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='delete-country-modal', title=confirm, confirmButton=delete, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='delete-province-modal', title=confirm, confirmButton=delete, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='delete-district-modal', title=confirm, confirmButton=delete, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='delete-ward-modal', title=confirm, confirmButton=delete, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='fetch-country-modal', title=confirm, confirmButton=confirm, closeButton=close)}" />
+</th:block>
+<script layout:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ecommerce.countries = /*[[${countries}]]*/;
+ecommerce.provinces = /*[[${provinces}]]*/;
+ecommerce.districts = /*[[${districts}]]*/;
+ecommerce.wards = /*[[${wards}]]*/;
+ecommerce.countryImageById = /*[[${countryImageById}]]*/;
+/*]]>*/
+ecommerce.countries = ecommerce.countries || [];
+ecommerce.countryById = {};
+ecommerce.countries.forEach((country) => {
+    ecommerce.countryById[country.id] = country;
+});
+ecommerce.selectedCountry = ecommerce.countries.length
+    ? ecommerce.countries[0]
+    : null;
+
+ecommerce.provinces = ecommerce.provinces || [];
+ecommerce.provinceById = {};
+ecommerce.provinces.forEach((province) => {
+    ecommerce.provinceById[province.id] = province;
+});
+ecommerce.selectedProvince = ecommerce.provinces.length
+    ? ecommerce.provinces[0]
+    : null;
+
+ecommerce.districts = ecommerce.districts || [];
+ecommerce.districtById = {};
+ecommerce.districts.forEach((district) => {
+    ecommerce.districtById[district.id] = district;
+});
+ecommerce.selectedDistrict = ecommerce.districts.length
+    ? ecommerce.districts[0]
+    : null;
+
+ecommerce.wards = ecommerce.wards || [];
+ecommerce.wardById = {};
+ecommerce.wards.forEach((ward) => {
+    ecommerce.wardById[ward.id] = ward;
+});
+ecommerce.selectedWard = ecommerce.wards.length
+    ? ecommerce.wards[0]
+    : null;
+
+// ========== countries init =============
+ezyadmin.onNewButtonClick = function(e) {
+    ecommerce.showSaveCountryModal('add');
+}
+
+ezyadmin.onPromptConfirmed = function(modalId) {
+    if (modalId == 'delete-country-modal') {
+        ecommerce.deleteCountry();
+    } else if (modalId == 'delete-province-modal') {
+        ecommerce.deleteProvince();
+    } else if (modalId == 'delete-district-modal') {
+        ecommerce.deleteDistrict();
+    } else if (modalId == 'delete-ward-modal') {
+        ecommerce.deleteWard();
+    } else if (modalId == 'fetch-country-modal') {
+        ecommerce.fetchCountry();
+    }
+}
+
+ecommerce.countryListDataTable = ezyadmin.createDataTable('countryList', 5);
+ecommerce.provinceListDataTable = ezyadmin.createDataTable('provinceList', 5);
+ecommerce.districtListDataTable = ezyadmin.createDataTable('districtList', 5);
+ecommerce.wardListDataTable = ezyadmin.createDataTable('wardList', 5);
+</script>
+<th:block layout:fragment="post-scripts">
+    <script th:replace="~{ecommerce/country/country-modal :: scripts}"></script>
+    <script th:replace="~{ecommerce/country/province-modal :: scripts}"></script>
+    <script th:replace="~{ecommerce/country/district-modal :: scripts}"></script>
+    <script th:replace="~{ecommerce/country/ward-modal :: scripts}"></script>
+    <script th:replace="~{ecommerce/country/nearby-provinces-modal :: scripts}"></script>
+    <script th:replace="~{ecommerce/country/update-nearby-provinces-modal :: scripts}"></script>
+    <script th:replace="~{ecommerce/country/country-modal :: set-as-default}" />
+</th:block>
+</body>
+</html>

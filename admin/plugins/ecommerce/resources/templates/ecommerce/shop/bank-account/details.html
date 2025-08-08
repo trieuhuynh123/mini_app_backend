@@ -1,0 +1,109 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~ 
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~ 
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~ 
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<head>
+    <script>
+        var ecommerce = {};
+    </script>
+</head>
+<body>
+<div layout:fragment="content" class="row">
+    <div class="col-md-3 col-4"><label>[[#{shop}]]:</label></div>
+    <div class="col-md-9 col-8">
+        <a th:href="${'/ecommerce/shops/' + shop.id}">[[${shop.displayName}]]</a>
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{bank_name}]]:</label></div>
+    <div class="col-md-9 col-8">
+        <a th:href="${'/ecommerce/banks/' + bankAccount.bankId}">
+            [[${bankAccount.bankName}]]
+            <th:block th:if="${bankAccount.bankCode != null}">
+                ([[${bankAccount.bankCode}]])
+            </th:block>
+        </a>
+    </div>
+    <div class="col-3 d-flex align-items-center">
+        <label>[[#{bank_logo_image}]]:</label>
+    </div>
+    <div class="col-9 mt-2 mb-2">
+        <img th:src="${bankAccount.bankLogoImage != null ? bankAccount.bankLogoImage.getUrlOrDefault('') : ''}"
+             class="object-fit-cover" width="64">
+    </div>
+    <div class="col-3 d-flex align-items-center">
+        <label>[[#{bank_banner}]]:</label>
+    </div>
+    <div class="col-9 mt-2 mb-2">
+        <img th:src="${bankAccount.bankBannerImage != null ? bankAccount.bankBannerImage.getUrlOrDefault('') : ''}"
+             class="object-fit-cover" width="256">
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{account_number}]]:</label></div>
+    <div class="col-md-9 col-8">
+        [[${bankAccount.accountNumber}]]
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{account_owner}]]:</label></div>
+    <div class="col-md-9 col-8">
+        [[${bankAccount.accountOwnerName}]]
+    </div>
+    <div class="col-3 d-flex align-items-center">
+        <label>[[#{account_qr_code}]]:</label>
+    </div>
+    <div class="col-9 mt-2 mb-2">
+        <img th:src="${bankAccount.accountQrCodeImage != null ? bankAccount.accountQrCodeImage.getUrlOrDefault('') : ''}"
+             class="object-fit-cover" width="200">
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{display_order}]]:</label></div>
+    <div class="col-md-9 col-8">[[${bankAccount.displayOrder}]]</div>
+    <div class="col-md-3 col-4"><label>[[#{status}]]:</label></div>
+    <div class="col-md-9 col-8 status-text"  th:attr="status=|${bankAccount.status}|">
+        [[#{${bankAccount.status.toString().toLowerCase()}}]]
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{created_at}]]:</label></div>
+    <div class="col-md-9 col-8 date-time-string">[[${bankAccount.createdAt}]]</div>
+    <div class="col-md-3 col-4"><label>[[#{updated_at}]]:</label></div>
+    <div class="col-md-9 col-8 date-time-string">[[${bankAccount.updatedAt}]]</div>
+    <div class="col-md-3 col-4"></div>
+    <div class="col-md-9 col-8">
+        <button type="button" class="btn btn-danger mb-2"
+                th:attr="onclick=|ecommerce.onDeleteShopBankAccountClick(${bankAccount.id}, '${bankAccount.accountNumber}', '${shop.displayName}')|">
+            [[#{delete}]] <i class="fas fa-trash"></i>
+        </button>
+    </div>
+</div>
+<th:block layout:fragment="modals">
+    <th:block th:replace="~{fragments/prompt :: content(id='delete-shop-bank-account-modal', title=confirm, confirmButton=delete, closeButton=close)}" />
+</th:block>
+<script layout:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ecommerce.selectedShopId = /*[[${shop.id}]]*/ '';
+ecommerce.selectedBankAccountId = /*[[${bankAccount.id}]]*/ '';
+/*]]>*/
+
+ezyadmin.onEditButtonClick = function() {
+    window.location = '/ecommerce/shops/' + ecommerce.selectedShopId
+        + '/bank-accounts/' + ecommerce.selectedBankAccountId + '/edit'
+        + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+}
+</script>
+<th:block layout:fragment="post-scripts">
+    <script th:replace="~{ecommerce/shop/bank-account/scripts :: delete}" />
+</th:block>
+</body>
+</html>

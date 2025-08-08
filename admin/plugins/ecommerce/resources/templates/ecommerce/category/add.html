@@ -1,0 +1,240 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:ezy="http://www.ezyplatform.com/thymeleaf/layout"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<head>
+    <script>
+        var ecommerce = {};
+        var ezyarticle = {
+            createDefaultEditor: true,
+            defaultTextEditorSetting: {
+                rows: 12
+            },
+            defaultTinymceEditorSetting: {
+                height: 450
+            }
+        };
+    </script>
+</head>
+<body>
+<div layout:fragment="content" class="row">
+    <div class="col-12">
+        <form id="addCategoryForm">
+            <div class="form-group row">
+                <label for="addCategoryName" class="col-sm-3 col-form-label">
+                    [[#{name}]] (<span class="text-danger">*</span>)
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="name" id="addCategoryName"
+                           class="form-control" th:placeholder="#{name}">
+                    <span class="text-dark">
+                        [[#{name_input_guide}]]
+                    </span>
+                </div>
+                <label id="addCategoryNameErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addCategoryName">
+                    <i class="far fa-times-circle"></i> <span id="addCategoryNameError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addCategoryDisplayName" class="col-sm-3 col-form-label">
+                    [[#{display_name}]] (<span class="text-danger">*</span>)
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="displayName" id="addCategoryDisplayName"
+                           class="form-control" th:placeholder="#{display_name}">
+                </div>
+                <label id="addCategoryDisplayNameErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addCategoryDisplayName">
+                    <i class="far fa-times-circle"></i> <span id="addCategoryDisplayNameError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addCategoryDisplayOrder" class="col-sm-3 col-form-label">
+                    [[#{display_order}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="number" name="displayOrder" id="addCategoryDisplayOrder"
+                           class="form-control" th:placeholder="#{display_order}">
+                    <span>[[#{display_order_input_guide}]]</span>
+                </div>
+                <label id="addCategoryDisplayOrderErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addCategoryDisplayOrder">
+                    <i class="far fa-times-circle"></i> <span id="addCategoryDisplayOrderError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addCategoryOpenCategory" class="col-sm-3 col-form-label">
+                    [[#{open_category}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="openCategoryId" id="addCategoryOpenCategory"
+                           class="form-control" th:placeholder="#{open_category}"
+                           autocomplete="off" inputmode="text">
+                    <span>[[#{open_category_input_guide}]]</span>
+                </div>
+                <label id="addCategoryOpenCategoryErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addCategoryOpenCategory">
+                    <i class="far fa-times-circle"></i> <span id="addCategoryOpenCategoryError"></span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addCategoryOpenUrl" class="col-sm-3 col-form-label">
+                    [[#{open_url}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="url" name="openUrl" id="addCategoryOpenUrl"
+                           class="form-control" th:placeholder="#{open_url}">
+                    <span>[[#{open_url_input_guide}]]</span>
+                </div>
+                <label id="addCategoryOpenUrlErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addCategoryOpenUrl">
+                    <i class="far fa-times-circle"></i> <span id="addCategoryOpenUrlError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addCategoryDescription" class="col-sm-3 col-form-label">
+                    [[#{description}]]
+                </label>
+                <div class="col-lg-7 col-md-6" id="addCategoryDescription">
+                    <div id="ezyarticleEditor"></div>
+                </div>
+                <label id="addCategoryDescriptionErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addCategoryDescription">
+                    <i class="far fa-times-circle"></i> <span id="addCategoryDescriptionError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addCategoryType" class="col-md-3 col-form-label">
+                    [[#{type}]]
+                </label>
+                <div class="col-lg-3 col-md-3">
+                    <select name="type" id="addCategoryType" class="form-control">
+                        <option th:each="categoryType : ${categoryTypes}"
+                                th:value="${categoryType.toString()}">
+                            [[#{${categoryType.toString().toLowerCase()}}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="addCategoryTypeErrorLabel" class="col-lg-3 col-md-6 col-form-label text-danger d-none" for="addCategoryType">
+                    <i class="far fa-times-circle"></i> <span id="addCategoryTypeError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addCategoryIconImage" class="col-md-3 col-form-label">
+                    [[#{icon_image}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <div class="input-group cursor-pointer" onclick="ecommerce.selectIconImage('add');">
+                        <input type="text" name="iconImageId"
+                               id="addCategoryIconImage"
+                               class="form-control" th:placeholder="#{select_an_image}">
+                        <div class="input-group-append">
+                            <div class="input-group-text">
+                                <span>[[#{browse}]]</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <label id="addCategoryIconImageErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addCategoryIconImage">
+                    <i class="far fa-times-circle"></i> <span id="addCategoryIconImageError">[[#{invalid}]]</span>
+                </label>
+                <div class="col-md-3"></div>
+                <div class="col-md-4">
+                    <img id="categoryIconImage" class="object-fit-cover mt-1 d-none" height="64">
+                </div>
+                <div class="col-md-5"></div>
+            </div>
+            <div class="form-group row">
+                <label for="addCategoryBannerImage" class="col-md-3 col-form-label">
+                    [[#{banner_image}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <div class="input-group cursor-pointer" onclick="ecommerce.selectBannerImage('add');">
+                        <input type="text" name="bannerImageId"
+                               id="addCategoryBannerImage"
+                               class="form-control" th:placeholder="#{select_an_image}">
+                        <div class="input-group-append">
+                            <div class="input-group-text">
+                                <span>[[#{browse}]]</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <label id="addCategoryBannerImageErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addCategoryBannerImage">
+                    <i class="far fa-times-circle"></i> <span id="addCategoryBannerImageError">[[#{invalid}]]</span>
+                </label>
+                <div class="col-md-3"></div>
+                <div class="col-md-4">
+                    <img id="categoryBannerImage" class="object-fit-cover mt-1 d-none" height="64">
+                </div>
+                <div class="col-md-5"></div>
+            </div>
+            <div class="form-group row">
+                <label for="addCategoryStatus" class="col-md-3 col-form-label">
+                    [[#{status}]]
+                </label>
+                <div class="col-lg-3 col-md-3">
+                    <select name="status" id="addCategoryStatus" class="form-control">
+                        <option th:each="categoryStatus : ${categoryStatuses}"
+                                th:value="${categoryStatus.toString()}">
+                            [[#{${categoryStatus.toString().toLowerCase()}}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="addCategoryStatusErrorLabel" class="col-lg-3 col-md-6 col-form-label text-danger d-none" for="addCategoryStatus">
+                    <i class="far fa-times-circle"></i> <span id="addCategoryStatusError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="row">
+                <div class="col-md-3"></div>
+                <div class="col-lg-2 col-md-3">
+                    <button type="button" class="btn btn-primary btn-block" onclick="ecommerce.addNewCategory();">[[#{submit}]]</button>
+                </div>
+                <div class="col-lg-7 col-md-6"></div>
+                <!-- /.col -->
+            </div>
+        </form>
+    </div>
+    <div class="col-12 mb-3"></div>
+</div>
+<script layout:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.add_media = /*[[#{add_media}]]*/ '';
+/*]]>*/
+
+// ========== add category =============
+ecommerce.addNewCategory = function() {
+    ecommerce.addOrEditCategory('add');
+}
+</script>
+<th:block layout:fragment="post-scripts">
+    <script th:replace="~{ecommerce/category/scripts :: add-edit}" />
+    <script th:replace="~{scripts/suggestion :: input}" />
+    <script th:replace="~{ecommerce/scripts/suggestion :: category}" />
+    <th:block th:if="${ezyArticleActive == true}">
+        <script ezy:vsrc="/ezyarticle/js/tinymce.js"></script>
+    </th:block>
+    <th:block th:if="${ezyArticleActive != true}">
+        <script ezy:vsrc="/ecommerce/editors/text.js"></script>
+    </th:block>
+    <script>
+        ecommerce.registerCategoryAutocomplete('addCategoryOpenCategory');
+        ezyarticle.editor.setHtml(' ');
+    </script>
+</th:block>
+</body>
+</html>

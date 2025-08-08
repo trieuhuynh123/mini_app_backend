@@ -1,0 +1,103 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~ 
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~ 
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~ 
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org">
+<body>
+<script th:fragment="build-html">
+ecommerce.buildMediaItemHtml = function(media, mediaType) {
+    var html = `
+        <li id="${mediaType}MediaItem${media.id}" role="button"
+            onclick="ezyadmin.showMediaDetails(${media.id})">
+    `;
+    if (media.type.toString() == 'IMAGE'
+        || media.type.toString() == 'AVATAR'
+    ) {
+        html += `
+            <img src="${ezyadmin.extractMediaUrl(media)}"
+             alt="${media.originalName}" class="wh-150px img-thumbnail">
+            <span class="text-danger delete-button"
+                  aria-hidden="true"
+                  onclick="ecommerce.onDeleteEcommerceMediaItemClick(${media.id})">
+                &times;
+            </span>
+        `;
+    }
+    if (media.type.toString() == 'VIDEO') {
+        html += `
+            <video class="video-thumbnail">
+                <source src="${ezyadmin.extractMediaUrl(media)}" type="video/mp4">
+                <source src="${ezyadmin.extractMediaUrl(media)}" type="video/ogg">
+                Your browser does not support the video tag.
+            </video>
+            <span class="text-danger delete-button"
+                  aria-hidden="true"
+                  onclick="ecommerce.onDeleteEcommerceMediaItemClick(${media.id})">
+                &times;
+            </span>
+        `;
+    }
+    if (media.type.toString() == 'AUDIO') {
+        html += `
+            <div class="d-flex">
+                <div class="file-thumbnail audio-thumbnail">
+                    <audio controls>
+                        <source src="${ezyadmin.extractMediaUrl(media)}" type="audio/mpeg">
+                        <source src="${ezyadmin.extractMediaUrl(media)}" type="audio/ogg">
+                        Your browser does not support the audio tag.'
+                    </audio>
+                    <span class="text-dark-always">${media.originalName}</span>
+                </div>
+                <div>
+                    <span class="text-danger delete-button"
+                          aria-hidden="true"
+                          onclick="ecommerce.onDeleteEcommerceMediaItemClick(${media.id})">
+                        &times;
+                    </span>
+                </div>
+            </div>
+        `;
+    }
+    if (media.type.toString() != 'IMAGE'
+        && media.type.toString() != 'AVATAR'
+        && media.type.toString() != 'VIDEO'
+        && media.type.toString() != 'AUDIO'
+    ) {
+        html += `
+            <div class="d-flex">
+                <div class="file-thumbnail">
+                    <i class="far fa-file text-dark-always"></i>
+                    <div>
+                        <span class="text-dark-always">${media.originalName}</span>
+                    </div>
+                </div>
+                <div>
+                <span class="text-danger delete-button"
+                      aria-hidden="true"
+                      onclick="ecommerce.onDeleteEcommerceMediaItemClick(${media.id})">
+                    &times;
+                </span>
+                </div>
+            </div>
+        `;
+    }
+    return html;
+}
+</script>
+</body>
+</html>

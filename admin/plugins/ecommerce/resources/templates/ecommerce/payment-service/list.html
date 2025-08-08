@@ -1,0 +1,132 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<head>
+    <script>
+        const ecommerce = {};
+    </script>
+</head>
+<body>
+<div layout:fragment="content" class="row">
+    <div class="col-12">
+        <table id="paymentServiceSettingList" class="table table-bordered table-hover">
+            <thead>
+            <tr>
+                <th class="text-center">#</th>
+                <th>[[#{logo}]]</th>
+                <th>[[#{code}]]</th>
+                <th>[[#{name}]]</th>
+                <th class="text-center">[[#{currency}]]</th>
+                <th class="text-center">[[#{priority}]]</th>
+                <th class="text-center">[[#{status}]]</th>
+                <th class="text-center">[[#{updated_at}]]</th>
+                <th class="text-center">[[#{actions}]]</th>
+            </tr>
+            </thead>
+            <tbody id="paymentServiceSettingListBody">
+            <tr th:each="paymentServiceSetting, iterator : ${paymentServiceSettings}">
+                <td>[[${iterator.index + 1}]]</td>
+                <td th:if="${paymentServiceSetting.logoImage != null}">
+                    <a th:href="${paymentServiceSetting.serviceUrl}" target="_blank">
+                        <img th:src="${paymentServiceSetting.logoImage != null ? paymentServiceSetting.logoImage.getUrlOrDefault('') : ''}"
+                             class="object-fit-cover" width="48">
+                    </a>
+                </td>
+                <td th:if="${paymentServiceSetting.logoImage == null}">
+                    <a th:href="${paymentServiceSetting.serviceUrl}" target="_blank">
+                        ###
+                    </a>
+                </td>
+                <td>
+                    <a th:href="${'/ecommerce/payment-services/' + paymentServiceSetting.code}">
+                        [[${paymentServiceSetting.code}]]
+                    </a>
+                </td>
+                <td>
+                    <a th:href="${'/ecommerce/payment-services/' + paymentServiceSetting.code}">
+                        [[${paymentServiceSetting.name}]]
+                    </a>
+                </td>
+                <td class="text-center">
+                    <th:block th:if="${paymentServiceSetting.currency != null}">
+                        [[${paymentServiceSetting.currency.isoCode}]]
+                    </th:block>
+                </td>
+                <td class="text-center">
+                    [[${paymentServiceSetting.priority}]]
+                </td>
+                <td th:attr="status=|${paymentServiceSetting.status}|" class="text-center status-text">
+                    [[#{${paymentServiceSetting.status.toString().toLowerCase()}}]]
+                </td>
+                <td class="text-center date-time-string">[[${paymentServiceSetting.updatedAt}]]</td>
+                <td class="text-center">
+                    <th:block th:if="${paymentServiceSetting.id > 0}">
+                        <a th:if="${paymentServiceSetting.status.equalsValue('INACTIVATED')}" class="pr-2 text-success"
+                           th:id="${'payment-service-' + paymentServiceSetting.code + '-activate-button'}"
+                           th:attr="onclick=|ecommerce.onActivatePaymentServiceClick('${paymentServiceSetting.code}')|">
+                            <i class="fas fa-paper-plane"></i>
+                        </a>
+                        <a th:if="${paymentServiceSetting.status.equalsValue('ACTIVATED')}" class="pr-2 text-secondary"
+                           th:id="${'payment-service-' + paymentServiceSetting.code + '-deactivate-button'}"
+                           th:attr="onclick=|ecommerce.onDeactivatePaymentServiceClick('${paymentServiceSetting.code}')|">
+                            <i class="fas fa-unlink"></i>
+                        </a>
+                    </th:block>
+                    <a class="text-primary" th:href="${'/ecommerce/payment-services/' + paymentServiceSetting.code + '/edit'}">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="col-12 mb-3"></div>
+</div>
+<script layout:fragment="scripts">
+// ========== update payment service setting status ===========
+ecommerce.onActivatePaymentServiceClick = function(code) {
+    ecommerce.updatePaymentServiceStatus(code, 'activate');
+}
+
+ecommerce.onDeactivatePaymentServiceClick = function(code) {
+    ecommerce.updatePaymentServiceStatus(code, 'deactivate');
+}
+
+ecommerce.updatePaymentServiceStatus = function(code, action) {
+    $.ajax({
+        type: 'PUT',
+        url: `/ecommerce/api/v1/payment-services/${code}/${action}`,
+        success: function (data) {
+            location.reload();
+        },
+        error: function (e) {
+            ezyadmin.processUpdateApiErrors({}, e);
+        }
+    });
+};
+
+$(document).ready(() => {
+    ezyadmin.createDataTable('paymentServiceSettingList', 12);
+});
+</script>
+</body>
+</html>

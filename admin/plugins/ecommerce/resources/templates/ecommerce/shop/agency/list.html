@@ -1,0 +1,216 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<body>
+<th:block th:fragment="content">
+    <div class="col-lg-9 col-md-7 col-0"></div>
+    <div class="col-lg-3 col-md-5 col-12 page-search">
+        <label for="agencySearchKeyword" class="text-nowrap">[[#{search}]]: </label>
+        <input type="search" class="form-control" th:placeholder="#{keyword}" id="agencySearchKeyword"
+               onkeydown="ecommerce.onKeydownToSearchAgency();">
+    </div>
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-body table-responsive p-0">
+                <table class="table table-bordered table-hover text-nowrap">
+                    <thead>
+                    <tr>
+                        <th>[[#{id}]]</th>
+                        <th class="text-center">[[#{type}]]</th>
+                        <th class="text-center">[[#{code}]]</th>
+                        <th>[[#{display_name}]]</th>
+                        <th>[[#{phone_number}]]</th>
+                        <th>[[#{address}]]</th>
+                        <th class="text-center">[[#{agency_tier}]]</th>
+                        <th class="text-center">[[#{status}]]</th>
+                        <th class="text-center">[[#{created_at}]]</th>
+                        <th class="text-center">[[#{actions}]]</th>
+                    </tr>
+                    </thead>
+                    <tbody id="agencyListBody">
+                    </tbody>
+                </table>
+            </div>
+            <!-- /.card-body -->
+            <div class="card-footer clearfix">
+                <span><span id="agencyCountText">0</span>
+                    [[${#strings.toLowerCase(#messages.msg('of'))}]]
+                    <span id="totalAgencyText">0</span>
+                    [[${#strings.toLowerCase(#messages.msg('agencies'))}]]
+                </span>
+                <ul class="pagination pagination-sm m-0 float-right">
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="firstPageButtonAgency">
+                            <i class="fas fa-arrow-circle-left pl-1 pr-1"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="prevPageButtonAgency">[[#{prev}]]</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="nextPageButtonAgency">[[#{next}]]</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="lastPageButtonAgency">
+                            <i class="fas fa-arrow-circle-right pl-1 pr-1"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.card-footer -->
+        </div>
+    </div>
+</th:block>
+<script th:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.agency = /*[[#{agency}]]*/ '';
+ezyadmin.messages.activated = /*[[#{activated}]]*/ '';
+ezyadmin.messages.brand = /*[[#{brand}]]*/ '';
+ezyadmin.messages.discount = /*[[#{discount}]]*/ '';
+ezyadmin.messages.free_shipping = /*[[#{free_shipping}]]*/ '';
+ezyadmin.messages.inactivated = /*[[#{inactivated}]]*/ '';
+ezyadmin.messages.supplier = /*[[#{supplier}]]*/ '';
+/*]]>*/
+
+// ========== agency search =============
+ecommerce.onKeydownToSearchAgency = function() {
+    if(event.key === 'Enter') {
+        ecommerce.agencySearchKeyword = $('#agencySearchKeyword').val();
+        ecommerce.fetchAgencyList();
+    }
+}
+
+// ========== agency pagination =============
+$('#firstPageButtonAgency').click(() => {
+    ecommerce.fetchAgencyList('first');
+});
+$('#lastPageButtonAgency').click(() => {
+    ecommerce.fetchAgencyList('last');
+});
+$('#nextPageButtonAgency').click(() => {
+    ecommerce.fetchAgencyList('next');
+});
+$('#prevPageButtonAgency').click(() => {
+    ecommerce.fetchAgencyList('prev');
+});
+
+// ========== agency list =============
+ecommerce.fetchAgencyList = function(action) {
+    var queryString = '';
+    if (ecommerce.agencySearchKeyword) {
+        queryString += '&keyword=' + ecommerce.agencySearchKeyword;
+    }
+    queryString += '&shopId=' + ecommerce.selectedShopId;
+    if (action == 'current') {
+        if (ecommerce.lastAgencyQueryString) {
+            queryString = ecommerce.lastAgencyQueryString;
+        }
+    } else if (action == 'next') {
+        if (ecommerce.lastAgencyPageToken.next) {
+            queryString += '&nextPageToken=' + ecommerce.lastAgencyPageToken.next;
+        } else {
+            return;
+        }
+    } else if (action == 'prev') {
+        if (ecommerce.lastAgencyPageToken.prev) {
+            queryString += '&prevPageToken=' + ecommerce.lastAgencyPageToken.prev;
+        } else {
+            return;
+        }
+    } else if (action == 'last') {
+        queryString += '&lastPage=true';
+    }
+    $.ajax({
+        url: '/ecommerce/api/v1/agencies?limit=12' + queryString,
+        type: 'GET',
+        dataType: 'json'
+    })
+    .done(function(data) {
+        $('#agencyCountText').text(data.count);
+        $('#totalAgencyText').text(ezyadmin.formatNumberWithCommas(data.total));
+        ecommerce.lastAgencyQueryString = queryString;
+        ecommerce.lastAgencyPageToken = data.pageToken;
+        $('#agencyListBody').html(ecommerce.buildAgencyListBodyHtml(data.items));
+        if (data.continuation.hasNext) {
+            $('#nextPageButtonAgency').removeClass('text-secondary');
+        } else {
+            $('#nextPageButtonAgency').addClass('text-secondary');
+        }
+        if (data.continuation.hasPrevious) {
+            $('#prevPageButtonAgency').removeClass('text-secondary');
+        } else {
+            $('#prevPageButtonAgency').addClass('text-secondary');
+        }
+    })
+    .fail(function(e) {
+    	ezyadmin.processGetApiErrors(e);
+    });
+}
+
+ecommerce.buildAgencyListBodyHtml = function(agencies) {
+    var html = '';
+    agencies.forEach((agency) => {
+        html += ecommerce.buildAgencyListItemHtml(agency);
+    });
+    return html;
+}
+ecommerce.buildAgencyListItemHtml = function(agency) {
+    var statusColor = ezyadmin.getTextColorByStatus(agency.status);
+    var html = `
+    <tr id="agency-row-${agency.userId}">
+        <td>${agency.id}</td>
+        <td class="text-center">
+            ${ezyadmin.getI18nMessage(agency.type.toLowerCase())}
+        </td>
+        <td class="text-center">${agency.code || ''}</td>
+        <td>
+            <a href="/ecommerce/shops/${ecommerce.selectedShopId}/agencies/${agency.id}${ezyadmin.lang ? `?lang=${ezyadmin.lang}` : ''}">
+                ${agency.displayName}
+            </a>
+        </td>
+        <td>
+            <a href="tel:${agency.phone}">${agency.phone || ''}</a>
+        </td>
+        <td>${agency.address}</td>
+        <td class="text-center">${agency.tier}</td>
+        <td class="text-center ${statusColor}">
+            ${ezyadmin.getI18nMessage(agency.status.toLowerCase())}
+        </td>
+        <td class="text-center">${ezyadmin.formatTimeStamp(agency.createdAt)}</td>
+        <td class="text-center">
+            <a class="btn btn-link pr-1" href="/ecommerce/shops/${ecommerce.selectedShopId}/agencies/${agency.id}${ezyadmin.lang ? `?lang=${ezyadmin.lang}` : ''}">
+                <i class="fas fa-eye text-info"></i>
+            </a>
+            <a class="btn btn-link pr-1" href="/ecommerce/shops/${ecommerce.selectedShopId}/agencies/${agency.id}/edit${ezyadmin.lang ? `?lang=${ezyadmin.lang}` : ''}">
+                <i class="fas fa-edit text-primary"></i>
+            </a>
+            <button type="button" class="btn pl-1" onclick="ecommerce.onDeleteShopAgencyClick(${agency.id}, '${escape(agency.displayName)}');">
+                <i class="fas fa-trash text-danger"></i>
+            </button>
+        </td>
+    </tr>`;
+	return html;
+}
+ecommerce.fetchAgencyList();
+</script>
+</body>
+</html>

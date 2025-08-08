@@ -1,0 +1,96 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~ 
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~ 
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~ 
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org">
+<body>
+<script th:fragment="edit">
+// =========== icon ===================
+ecommerce.selectLogoImage = function(action) {
+    ezyadmin.showMediaModal('deliveryServiceSettingLogoImage')
+        .onMediaSelected(media => {
+            $('#deliveryServiceSettingLogoImageImage').attr(
+                'src',
+                ezyadmin.extractMediaUrl(media)
+            )
+            .removeClass('d-none')
+            .show();
+            ecommerce.deliveryServiceSettingLogoImage = media;
+            $('#' + action + 'DeliveryServiceSettingLogoImage').val(media.originalName);
+            ezyadmin.closeMediaModal();
+        });
+}
+
+// =========== banner ===================
+ecommerce.selectBannerImage = function(action) {
+    ezyadmin.showMediaModal('deliveryServiceSettingBannerImage')
+        .onMediaSelected(media => {
+            $('#deliveryServiceSettingBannerImageImage').attr(
+                'src',
+                ezyadmin.extractMediaUrl(media)
+            )
+            .removeClass('d-none')
+            .show();
+            ecommerce.deliveryServiceSettingBannerImage = media;
+            $('#' + action + 'DeliveryServiceSettingBannerImage').val(media.originalName);
+            ezyadmin.closeMediaModal();
+        });
+}
+
+// ========== edit delivery service setting ===========
+ecommerce.saveDeliveryServiceSetting = function() {
+    var formData = ezyadmin.formDataToObject('editDeliveryServiceSettingForm');
+    if (ecommerce.deliveryServiceSettingLogoImage) {
+        formData['logoImageId'] =
+            ecommerce.deliveryServiceSettingLogoImage.id;
+    }
+    if (ecommerce.deliveryServiceSettingBannerImage) {
+        formData['bannerImageId'] =
+            ecommerce.deliveryServiceSettingBannerImage.id;
+    }
+    delete formData.deliveryServiceSettingLogoImage;
+    delete formData.deliveryServiceSettingBannerImage;
+    $.ajax({
+        type: 'PUT',
+        url: `/ecommerce/api/v1/delivery-services/${ecommerce.deliveryServiceSettingCode}`,
+        data: JSON.stringify(formData),
+        contentType: 'application/json',
+        success: function (data) {
+            window.location = '/ecommerce/delivery-services/'
+                + ecommerce.deliveryServiceSettingCode
+                + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+        },
+        error: function (e) {
+            var formView = {
+                deliveryServiceSettingName: true,
+                deliveryServiceSettingMinDeliveryFee: true,
+                deliveryServiceSettingUsername: true,
+                deliveryServiceSettingPassword: true
+            };
+            var errors = e.responseJSON || {};
+        	errors.deliveryServiceSettingName = errors.name;
+        	errors.deliveryServiceSettingMinDeliveryFee = errors.minDeliveryFee;
+        	errors.deliveryServiceSettingUsername = errors.username;
+        	errors.deliveryServiceSettingPassword = errors.password;
+            ezyadmin.processUpdateApiErrors(formView, e);
+        }
+    });
+};
+</script>
+</body>
+</html>

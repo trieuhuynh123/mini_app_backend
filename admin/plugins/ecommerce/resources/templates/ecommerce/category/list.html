@@ -1,0 +1,344 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<head>
+    <script>
+        var ecommerce = {};
+    </script>
+</head>
+<body>
+<div layout:fragment="content" class="row">
+    <div class="col-lg-3 col-md-4 col-12 page-search">
+        <label for="categorySearchKeyword" class="text-nowrap">[[#{search}]]: </label>
+        <input type="search" class="form-control" th:placeholder="#{keyword}" id="categorySearchKeyword"
+               onkeydown="ecommerce.onKeydownToSearchCategory();">
+    </div>
+    <div class="col-lg-3 col-md-4 col-12 page-search">
+        <label for="categorySearchStatus" class="text-nowrap">[[#{type}]]: </label>
+        <select class="form-control form-select" id="categorySearchType"
+                onchange="ecommerce.onCategorySearchTypeChanged();">
+            <option value="">[[#{all}]]</option>
+            <option th:each="categoryType : ${categoryTypes}"
+                    th:value="${categoryType}"
+                    th:selected="${categoryType == productCategorySearchType}">
+                [[#{${categoryType.toString().toLowerCase()}}]]
+            </option>
+        </select>
+    </div>
+    <div class="col-lg-3 col-md-4 col-12 page-search">
+        <label for="categorySearchStatus" class="text-nowrap">[[#{status}]]: </label>
+        <select class="form-control form-select" id="categorySearchStatus"
+                onchange="ecommerce.onCategorySearchStatusChanged();">
+            <option value="">[[#{all}]]</option>
+            <option th:each="categoryStatus : ${categoryStatuses}"
+                    th:value="${categoryStatus}"
+                    th:selected="${categoryStatus.toString() == productCategorySearchStatus}">
+                [[#{${categoryStatus.toString().toLowerCase()}}]]
+            </option>
+        </select>
+    </div>
+    <div class="col-lg-3 col-md-4 col-12 page-search">
+        <label for="categorySearchSortOrder" class="text-nowrap">[[#{sort_order}]]: </label>
+        <select class="form-control form-select" id="categorySearchSortOrder"
+                onchange="ecommerce.onCategorySearchSortOrderChanged();">
+            <option value="ID_DESC"
+                    th:selected="${productCategorySearchSortOrder == 'ID_DESC'}">
+                [[#{id_desc}]]
+            </option>
+            <option value="DISPLAY_ORDER_DESC_ID_DESC"
+                    th:selected="${productCategorySearchSortOrder == 'DISPLAY_ORDER_DESC_ID_DESC'}">
+                [[#{display_order_desc}]]
+            </option>
+        </select>
+    </div>
+    <div class="col-lg-12 col-md-8"></div>
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-body table-responsive p-0">
+                <table class="table table-bordered table-hover text-nowrap align-middle-cells">
+                    <thead>
+                    <tr>
+                        <th class="text-center pl-2p5">[[#{id}]]</th>
+                        <th>[[#{icon}]]</th>
+                        <th>[[#{name}]]</th>
+                        <th>[[#{display_name}]]</th>
+                        <th>[[#{category_parents}]]</th>
+                        <th class="text-center">[[#{display_order}]]</th>
+                        <th class="text-center">[[#{type}]]</th>
+                        <th class="text-center">[[#{status}]]</th>
+                        <th class="text-center">[[#{created_at}]]</th>
+                        <th class="text-center">[[#{actions}]]</th>
+                    </tr>
+                    </thead>
+                    <tbody id="categoryListBody">
+                    </tbody>
+                </table>
+            </div>
+            <!-- /.card-body -->
+            <div class="card-footer clearfix">
+                <span><span id="categoryCountText">0</span>
+                    [[${#strings.toLowerCase(#messages.msg('of'))}]]
+                    <span id="totalCategoryText">0</span>
+                    [[${#strings.toLowerCase(#messages.msg('product_categories'))}]]
+                </span>
+                <ul class="pagination pagination-sm m-0 float-right">
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="firstPageButton">
+                            <i class="fas fa-arrow-circle-left pl-1 pr-1"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="prevPageButton">[[#{prev}]]</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="nextPageButton">[[#{next}]]</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="lastPageButton">
+                            <i class="fas fa-arrow-circle-right pl-1 pr-1"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.card-footer -->
+        </div>
+    </div>
+</div>
+<th:block layout:fragment="modals">
+    <th:block th:replace="~{fragments/prompt :: content(id='delete-category-modal', title=confirm, confirmButton=delete, closeButton=close)}" />
+</th:block>
+<script layout:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ecommerce.categorySearchType = /*[[${productCategorySearchType}]]*/ '';
+ecommerce.categorySearchStatus = /*[[${productCategorySearchStatus}]]*/ '';
+ecommerce.categorySearchSortOrder = /*[[${productCategorySearchSortOrder}]]*/ '';
+ezyadmin.messages.activated = /*[[#{activated}]]*/ '';
+ezyadmin.messages.category = /*[[#{category}]]*/ '';
+ezyadmin.messages.collection = /*[[#{collection}]]*/ '';
+ezyadmin.messages.highlight = /*[[#{highlight}]]*/ '';
+ezyadmin.messages.highlight_and_show = /*[[#{highlight_and_show}]]*/ '';
+ezyadmin.messages.inactivated = /*[[#{inactivated}]]*/ '';
+ezyadmin.messages.show = /*[[#{show}]]*/ '';
+ezyadmin.messages.show_on_menu = /*[[#{show_on_menu}]]*/ '';
+/*]]>*/
+
+ecommerce.changeBrowserUrl = function() {
+    var params = [];
+    if (ecommerce.categorySearchType) {
+        params.push('type=' + ecommerce.categorySearchType);
+    }
+    if (ecommerce.categorySearchStatus) {
+        params.push('status=' + ecommerce.categorySearchStatus);
+    }
+    if (ecommerce.categorySearchKeyword) {
+        params.push('keyword=' + ecommerce.categorySearchKeyword);
+    }
+    if (ecommerce.categorySearchSortOrder) {
+        params.push('sortOrder=' + ecommerce.categorySearchSortOrder);
+    }
+    if (ezyadmin.lang) {
+        params.push('lang=' + ezyadmin.lang);
+    }
+    var url = '/ecommerce/product-categories';
+    if (params.length) {
+        url += '?' + params.join('&');
+    }
+    window.history.pushState({}, '', url);
+}
+
+// ========== categories init =============
+ezyadmin.onNewButtonClick = function() {
+    window.location = '/ecommerce/product-categories/add'
+        + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+}
+
+// ========== category search =============
+ecommerce.onKeydownToSearchCategory = function() {
+    if(event.key === 'Enter') {
+        ecommerce.categorySearchKeyword = $('#categorySearchKeyword').val();
+        ecommerce.fetchCategoryList();
+    }
+}
+
+ecommerce.onCategorySearchTypeChanged = function() {
+    ecommerce.categorySearchType = $('#categorySearchType').val();
+    ecommerce.changeBrowserUrl();
+    ecommerce.fetchCategoryList();
+}
+
+ecommerce.onCategorySearchStatusChanged = function() {
+    ecommerce.categorySearchStatus = $('#categorySearchStatus').val();
+    ecommerce.changeBrowserUrl();
+    ecommerce.fetchCategoryList();
+}
+
+ecommerce.onCategorySearchSortOrderChanged = function() {
+    ecommerce.categorySearchSortOrder = $('#categorySearchSortOrder').val();
+    ecommerce.changeBrowserUrl();
+    ecommerce.fetchCategoryList();
+}
+
+// ========== category pagination =============
+$('#firstPageButton').click(() => {
+    ecommerce.fetchCategoryList('first');
+});
+$('#lastPageButton').click(() => {
+    ecommerce.fetchCategoryList('last');
+});
+$('#nextPageButton').click(() => {
+    ecommerce.fetchCategoryList('next');
+});
+$('#prevPageButton').click(() => {
+    ecommerce.fetchCategoryList('prev');
+});
+
+// ========== category list =============
+ecommerce.fetchCategoryList = function(action) {
+    var queryString = '';
+    if (ecommerce.categorySearchType) {
+        queryString += '&type=' + ecommerce.categorySearchType;
+    }
+    if (ecommerce.categorySearchStatus) {
+        queryString += '&status=' + ecommerce.categorySearchStatus;
+    }
+    if (ecommerce.categorySearchSortOrder) {
+        queryString += '&sortOrder=' + ecommerce.categorySearchSortOrder;
+    }
+    if (ecommerce.categorySearchKeyword) {
+        queryString += '&keyword=' + ecommerce.categorySearchKeyword;
+    }
+    if (action == 'current') {
+        if (ecommerce.lastCategoryQueryString) {
+            queryString = ecommerce.lastCategoryQueryString;
+        }
+    } else if (action == 'next') {
+        if (ecommerce.lastCategoryPageToken.next) {
+            queryString += '&nextPageToken=' + ecommerce.lastCategoryPageToken.next;
+        } else {
+            return;
+        }
+    } else if (action == 'prev') {
+        if (ecommerce.lastCategoryPageToken.prev) {
+            queryString += '&prevPageToken=' + ecommerce.lastCategoryPageToken.prev;
+        } else {
+            return;
+        }
+    } else if (action == 'last') {
+        queryString += '&lastPage=true';
+    }
+    $.ajax({
+        url: '/ecommerce/api/v1/product-categories?limit=12' + queryString,
+        type: 'GET',
+        dataType: 'json'
+    })
+    .done(function(data) {
+        $('#categoryCountText').text(data.count);
+        $('#totalCategoryText').text(ezyadmin.formatNumberWithCommas(data.total));
+        ecommerce.lastCategoryQueryString = queryString;
+        ecommerce.lastCategoryPageToken = data.pageToken;
+        $('#categoryListBody').html(ecommerce.buildCategoryListBodyHtml(data.items));
+        if (data.continuation.hasNext) {
+            $('#nextPageButton').removeClass('text-secondary');
+        } else {
+            $('#nextPageButton').addClass('text-secondary');
+        }
+        if (data.continuation.hasPrevious) {
+            $('#prevPageButton').removeClass('text-secondary');
+        } else {
+            $('#prevPageButton').addClass('text-secondary');
+        }
+    })
+    .fail(function(e) {
+    	ezyadmin.processGetApiErrors(e);
+    });
+}
+
+ecommerce.buildCategoryListBodyHtml = function(categorys) {
+    var html = '';
+    categorys.forEach((category) => {
+        html += ecommerce.buildCategoryListItemHtml(category);
+    });
+    return html;
+}
+ecommerce.buildCategoryListItemHtml = function(category) {
+    var statusColor = ezyadmin.getTextColorByStatus(category.status);
+    var categoryImage = category.iconImage || category.bannerImage;
+    var html = `
+        <tr>
+            <td class="text-center pl-2p5">${category.id}</td>
+            <td>
+                ${categoryImage
+                    ? `<img src="${ezyadmin.extractMediaUrl(categoryImage)}" width="64" class="object-fit-cover">`
+                    : ''}
+            </td>
+            <td>
+                <a href="/ecommerce/product-categories/${category.id}${ezyadmin.lang ? `?lang=${ezyadmin.lang}` : ''}">
+                    ${category.name}
+                </a>
+            </td>
+            <td>
+                <a href="/ecommerce/product-categories/${category.id}${ezyadmin.lang ? `?lang=${ezyadmin.lang}` : ''}">
+                    ${category.displayName}
+                </a>
+            </td>
+            <td>
+                <ol>
+                    ${category.parents.map(parent => `
+                        <li>
+                            <a href="/ecommerce/product-categories/${parent.id}">${parent.displayName}</a>
+                        </li>
+                    `).join('')}
+                </ol>
+            </td>
+            <td class="text-center">${category.displayOrder}</td>
+            <td class="text-center">${ezyadmin.getI18nMessage(category.type.toLowerCase())}</td>
+            <td class="text-center ${statusColor}">
+                ${ezyadmin.getI18nMessage(category.status.toLowerCase())}
+            </td>
+            <td class="text-center">${ezyadmin.formatTimeStamp(category.createdAt)}</td>
+            <td class="text-center">
+                <button type="button" class="btn pr-1" onclick="ecommerce.editCategory(${category.id});">
+                    <i class="fas fa-edit text-primary"></i>
+                </button>
+                <a class="btn px-1" href="/ecommerce/product-categories/${category.id}${ezyadmin.lang ? `?lang=${ezyadmin.lang}` : ''}">
+                    <i class="fas fa-eye text-info"></i>
+                </a>
+                <button type="button" class="btn pl-1" onclick="ecommerce.onDeleteCategoryClick(${category.id}, '${escape(category.displayName)}');">
+                    <i class="fas fa-trash text-danger"></i>
+                </button>
+            </td>
+        </tr>`;
+	return html;
+}
+ecommerce.fetchCategoryList();
+
+// ============== category actions =============
+ecommerce.editCategory = function(id) {
+    window.location = '/ecommerce/product-categories/' + id + '/edit'
+        + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+}
+</script>
+<th:block layout:fragment="post-scripts">
+    <script th:replace="~{ecommerce/category/scripts :: delete}" />
+</th:block>
+</body>
+</html>

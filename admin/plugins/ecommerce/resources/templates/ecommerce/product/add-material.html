@@ -1,0 +1,182 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="content">
+    <div class="modal fade pt-4rem" id="add-product-material">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="add-product-material-modal-title">
+                        [[#{add_new_product_material}]]
+                    </h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="addMaterialForm">
+                        <div class="form-group row">
+                            <label for="addAvailableMaterials" class="col-4 col-form-label">
+                                [[#{available_materials}]]
+                            </label>
+                            <div class="col-8">
+                                <select name="availableMaterials" id="addAvailableMaterials"
+                                       class="form-control form-select"
+                                       onchange="ecommerce.onShopProductMaterialChange(this, 'add');">
+                                    <option value="">[[#{select}]]</option>
+                                    <option th:each="shopProductMaterial : ${shopProductMaterials}"
+                                            th:value="${shopProductMaterial.materialName + '||' + shopProductMaterial.materialDisplayName}">
+                                        [[${shopProductMaterial.materialName + '||' + shopProductMaterial.materialDisplayName}]]
+                                    </option>
+                                </select>
+                                <span>[[#{available_materials_guide}]]</span>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="addMaterialName" class="col-4 col-form-label">
+                                [[#{name}]] (<span class="text-danger">*</span>)
+                            </label>
+                            <div class="col-8">
+                                <label class="col-form-label text-danger d-none" id="addMaterialNameErrorLabel" for="addMaterialName">
+                                    <i class="far fa-times-circle"></i> <span id="addMaterialNameError"></span>
+                                </label>
+                                <input type="text" name="materialName" id="addMaterialName"
+                                       class="form-control" th:placeholder="#{name}"
+                                       value="default"
+                                       onkeydown="ecommerce.onKeyDownToAddMaterial();">
+                                <span class="text-dark">
+                                    [[#{name_input_guide}]]
+                                </span>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="addMaterialDisplayName" class="col-4 col-form-label">
+                                [[#{display_name}]] (<span class="text-danger">*</span>)
+                            </label>
+                            <div class="col-8">
+                                <label class="col-form-label text-danger d-none" id="addMaterialDisplayNameErrorLabel" for="addMaterialDisplayName">
+                                    <i class="far fa-times-circle"></i> <span id="addMaterialDisplayNameError"></span>
+                                </label>
+                                <input type="text" name="materialDisplayName" id="addMaterialDisplayName"
+                                       class="form-control" th:placeholder="#{display_name}"
+                                       th:value="#{default}"
+                                       onkeydown="ecommerce.onKeyDownToAddMaterial();">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="addMaterialProductAmount" class="col-4 col-form-label">
+                                [[#{product_amount}]]
+                            </label>
+                            <div class="col-8">
+                                <label class="col-form-label text-danger d-none" id="addMaterialProductAmountErrorLabel" for="addMaterialProductAmount">
+                                    <i class="far fa-times-circle"></i> <span id="addMaterialProductAmountError"></span>
+                                </label>
+                                <input type="number" name="amount" id="addMaterialProductAmount"
+                                       class="form-control" th:placeholder="#{product_amount}"
+                                       onkeydown="ecommerce.onKeyDownToEditMaterial();">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <div>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">[[#{cancel}]]</button>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="ecommerce.saveMaterial('add');">
+                        [[#{add}]]
+                    </button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+</th:block>
+<script th:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.default = /*[[#{default}]]*/ '';
+/*]]>*/
+
+// ========== show add material modal =============
+ecommerce.showAddMaterialModal = function() {
+    $('#add-product-material').modal('show');
+}
+
+ecommerce.hideAddMaterialModal = function() {
+    $('#add-product-material').modal('hide');
+}
+
+// ========== shop product material change =============
+ecommerce.onShopProductMaterialChange = function(e, action) {
+    var value = $(e).val();
+    var materialName = 'default';
+    var materialDisplayName = ezyadmin.messages.default;
+    if (value) {
+        var strs = value.split('||');
+        materialName = strs[0].trim();
+        materialDisplayName = strs[1].trim();
+    }
+    $('#' + action + 'MaterialName').val(materialName);
+    $('#' + action + 'MaterialDisplayName').val(materialDisplayName);
+}
+
+// ========== add material =============
+ecommerce.onKeyDownToAddMaterial = function() {
+    if(event.key === 'Enter') {
+        ecommerce.saveMaterial('add');
+    }
+}
+
+ecommerce.saveMaterial = function(action) {
+    var formData = ezyadmin.formDataToObject(action + 'MaterialForm');
+    delete formData.availableMaterials;
+    $.ajax({
+        type: action == 'add' ? 'POST' : 'PUT',
+        url: '/ecommerce/api/v1/products/' + ecommerce.selectedProductId +
+             '/materials/' + (action == 'add' ? 'add' : ecommerce.selectedMaterialId),
+        data: formData,
+        success: function (data) {
+            ecommerce.hideAddMaterialModal();
+            ecommerce.hideEditMaterialModal();
+            if (ecommerce.fetchProductMaterialNames) {
+                ecommerce.fetchProductMaterialNames();
+                if (ecommerce.fetchProductSizeMaterialPrices) {
+                    ecommerce.fetchProductSizeMaterialPrices();
+                }
+            } else {
+                location.reload();
+            }
+        },
+        error: function (e) {
+            var formView = {};
+            formView[action + 'MaterialName'] = true;
+            formView[action + 'MaterialDisplayName'] = true;
+            formView[action + 'MaterialCode'] = true;
+            var errors = e.responseJSON || {};
+            errors[action + 'MaterialName'] = errors.materialName;
+            errors[action + 'MaterialDisplayName'] = errors.materialDisplayName;
+            errors[action + 'ProductAmount'] = errors.productAmount;
+            ezyadmin.processUpdateApiErrors(formView, e);
+        }
+    });
+}
+</script>
+</body>
+</html>

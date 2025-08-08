@@ -1,0 +1,659 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<head>
+    <script>
+      var ecommerce = {};
+    </script>
+    <style>
+        .multiple-select-height {
+            height: 60px !important;
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content" class="row">
+    <div class="col-md-10 col-sm-12">
+        <form id="editProductForm">
+            <div class="form-group row">
+                <label for="editProductName" class="col-sm-3 col-form-label">
+                    [[#{product_name}]] (<span class="text-danger">*</span>)
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="productName" id="editProductName"
+                           class="form-control" th:placeholder="#{product_name}"
+                           th:value="${product.productName}">
+                </div>
+                <label id="editProductNameErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editProductName">
+                    <i class="far fa-times-circle"></i> <span id="editProductNameError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editProductCode" class="col-sm-3 col-form-label">
+                    [[#{product_code}]] (<span class="text-danger">*</span>)
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="productCode" id="editProductCode"
+                           class="form-control" th:placeholder="#{product_code}"
+                           th:value="${product.productCode}">
+                </div>
+                <label id="editProductCodeErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editProductCode">
+                    <i class="far fa-times-circle"></i> <span id="editProductCodeError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editProductSecondaryCode" class="col-sm-3 col-form-label">
+                    [[#{barcode}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="secondaryCode" id="editProductSecondaryCode"
+                           class="form-control" th:placeholder="#{barcode}"
+                           th:value="${product.secondaryCode}">
+                </div>
+                <label id="editProductSecondaryCodeErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editProductSecondaryCode">
+                    <i class="far fa-times-circle"></i> <span id="editProductSecondaryCodeError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editProductIconImage" class="col-md-3 col-form-label">
+                    [[#{icon_image}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <div class="input-group cursor-pointer" onclick="ecommerce.selectIconImage('edit');">
+                        <input type="text" name="iconImageId"
+                               id="editProductIconImage"
+                               class="form-control" th:placeholder="#{select_an_image}"
+                               th:value="${product.iconImage != null ? product.iconImage.originalName : ''}">
+                        <div class="input-group-append">
+                            <div class="input-group-text">
+                                <span>[[#{browse}]]</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <label id="editProductIconImageErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editProductIconImage">
+                    <i class="far fa-times-circle"></i> <span id="editProductIconImageError">[[#{invalid}]]</span>
+                </label>
+                <div class="col-md-3"></div>
+                <div class="col-md-4">
+                    <img id="productIconImage" class="object-fit-cover mt-1" height="64"
+                         th:classappend="${product.iconImage != null ? '' : 'd-none'}"
+                         th:src="${product.iconImage != null ? product.iconImage.getUrlOrDefault('') : ''}">
+                </div>
+                <div class="col-md-5"></div>
+            </div>
+            <div class="form-group row">
+                <label for="editProductBannerImage" class="col-md-3 col-form-label">
+                    [[#{banner_image}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <div class="input-group cursor-pointer" onclick="ecommerce.selectBannerImage('edit');">
+                        <input type="text" name="bannerImageId"
+                               id="editProductBannerImage"
+                               class="form-control" th:placeholder="#{select_an_image}"
+                               th:value="${product.bannerImage != null ? product.bannerImage.originalName : ''}">
+                        <div class="input-group-append">
+                            <div class="input-group-text">
+                                <span>[[#{browse}]]</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <label id="editProductBannerImageErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editProductBannerImage">
+                    <i class="far fa-times-circle"></i> <span id="editProductBannerImageError">[[#{invalid}]]</span>
+                </label>
+                <div class="col-md-3"></div>
+                <div class="col-md-4">
+                    <img id="productBannerImage" class="object-fit-cover mt-1" height="64"
+                         th:classappend="${product.bannerImage != null ? '' : 'd-none'}"
+                         th:src="${product.bannerImage != null ? product.bannerImage.getUrlOrDefault('') : ''}">
+                </div>
+                <div class="col-md-5"></div>
+            </div>
+            <div class="form-group row">
+                <label for="editProductAmount" class="col-sm-3 col-form-label">
+                    [[#{quantity}]] (<span class="text-danger">*</span>)
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="number" name="amount" id="editProductAmount"
+                           class="form-control" th:placeholder="#{product_amount}"
+                           th:value="${product.amount}">
+                </div>
+                <label id="editProductAmountErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editProductAmount">
+                    <i class="far fa-times-circle"></i> <span id="editProductAmountError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editProductSoldAmount" class="col-sm-3 col-form-label">
+                    [[#{sold_quantity}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="number" name="soldAmount" id="editProductSoldAmount"
+                           class="form-control" th:placeholder="#{sold_amount}"
+                           th:value="${product.soldAmount}">
+                </div>
+                <label id="editProductSoldAmountErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editProductSoldAmount">
+                    <i class="far fa-times-circle"></i> <span id="editProductSoldAmountError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editProductCurrency" class="col-md-3 col-form-label">
+                    [[#{currency}]] (<span class="text-danger">*</span>)
+                </label>
+                <div class="col-lg-3 col-md-4">
+                    <select name="currencyId" id="editProductCurrency" class="form-control"
+                            onchange="ecommerce.getProductPrice();">
+                        <option th:each="currency, iterator : ${currencies}"
+                                th:value="${currency.id}"
+                                th:selected="${currency.id == defaultCurrency.id}">
+                            [[#{${currency.isoCode}}]]
+                            -
+                            [[#{${currency.displayName}}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="editProductCurrencyErrorLabel" class="col-lg-7 col-md-6 col-form-label text-danger d-none" for="editProductCurrency">
+                    <i class="far fa-times-circle"></i> <span id="editProductCurrencyError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editProductOriginalPrice" class="col-sm-3 col-form-label">
+                    [[#{original_price}]] ([[#{include_tax}]])
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="number" name="originalPrice" id="editProductOriginalPrice"
+                           class="form-control" th:placeholder="#{original_price}"
+                           th:value="${product.originalPrice != null ? product.originalPrice : ''}"
+                           onkeyup="ecommerce.onProductOriginalPriceKeyUp('edit', this);">
+                </div>
+                <label id="editProductOriginalPriceErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editProductOriginalPrice">
+                    <i class="far fa-times-circle"></i> <span id="editProductOriginalPriceError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editProductDiscountPercent" class="col-sm-3 col-form-label">
+                    [[#{discount_percent}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="number" name="discountPercent" id="editProductDiscountPercent"
+                           class="form-control" th:placeholder="#{discount_percent}"
+                           th:value="${product.discountPercent != null ? product.discountPercent : ''}"
+                           onkeyup="ecommerce.onProductDiscountPercentKeyUp('edit', this);">
+                    <span>[[#{discount_percent_input_guide}]]</span>
+                </div>
+                <label id="editProductDiscountPercentErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editProductDiscountPercent">
+                    <i class="far fa-times-circle"></i> <span id="editProductDiscountPercentError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editProductPrice" class="col-sm-3 col-form-label">
+                    [[#{price}]] ([[#{include_tax}]]) (<span class="text-danger">*</span>)
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="number" name="price" id="editProductPrice"
+                           class="form-control" th:placeholder="#{product_price}"
+                           th:value="${product.price != null ? product.price : ''}">
+                </div>
+                <label id="editProductPriceErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editProductPrice">
+                    <i class="far fa-times-circle"></i> <span id="editProductPriceError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editProductType" class="col-md-3 col-form-label">
+                    [[#{product_type}]]
+                </label>
+                <div class="col-lg-3 col-md-4">
+                    <select name="productType" id="editProductType" class="form-control">
+                        <option th:each="productType : ${productTypes}"
+                                th:value="${productType}"
+                                th:selected="${productType.toString() == product.productType}">
+                            [[#{${'product_type_' + productType.toString().toLowerCase()}}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="editProductTypeErrorLabel" class="col-lg-7 col-md-6 col-form-label text-danger d-none" for="editProductType">
+                    <i class="far fa-times-circle"></i> <span id="editProductTypeError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editProductShop" class="col-md-3 col-form-label">
+                    [[#{shop}]] (<span class="text-danger">*</span>)
+                </label>
+                <div class="col-lg-3 col-md-4">
+                    <select name="shopId" id="editProductShop" class="form-control">
+                        <option th:each="shop, iterator : ${shops}"
+                                th:value="${shop.id}"
+                                th:selected="${product.shop != null && product.shop.id == shop.id}">
+                            [[${shop.displayName}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="editProductShopErrorLabel" class="col-lg-7 col-md-6 col-form-label text-danger d-none" for="editProductShop">
+                    <i class="far fa-times-circle"></i> <span id="editProductShopError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editProductDisplayOrder" class="col-sm-3 col-form-label">
+                    [[#{display_order}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="number" name="displayOrder" id="editProductDisplayOrder"
+                           class="form-control" th:placeholder="#{display_order}"
+                           th:value="${product.displayOrder}">
+                    <span>[[#{display_order_input_guide}]]</span>
+                </div>
+                <label id="editProductDisplayOrderErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editProductDisplayOrder">
+                    <i class="far fa-times-circle"></i> <span id="editProductDisplayOrderError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editProductStatus" class="col-md-3 col-form-label">
+                    [[#{status}]] (<span class="text-danger">*</span>)
+                </label>
+                <div class="col-lg-3 col-md-4">
+                    <select name="status" id="editProductStatus" class="form-control">
+                        <option th:each="productStatus : ${productStatuses}"
+                                th:value="${productStatus}"
+                                th:selected="${productStatus.toString() == product.status}">
+                            [[#{${productStatus.toString().toLowerCase()}}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="editProductStatusErrorLabel" class="col-lg-7 col-md-6 col-form-label text-danger d-none" for="editProductStatus">
+                    <i class="far fa-times-circle"></i> <span id="editProductStatusError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div>
+                <hr />
+                <h5>
+                    [[#{for_goods_that_need_to_be_shipped}]]
+                </h5>
+            </div>
+            <div class="form-group row">
+                <label for="editProductDeliveryRequired" class="col-sm-3 col-form-label">
+                    [[#{delivery_required}]]
+                </label>
+                <div class="col-9 d-flex align-items-center">
+                    <input type="checkbox" name="deliveryRequired" id="editProductDeliveryRequired" class="wh-1rem"
+                           th:checked="${deliverableProduct != null ? deliverableProduct.deliveryRequired : false}">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="editProductWarehouse" class="col-md-3 col-form-label">
+                    [[#{warehouse}]]
+                </label>
+                <div class="col-lg-3 col-md-4">
+                    <select name="warehouseIds" id="editProductWarehouse"
+                            class="form-control"
+                            th:classappend="${warehouses.size() > 1 ? 'multiple-select-height' : ''}"
+                            th:multiple="${warehouses.size() > 1}">
+                        <option th:each="warehouse, iterator : ${warehouses}"
+                                th:value="${warehouse.id}"
+                                th:selected="${iterator.index == 0}">
+                            [[${warehouse.displayName}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="editProductWarehouseErrorLabel" class="col-lg-7 col-md-6 col-form-label text-danger d-none" for="editProductWarehouse">
+                    <i class="far fa-times-circle"></i> <span id="editProductWarehouseError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editProductWeight" class="col-sm-3 col-form-label">
+                    [[#{weight}]]
+                </label>
+                <div class="col-lg-3 col-md-4 d-flex">
+                    <input type="number" name="weight" id="editProductWeight"
+                           class="form-control" th:placeholder="#{weight}"
+                           th:value="${deliverableProduct != null ? deliverableProduct.weightInGram : ''}">
+                    <select name="weightType" id="weightType" class="form-control">
+                        <option value="g">[[#{gram}]]</option>
+                        <option value="kg">[[#{kilogram}]]</option>
+                    </select>
+                </div>
+                <label id="editProductWeightErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editProductWeight">
+                    <i class="far fa-times-circle"></i> <span id="editProductWeightError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editProductWidth" class="col-sm-3 col-form-label">
+                    [[#{width}]]
+                </label>
+                <div class="col-lg-3 col-md-4 d-flex">
+                    <input type="number" name="width" id="editProductWidth"
+                           class="form-control" th:placeholder="#{width}"
+                           th:value="${deliverableProduct != null ? deliverableProduct.widthInMillimeter : ''}">
+                    <select name="widthType" id="widthType" class="form-control">
+                        <option value="mm">[[#{millimeter}]]</option>
+                        <option value="cm">[[#{centimeter}]]</option>
+                        <option value="m">[[#{meter}]]</option>
+                    </select>
+                </div>
+                <label id="editProductWidthErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editProductWidth">
+                    <i class="far fa-times-circle"></i> <span id="editProductWidthError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editProductHeight" class="col-sm-3 col-form-label">
+                    [[#{height}]]
+                </label>
+                <div class="col-lg-3 col-md-4 d-flex">
+                    <input type="number" name="height" id="editProductHeight"
+                           class="form-control" th:placeholder="#{height}"
+                           th:value="${deliverableProduct != null ? deliverableProduct.heightInMillimeter : ''}">
+                    <select name="heightType" id="heightType" class="form-control">
+                        <option value="mm">[[#{millimeter}]]</option>
+                        <option value="cm">[[#{centimeter}]]</option>
+                        <option value="m">[[#{meter}]]</option>
+                    </select>
+                </div>
+                <label id="editProductHeightErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editProductHeight">
+                    <i class="far fa-times-circle"></i> <span id="editProductHeightError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editProductLength" class="col-sm-3 col-form-label">
+                    [[#{length}]]
+                </label>
+                <div class="col-lg-3 col-md-4 d-flex">
+                    <input type="number" name="length" id="editProductLength"
+                           class="form-control" th:placeholder="#{length}"
+                           th:value="${deliverableProduct != null ? deliverableProduct.lengthInMillimeter : ''}">
+                    <select name="lengthType" id="lengthType" class="form-control">
+                        <option value="mm">[[#{millimeter}]]</option>
+                        <option value="cm">[[#{centimeter}]]</option>
+                        <option value="m">[[#{meter}]]</option>
+                    </select>
+                </div>
+                <label id="editProductLengthErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editProductLength">
+                    <i class="far fa-times-circle"></i> <span id="editProductLengthError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editProductSmall" class="col-sm-3 col-form-label">
+                    [[#{small}]]
+                </label>
+                <div class="col-9 d-flex align-items-center">
+                    <input type="checkbox" name="small" id="editProductSmall" class="wh-1rem"
+                           th:checked="${deliverableProduct != null ? deliverableProduct.small : false}">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="editProductFragile" class="col-sm-3 col-form-label">
+                    [[#{fragile}]]
+                </label>
+                <div class="col-9 d-flex align-items-center">
+                    <input type="checkbox" name="fragile" id="editProductFragile" class="wh-1rem"
+                           th:checked="${deliverableProduct != null ? deliverableProduct.fragile : false}">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="editProductLuxury" class="col-sm-3 col-form-label">
+                    [[#{luxury}]]
+                </label>
+                <div class="col-9 d-flex align-items-center">
+                    <input type="checkbox" name="luxury" id="editProductLuxury" class="wh-1rem"
+                           th:checked="${deliverableProduct != null ? deliverableProduct.luxury : false}">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="editProductDocument" class="col-sm-3 col-form-label">
+                    [[#{letters_or_document}]]
+                </label>
+                <div class="col-9 d-flex align-items-center">
+                    <input type="checkbox" name="document" id="editProductDocument" class="wh-1rem"
+                           th:checked="${deliverableProduct != null ? deliverableProduct.document : false}">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="editProductLiquid" class="col-sm-3 col-form-label">
+                    [[#{liquid}]]
+                </label>
+                <div class="col-9 d-flex align-items-center">
+                    <input type="checkbox" name="fragile" id="editProductLiquid" class="wh-1rem"
+                           th:checked="${deliverableProduct != null ? deliverableProduct.liquid : false}">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="editProductAgricultural" class="col-sm-3 col-form-label">
+                    [[#{agricultural}]]
+                </label>
+                <div class="col-9 d-flex align-items-center">
+                    <input type="checkbox" name="agricultural" id="editProductAgricultural" class="wh-1rem"
+                           th:checked="${deliverableProduct != null ? deliverableProduct.agricultural : false}">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="editProductFood" class="col-sm-3 col-form-label">
+                    [[#{food}]]
+                </label>
+                <div class="col-9 d-flex align-items-center">
+                    <input type="checkbox" name="agricultural" id="editProductFood" class="wh-1rem"
+                           th:checked="${deliverableProduct != null ? deliverableProduct.food : false}">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="editProductDriedFood" class="col-sm-3 col-form-label">
+                    [[#{dried_food}]]
+                </label>
+                <div class="col-9 d-flex align-items-center">
+                    <input type="checkbox" name="agricultural" id="editProductDriedFood" class="wh-1rem"
+                           th:checked="${deliverableProduct != null ? deliverableProduct.driedFood : false}">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="editProductFullBox" class="col-sm-3 col-form-label">
+                    [[#{full_box}]]
+                </label>
+                <div class="col-9 d-flex align-items-center">
+                    <input type="checkbox" name="fullBox" id="editProductFullBox" class="wh-1rem"
+                           th:checked="${deliverableProduct != null ? deliverableProduct.fullBox : false}">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="editProductShortShelfLife" class="col-sm-3 col-form-label">
+                    [[#{short_shelf_life}]]
+                </label>
+                <div class="col-9 d-flex align-items-center">
+                    <input type="checkbox" name="shortShelfLife" id="editProductShortShelfLife" class="wh-1rem"
+                           th:checked="${deliverableProduct != null ? deliverableProduct.shortShelfLife : false}">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="editProductSharpEdges" class="col-sm-3 col-form-label">
+                    [[#{sharp_edges}]]
+                </label>
+                <div class="col-9 d-flex align-items-center">
+                    <input type="checkbox" name="sharpEdges" id="editProductSharpEdges" class="wh-1rem"
+                           th:checked="${deliverableProduct != null ? deliverableProduct.sharpEdges : false}">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="editProductRequiringProperOrientation" class="col-sm-3 col-form-label">
+                    [[#{requiring_proper_orientation}]]
+                </label>
+                <div class="col-9 d-flex align-items-center">
+                    <input type="checkbox" name="requiringProperOrientation" id="editProductRequiringProperOrientation" class="wh-1rem"
+                           th:checked="${deliverableProduct != null ? deliverableProduct.requiringProperOrientation : false}">
+                </div>
+            </div>
+            <div>
+                <hr />
+                <h5>
+                    [[#{for_invoiced_goods}]]
+                </h5>
+            </div>
+            <div class="form-group row">
+                <label for="addProductGroup" class="col-sm-3 col-form-label">
+                    [[#{product_group}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="productGroup" id="addProductGroup"
+                           class="form-control" th:placeholder="#{product_group}"
+                           th:value="${invoiceProduct != null ? invoiceProduct.itemGroup : ''}">
+                </div>
+                <label id="addProductGroupErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addProductGroup">
+                    <i class="far fa-times-circle"></i> <span id="addProductGroupError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addInvoiceProductNature" class="col-md-3 col-form-label">
+                    [[#{type_of_tax}]]
+                </label>
+                <div class="col-lg-3 col-md-4">
+                    <select name="invoiceProductNature" id="addInvoiceProductNature" class="form-control">
+                        <option value="">[[#{select}]]</option>
+                        <option th:each="invoiceProductNature : ${invoiceProductNatures}"
+                                th:value="${invoiceProductNature}"
+                                th:selected="${invoiceProduct != null && invoiceProduct.itemNature == invoiceProductNature.toString()}">
+                            [[#{${invoiceProductNature.toString().toLowerCase()}}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="addInvoiceProductNatureErrorLabel" class="col-lg-7 col-md-6 col-form-label text-danger d-none" for="addInvoiceProductNature">
+                    <i class="far fa-times-circle"></i> <span id="addInvoiceProductNatureError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addInvoiceProductType" class="col-md-3 col-form-label">
+                    [[#{product_type}]]
+                </label>
+                <div class="col-lg-3 col-md-4">
+                    <select name="invoiceProductType" id="addInvoiceProductType" class="form-control">
+                        <option value="">[[#{select}]]</option>
+                        <option th:each="invoiceProductType : ${invoiceProductTypes}"
+                                th:value="${invoiceProductType}"
+                                th:selected="${invoiceProduct != null && invoiceProduct.itemType == invoiceProductType.toString()}">
+                            [[#{${invoiceProductType.toString().toLowerCase()}}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="addInvoiceProductTypeErrorLabel" class="col-lg-7 col-md-6 col-form-label text-danger d-none" for="addInvoiceProductType">
+                    <i class="far fa-times-circle"></i> <span id="addInvoiceProductTypeError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addInvoiceProductUnit" class="col-md-3 col-form-label">
+                    [[#{unit}]]
+                </label>
+                <div class="col-lg-3 col-md-4">
+                    <select name="invoiceProductUnit" id="addInvoiceProductUnit" class="form-control">
+                        <option value="">[[#{select}]]</option>
+                        <option th:each="invoiceProductUnit : ${invoiceProductUnits}"
+                                th:value="${invoiceProductUnit}"
+                                th:selected="${invoiceProduct != null && invoiceProduct.unit == invoiceProductUnit.toString()}">
+                            [[#{${invoiceProductUnit.toString().toLowerCase()}}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="addInvoiceProductUnitErrorLabel" class="col-lg-7 col-md-6 col-form-label text-danger d-none" for="addInvoiceProductUnit">
+                    <i class="far fa-times-circle"></i> <span id="addInvoiceProductUnitError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addProductTaxOnPriceType" class="col-md-3 col-form-label">
+                    [[#{tax_based_on_price_type}]]
+                </label>
+                <div class="col-lg-3 col-md-4">
+                    <select name="taxOnPriceType" id="addProductTaxOnPriceType" class="form-control">
+                        <option value="">[[#{select}]]</option>
+                        <option th:each="taxOnPriceType : ${taxOnPriceTypes}"
+                                th:value="${taxOnPriceType}"
+                                th:selected="${invoiceProduct != null && invoiceProduct.taxOnPriceType == taxOnPriceType.toString()}">
+                            [[#{${taxOnPriceType.toString().toLowerCase()}}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="addProductTaxOnPriceTypeErrorLabel" class="col-lg-7 col-md-6 col-form-label text-danger d-none" for="addProductTaxOnPriceType">
+                    <i class="far fa-times-circle"></i> <span id="addProductTaxOnPriceTypeError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addProductTaxPercent" class="col-sm-3 col-form-label">
+                    [[#{tax_percent}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="number" name="taxPercent" id="addProductTaxPercent"
+                           class="form-control" th:placeholder="#{tax_percent}"
+                           th:value="${invoiceProduct != null ? invoiceProduct.taxPercent : ''}">
+                </div>
+                <label id="addProductTaxPercentErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addProductTaxPercent">
+                    <i class="far fa-times-circle"></i> <span id="addProductTaxPercentError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="row">
+                <div class="col-md-3"></div>
+                <div class="col-lg-2 col-md-3">
+                    <button type="button" class="btn btn-primary btn-block" onclick="ecommerce.editProduct();">[[#{submit}]]</button>
+                </div>
+                <div class="col-lg-7 col-md-6"></div>
+                <!-- /.col -->
+            </div>
+        </form>
+    </div>
+    <div class="col-md-2 col-sm-0"></div>
+    <div class="col-12 mb-3"></div>
+</div>
+
+<script layout:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.currentParentURL = /*[[${currentParentURL}]]*/ '';
+ecommerce.editProductId = /*[[${product.id}]]*/ null;
+ecommerce.productBannerId = /*[[${product.bannerImage != null ? product.bannerImage.id : 0}]]*/ '';
+ecommerce.productIconId = /*[[${product.iconImage != null ? product.iconImage.id : 0}]]*/ '';
+/*]]>*/
+ecommerce.productIconImage = {
+    id: ecommerce.productIconId
+};
+
+ecommerce.productBannerImage = {
+    id: ecommerce.productBannerId
+};
+
+// ========== edit product =============
+ecommerce.editProduct = function() {
+    ecommerce.addOrEditProduct('edit');
+}
+
+ecommerce.getProductPrice = function() {
+    $.ajax({
+        url: '/ecommerce/api/v1/products/' + ecommerce.editProductId + '/price?currencyId=' + $('#editProductCurrency').val(),
+        type: 'GET',
+        dataType: 'json'
+    })
+    .done(function(data) {
+        $('#editProductOriginalPrice').val(data?.originalPrice || '');
+        $('#editProductPrice').val(data?.price || '');
+    })
+    .fail(function(e) {
+        ezyadmin.processGetApiErrors(e);
+    });
+}
+
+ecommerce.getProductPrice();
+</script>
+<th:block layout:fragment="post-scripts">
+    <script th:replace="~{ecommerce/product/scripts :: add-edit}" />
+</th:block>
+</body>
+
+</html>

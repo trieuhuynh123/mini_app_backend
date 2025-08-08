@@ -1,0 +1,207 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~ 
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~ 
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~ 
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="content">
+    <div class="row order-details-content">
+        <div class="col-12 mb-4 order-details-order-id-wrapper">
+            <h4 class="order-details-order-id">
+                [[#{ecommerce_order}]]#[[${order.id}]]
+            </h4>
+        </div>
+        <div class="col-md-8 order-details-products">
+            <div th:each="product, iterator : ${order.products}"
+                 class="row product-small mb-3 order-details-product-item"
+                 th:classappend="${iterator.index == iterator.size - 1 ? 'last-child' : ''}">
+                <div class="col-lg-5 d-flex mb-lg-0 mb-2 order-details-product-image">
+                    <a th:href="${'/products/' + product.product.productCode}">
+                        <img th:if="${product.product.iconImage != null}"
+                             th:src="${product.product.iconImage.getUrlOrDefault('')}"
+                             class="object-fit-cover" width="64" height="64">
+                        <img th:if="${product.product.iconImage == null && product.product.bannerImage != null}"
+                             th:src="${product.product.bannerImage.getUrlOrDefault('')}"
+                             class="object-fit-cover" width="64" height="64">
+                    </a>
+                    <div class="d-flex flex-column justify-content-center ms-3 order-details-product-metadata">
+                        <span class="order-product-color">[[${product.product.productName}]]</span>
+                        <span th:if="${product.color != null}" class="order-product-color">
+                            [[#{color_short_title}]]: [[${product.color.colorDisplayName}]]
+                        </span>
+                        <span th:if="${product.material != null}" class="order-product-material">
+                            [[#{material}]]: [[${product.material.materialDisplayName}]]
+                        </span>
+                        <span th:if="${product.size != null}" class="order-product-size">
+                            [[#{size}]]:
+                            <th:block th:if="${product.size.sizeName != 'Customize'}">
+                                [[${product.size.sizeDisplayName}]]
+                            </th:block>
+                            <th:block th:if="${product.size.sizeName == 'Customize'}">
+                                [[#{customize}]]
+                            </th:block>
+                        </span>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-4 d-flex flex-column justify-content-center order-details-product-price">
+                    <span>[[${product.product.formattedPrice}]] [[${defaultCurrency.symbol}]]</span>
+                </div>
+                <div class="col-lg-2 col-md-3 d-flex flex-column justify-content-center order-details-product-quantity-wrapper-parent">
+                    <div class="d-flex order-details-product-quantity-wrapper">
+                        <span class="commas-number-string order-details-product-quantity">x[[${product.amount}]]</span>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-5 col-10 d-flex flex-column justify-content-center order-details-product-total-amount-money">
+                    <span>[[${product.formattedTotalAmountMoney}]] [[${defaultCurrency.symbol}]]</span>
+                </div>
+            </div>
+            <div class="mt-5 order-details-status-wrapper">
+                <b>[[#{status}]]</b>:
+                <span th:attr="status=|${order.status}|" class="status-text">
+                    [[#{${order.status.toString().toLowerCase()}}]]
+                </span>
+            </div>
+            <div class="mt-2 order-details-created-at">
+                <b>[[#{created_at}]]</b>:
+                <span class="date-time-string">[[${order.createdAt}]]</span>
+            </div>
+            <div th:if="${order.approvedAt > 0}"
+                 class="mt-2 order-details-approved-at">
+                <b>[[#{approved_at}]]</b>:
+                <span class="date-time-string">[[${order.approvedAt}]]</span>
+            </div>
+        </div>
+        <div class="col-md-4 col-sm-12 d-lg-flex flex-column order-details-summary">
+            <div th:if="${order.deliveryFee > 0}" class="d-flex justify-content-between align-item-center mb-3 order-details-delivery-fee">
+                <span>[[#{delivery_fee}]]</span>
+                <span>[[${order.formattedDeliveryFee}]] [[${defaultCurrency.symbol}]]</span>
+            </div>
+            <div class="d-flex justify-content-between align-item-center order-details-total-money">
+                <span>[[#{total_amount}]]</span>
+                <span>[[${order.formattedTotalAmountMoney}]] [[${defaultCurrency.symbol}]]</span>
+            </div>
+            <button type="button" class="btn btn-info form-control mt-3 order-details-print-button"
+                    onclick="printOrder();">
+                [[#{print}]]
+            </button>
+        </div>
+    </div>
+    <div id="orderContent" style="display: none;">
+        <div>
+            <h4>
+                [[#{ecommerce_order}]]#[[${order.id}]]
+            </h4>
+        </div>
+        <table style="width: 100%; margin: 30px 0 30px 0;">
+            <thead>
+                <tr style="font-weight: 700;">
+                    <td style="padding: 5px;">#</td>
+                    <td style="padding: 5px;">[[#{product}]]</td>
+                    <td style="padding: 5px;">[[#{price}]]</td>
+                    <td style="padding: 5px;">[[#{quantity}]]</td>
+                    <td style="padding: 5px;">[[#{total_amount}]]</td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="product, iterator : ${order.products}">
+                    <td style="padding: 5px;">[[${iterator.index + 1}]]</td>
+                    <td style="padding: 5px; display: flex; flex-direction: column; gap: 5px;">
+                        <a th:href="${'/products/' + product.product.productCode}"
+                           style="text-decoration: none;">
+                            [[${product.product.productName}]]
+                        </a>
+                        <span th:if="${product.color != null}">
+                            [[#{color_short_title}]]: [[${product.color.colorDisplayName}]]
+                        </span>
+                        <span th:if="${product.size != null}">
+                            [[#{size}]]:
+                             <th:block th:if="${product.size.sizeName != 'Customize'}">
+                                [[${product.size.sizeDisplayName}]]
+                            </th:block>
+                            <th:block th:if="${product.size.sizeName == 'Customize'}">
+                                [[#{customize}]]
+                            </th:block>
+                        </span>
+                    </td>
+                    <td style="padding: 5px;">[[${product.product.formattedPrice}]] [[${defaultCurrency.symbol}]]</td>
+                    <td style="padding: 5px;">x[[${product.amount}]]</td>
+                    <td style="padding: 5px;">[[${product.formattedTotalAmountMoney}]] [[${defaultCurrency.symbol}]]</td>
+                </tr>
+            </tbody>
+        </table>
+        <div th:if="${order.deliveryFee > 0}"
+             style="margin-bottom: 10px;">
+            <b>[[#{delivery_fee}]]</b>:
+            <span>[[${order.formattedDeliveryFee}]] [[${defaultCurrency.symbol}]]</span>
+        </div>
+        <div>
+            <b>[[#{total_amount}]]</b>:
+            <span>[[${order.formattedTotalAmountMoney}]] [[${defaultCurrency.symbol}]]</span>
+        </div>
+        <div style="margin-top: 30px;">
+            <b>[[#{status}]]</b>:
+            <span>[[#{${order.status.toString().toLowerCase()}}]]</span>
+        </div>
+        <div style="margin-top: 10px;">
+            <b>[[#{created_at}]]</b>:
+            <span class="date-time-string">[[${order.createdAt}]]</span>
+        </div>
+        <div th:if="${order.approvedAt > 0}"
+             style="margin-top: 10px;">
+            <b>[[#{approved_at}]]</b>:
+            <span class="date-time-string">[[${order.approvedAt}]]</span>
+        </div>
+        <div style="margin-top: 10px;">
+            <b>[[#{created_by}]]</b>:
+            <a id="createdByLink" style="text-decoration: none;"></a>
+        </div>
+        <div style="margin-top: 10px;">
+            <b>[[#{order_url}]]</b>:
+            <a id="orderUrl" style="text-decoration: none;"></a>
+        </div>
+    </div>
+</th:block>
+<script th:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+var orderId = /*[[${order.id}]]*/;
+/*]]>*/
+
+$('#createdByLink')
+    .attr('href', location.origin)
+    .text(location.host);
+$('#orderUrl')
+    .attr('href', location.href)
+    .text(location.href);
+
+var printOrder = function() {
+    var orderWindow = window.open('', 'print');
+    var orderDocument = orderWindow.document;
+    orderDocument.write('<html><head><title>' + document.title  + '</title>');
+    orderDocument.write('</head><body>');
+    orderDocument.write($('#orderContent').html());
+    orderDocument.write('</body></html>');
+    orderDocument.close();
+    orderWindow.print();
+    orderWindow.onafterprint = function() {
+        orderWindow.close();
+    };
+    return true;
+}
+</script>
+</body>
+</html>

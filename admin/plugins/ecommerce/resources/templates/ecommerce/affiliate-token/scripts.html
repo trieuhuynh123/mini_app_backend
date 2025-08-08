@@ -1,0 +1,175 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~ 
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~ 
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~ 
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org">
+<body>
+<script th:fragment="add-edit">
+// ========== add or edit affiliateToken ===========
+ecommerce.addOrEditAffiliateToken = function(action) {
+    var formData = ezyadmin.formDataToObject(action + 'AffiliateTokenForm');
+    if (formData.affiliateUserId) {
+        ezyadmin.setActualFormFieldData(formData, 'affiliateUserId', (user) => user.userId);
+        formData.affiliateUserId = formData.affiliateUserId || ecommerce.affiliateUserId;
+        formData.affiliateUserId = formData.affiliateUserId + '';
+    }
+    ezyadmin.setActualFormData(formData);
+    formData.limited = $('#' + action + 'AffiliateTokenLimited').prop('checked');
+    formData.validFrom = ecommerce.affiliateTokenValidFrom || 0;
+    formData.expiredAt = ecommerce.affiliateTokenExpiredAt || 0;
+    var url = (action == 'add')
+        ? '/ecommerce/api/v1/affiliate-tokens/add'
+        : '/ecommerce/api/v1/affiliate-tokens/' + ecommerce.editAffiliateTokenId;
+    $.ajax({
+        type: action == 'add' ? 'POST' : 'PUT',
+        url: url,
+        data: JSON.stringify(formData),
+        contentType: 'application/json',
+        success: function (data) {
+            var returnUrl;
+            if (data && data.createdId) {
+                returnUrl = '/ecommerce/affiliate-tokens/' + data.createdId;
+            } else if (ecommerce.selectedShopId) {
+                returnUrl = '/ecommerce/shops/' + ecommerce.selectedShopId;
+            } else if (ecommerce.editAffiliateTokenId) {
+                returnUrl = '/ecommerce/affiliate-tokens/' + ecommerce.editAffiliateTokenId;
+            } else {
+                returnUrl = '/ecommerce/affiliate-tokens';
+            }
+            window.location = returnUrl
+                + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+        },
+        error: function (data, e) {
+            ezyadmin.processUpdateApiErrors(formData, data);
+        }
+    });
+};
+
+// ========== user reference =============
+ezyadmin.onSearchUserModalCloseWithUserData = function(userData) {
+    ecommerce.referenceUserId = userData.userId;
+    $('#referenceUserNameLink')
+        .prop(
+            'href',
+            '/users/' + userData.username
+                + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '')
+        )
+        .text(userData.name);
+    $('#referenceUserNameArea')
+        .removeClass('d-none')
+        .addClass('d-flex');
+}
+
+ecommerce.onRemoveReferenceUserClick = function() {
+    delete ecommerce.referenceUserId;
+    $('#referenceUserNameArea')
+        .addClass('d-none')
+        .removeClass('d-flex');
+}
+</script>
+<script th:fragment="delete" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.do_you_want_to_delete_affiliate_token_pvalue = /*[[#{do_you_want_to_delete_affiliate_token_pvalue}]]*/;
+/*]]>*/
+// ========== affiliateToken delete =============
+ecommerce.onDeleteAffiliateTokenClick = function(
+    affiliateTokenId,
+    affiliateTokenValue
+) {
+    if (affiliateTokenId) {
+        ecommerce.selectedAffiliateTokenId = affiliateTokenId;
+    }
+    if (affiliateTokenValue) {
+        ecommerce.selectedAffiliateTokenValue = affiliateTokenValue;
+    }
+    $('#delete-affiliate-token-modal-body-content')
+        .text(
+            ezyadmin
+                .messages
+                .do_you_want_to_delete_affiliate_token_pvalue
+                .replace('{0}', ecommerce.selectedAffiliateTokenValue)
+        );
+    $('#delete-affiliate-token-modal').modal('show');
+}
+
+ecommerce.deleteAffiliateToken = function() {
+    $.ajax({
+        type: 'DELETE',
+        url: '/ecommerce/api/v1/affiliate-tokens/' + ecommerce.selectedAffiliateTokenId,
+        success: function () {
+            $('#delete-affiliate-token-modal').modal('hide');
+            if (ecommerce.fetchAffiliateTokenList) {
+                ecommerce.fetchAffiliateTokenList('current');
+            } else if (ecommerce.onAffiliateTokenDeleted) {
+                ecommerce.onAffiliateTokenDeleted();
+            } else {
+                window.location = (ecommerce.selectedShopId
+                    ? '/ecommerce/shops/' + ecommerce.selectedShopId
+                    : '/ecommerce/affiliate-tokens'
+                )
+                    + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+            }
+        },
+        error: function (data, e) {
+            ezyadmin.processUpdateApiErrors({}, data);
+        }
+    });
+}
+
+ezyadmin.onPromptConfirmed = function(modalId) {
+    if (modalId == 'delete-affiliate-token-modal') {
+        ecommerce.deleteAffiliateToken();
+    }
+}
+</script>
+<script th:fragment="change">
+ecommerce.onShopChange = function(e) {
+    var shopId = $(e).val();
+    ecommerce.changeAffiliateTokensByShop(shopId);
+}
+
+ecommerce.changeAffiliateTokensByShop = function(shopId) {
+    $.ajax({
+        type: "GET",
+        url: '/ecommerce/api/v1/shops/' +
+            shopId +
+            '/affiliateTokens',
+        success: function(affiliateTokens) {
+            var html = '';
+            affiliateTokens.forEach((affiliateToken) => {
+                html += `<option value="${affiliateToken.id}">${affiliateToken.displayName}</option>`;
+            });
+            $(`#${ecommerce.affiliateTokensSelectId}`).html(html);
+            if (affiliateTokens.length <= 1) {
+                $(`#${ecommerce.affiliateTokensSelectId}`)
+                    .prop('multiple', false)
+                    .removeClass('multiple-select-height');
+            } else {
+                $(`#${ecommerce.affiliateTokensSelectId}`)
+                    .prop('multiple', true)
+                    .addClass('multiple-select-height');
+            }
+        },
+        error: function(data, e) {
+            ezyadmin.processGetApiErrors(data);
+        }
+    });
+}
+</script>
+</body>
+</html>

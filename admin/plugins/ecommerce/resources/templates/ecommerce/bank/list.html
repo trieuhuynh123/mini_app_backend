@@ -1,0 +1,344 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<head>
+    <script>
+        const ecommerce = {};
+    </script>
+</head>
+<body>
+<div layout:fragment="content" class="row">
+    <div th:if="${countryOfBanks.size() > 0}" class="col-12">
+        <ol>
+            <li th:each="country : ${countryOfBanks}" class="text-primary cursor-pointer"
+                th:attr="onclick=|ecommerce.fetchCountryBanks('${country.code}')|">
+                [[#{download_banks_of}]] [[${country.internationalName}]]
+            </li>
+        </ol>
+    </div>
+    <div class="col-lg-6 col-md-4 col-12"></div>
+    <div class="col-lg-3 col-md-4 col-12 page-search">
+        <label for="bankSearchKeyword" class="text-nowrap">[[#{search}]]: </label>
+        <input type="search" class="form-control" th:placeholder="#{keyword}" id="bankSearchKeyword"
+               onkeydown="ecommerce.onKeydownToSearchBank();">
+    </div>
+    <div class="col-lg-3 col-md-4 col-12 page-search">
+        <label for="bankSearchStatus" class="text-nowrap">[[#{status}]]: </label>
+        <select class="form-control form-select" id="bankSearchStatus"
+                onchange="ecommerce.onBankSearchStatusChanged();">
+            <option value="">[[#{all}]]</option>
+            <option th:each="bankStatus : ${bankStatuses}"
+                    th:value="${bankStatus}"
+                    th:selected="${bankStatus.toString() == productBankSearchStatus}">
+                [[#{${bankStatus.toString().toLowerCase()}}]]
+            </option>
+        </select>
+    </div>
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-body table-responsive p-0">
+                <table class="table table-bordered table-hover text-nowrap">
+                    <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>[[#{logo}]]</th>
+                        <th>[[#{code}]]</th>
+                        <th class="text-nowrap">[[#{bin_code}]]</th>
+                        <th>[[#{name}]]</th>
+                        <th>[[#{address}]]</th>
+                        <th>[[#{status}]]</th>
+                        <th>[[#{updated_at}]]</th>
+                        <th>[[#{actions}]]</th>
+                    </tr>
+                    </thead>
+                    <tbody id="bankListBody">
+                    </tbody>
+                </table>
+            </div>
+            <!-- /.card-body -->
+            <div class="card-footer clearfix">
+                <span><span id="bankCountText">0</span>
+                    [[${#strings.toLowerCase(#messages.msg('of'))}]]
+                    <span id="totalBankText">0</span>
+                    [[${#strings.toLowerCase(#messages.msg('banks'))}]]
+                </span>
+                <ul class="pagination pagination-sm m-0 float-right">
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="firstPageButton">
+                            <i class="fas fa-arrow-circle-left pl-1 pr-1"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="prevPageButton">[[#{prev}]]</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="nextPageButton">[[#{next}]]</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="lastPageButton">
+                            <i class="fas fa-arrow-circle-right pl-1 pr-1"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.card-footer -->
+        </div>
+    </div>
+    <div class="col-12 mb-3"></div>
+</div>
+<th:block layout:fragment="modals">
+    <th:block th:replace="~{fragments/prompt :: content(id='delete-bank-modal', title=confirm, confirmButton=delete, closeButton=close)}" />
+</th:block>
+<script layout:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ecommerce.bankSearchStatus = /*[[${bankSearchStatus}]]*/ '';
+ecommerce.bankSearchKeyword = /*[[${bankSearchKeyword}]]*/ '';
+ezyadmin.messages.activated = /*[[#{activated}]]*/ '';
+ezyadmin.messages.inactivated = /*[[#{inactivated}]]*/ '';
+/*]]>*/
+
+// ========== setting init =============
+ezyadmin.onNewButtonClick = function(e) {
+    window.location = '/ecommerce/banks/add'
+        + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+}
+
+// ========== actions ===============
+ecommerce.onActivateBankClick = function(id) {
+    ecommerce.updateBankStatus(id, 'activate');
+}
+
+ecommerce.onDeactivateBankClick = function(id) {
+    ecommerce.updateBankStatus(id, 'deactivate');
+}
+
+ecommerce.updateBankStatus = function(id, action) {
+    $.ajax({
+        type: 'PUT',
+        url: `/ecommerce/api/v1/banks/${id}/${action}`,
+        success: function (data) {
+            ecommerce.fetchBankList('current');
+        },
+        error: function (e) {
+            ezyadmin.processUpdateApiErrors({}, e);
+        }
+    });
+};
+
+// =========== fetch list ===========
+ecommerce.fetchCountryBanks = function(countryCode) {
+    ezyadmin.showLoadingScreen();
+    $.ajax({
+        type: 'POST',
+        url: '/ecommerce/api/v1/countries/' + countryCode + '/fetch-banks',
+        contentType: 'application/json',
+        success: function (responseData) {
+            location.reload();
+        },
+        error: function (e) {
+            ezyadmin.processUpdateApiErrors({}, e);
+            ezyadmin.hideLoadingScreen();
+        }
+    });
+}
+
+// ========== bank search =============
+ecommerce.changeBrowserUrl = function() {
+    var params = [];
+    if (ecommerce.bankSearchType) {
+        params.push('type=' + ecommerce.bankSearchType);
+    }
+    if (ecommerce.bankSearchStatus) {
+        params.push('status=' + ecommerce.bankSearchStatus);
+    }
+    if (ecommerce.bankSearchKeyword) {
+        params.push('keyword=' + ecommerce.bankSearchKeyword);
+    }
+    if (ecommerce.bankSearchSortOrder) {
+        params.push('sortOrder=' + ecommerce.bankSearchSortOrder);
+    }
+    if (ezyadmin.lang) {
+        params.push('lang=' + ezyadmin.lang);
+    }
+    var url = '/ecommerce/product-categories';
+    if (params.length) {
+        url += '?' + params.join('&');
+    }
+    window.history.pushState({}, '', url);
+}
+
+ecommerce.onKeydownToSearchBank = function() {
+    if(event.key === 'Enter') {
+        ecommerce.bankSearchKeyword = $('#bankSearchKeyword').val();
+        ecommerce.fetchBankList();
+    }
+}
+
+ecommerce.onBankSearchTypeChanged = function() {
+    ecommerce.bankSearchType = $('#bankSearchType').val();
+    ecommerce.changeBrowserUrl();
+    ecommerce.fetchBankList();
+}
+
+ecommerce.onBankSearchStatusChanged = function() {
+    ecommerce.bankSearchStatus = $('#bankSearchStatus').val();
+    ecommerce.changeBrowserUrl();
+    ecommerce.fetchBankList();
+}
+
+// ========== bank pagination =============
+$('#firstPageButton').click(() => {
+    ecommerce.fetchBankList('first');
+});
+$('#lastPageButton').click(() => {
+    ecommerce.fetchBankList('last');
+});
+$('#nextPageButton').click(() => {
+    ecommerce.fetchBankList('next');
+});
+$('#prevPageButton').click(() => {
+    ecommerce.fetchBankList('prev');
+});
+
+// ========== bank list =============
+ecommerce.fetchBankList = function(action) {
+    var queryString = '';
+    if (ecommerce.bankSearchStatus) {
+        queryString += '&status=' + ecommerce.bankSearchStatus;
+    }
+    if (ecommerce.bankSearchKeyword) {
+        queryString += '&keyword=' + ecommerce.bankSearchKeyword;
+    }
+    if (action == 'current') {
+        if (ecommerce.lastBankQueryString) {
+            queryString = ecommerce.lastBankQueryString;
+        }
+    } else if (action == 'next') {
+        if (ecommerce.lastBankPageToken.next) {
+            queryString += '&nextPageToken=' + ecommerce.lastBankPageToken.next;
+        } else {
+            return;
+        }
+    } else if (action == 'prev') {
+        if (ecommerce.lastBankPageToken.prev) {
+            queryString += '&prevPageToken=' + ecommerce.lastBankPageToken.prev;
+        } else {
+            return;
+        }
+    } else if (action == 'last') {
+        queryString += '&lastPage=true';
+    }
+    $.ajax({
+        url: '/ecommerce/api/v1/banks?limit=12' + queryString,
+        type: 'GET',
+        dataType: 'json'
+    })
+    .done(function(data) {
+        $('#bankCountText').text(data.count);
+        $('#totalBankText').text(ezyadmin.formatNumberWithCommas(data.total));
+        ecommerce.lastBankQueryString = queryString;
+        ecommerce.lastBankPageToken = data.pageToken;
+        $('#bankListBody').html(ecommerce.buildBankListBodyHtml(data.items));
+        if (data.continuation.hasNext) {
+            $('#nextPageButton').removeClass('text-secondary');
+        } else {
+            $('#nextPageButton').addClass('text-secondary');
+        }
+        if (data.continuation.hasPrevious) {
+            $('#prevPageButton').removeClass('text-secondary');
+        } else {
+            $('#prevPageButton').addClass('text-secondary');
+        }
+    })
+    .fail(function(e) {
+    	ezyadmin.processGetApiErrors(e);
+    });
+}
+
+ecommerce.buildBankListBodyHtml = function(banks) {
+    var html = '';
+    banks.forEach((bank) => {
+        html += ecommerce.buildBankListItemHtml(bank);
+    });
+    return html;
+}
+
+ecommerce.buildBankListItemHtml = function(bank) {
+    var statusColor = ezyadmin.getTextColorByStatus(bank.status);
+    var html = `<tr>
+        <td class="align-middle">${bank.id}</td>
+        <td class="align-middle">`;
+    if (bank.logoImage) {
+        html += `
+            <a href="${bank.url}">
+                <img src="${ezyadmin.extractMediaUrl(bank.logoImage)}" width="64" class="object-fit-cover">
+            </a>`;
+    } else {
+        html += `
+            <a href="${bank.url}" target="_blank">###</a>`;
+    }
+    html += `
+        </td>
+        <td class="align-middle">${bank.code}</td>
+        <td class="align-middle">${bank.binCode}</td>
+        <td class="align-middle text-wrap">
+            <a href="/ecommerce/banks/${bank.id}${ezyadmin.lang ? `?lang=${ezyadmin.lang}` : ''}">${bank.name}</a>
+        </td>
+        <td class="align-middle text-wrap">${bank.address || ''}</td>
+        <td class="align-middle ${statusColor}">${ezyadmin.getI18nMessage(bank.status.toLowerCase())}</td>
+        <td class="align-middle">${ezyadmin.formatTimeStamp(bank.updatedAt)}</td>
+        <td class="align-middle">
+    `;
+    if (bank.status == 'INACTIVATED') {
+        html += `
+            <a class="btn btn-link pr-1"
+               onclick="ecommerce.onActivateBankClick('${bank.id}')">
+                <i class="fas fa-paper-plane tex-success"></i>
+            </a>
+        `;
+    }
+    if (bank.status == 'ACTIVATED') {
+        html += `
+            <a class="btn btn-link pr-1"
+               onclick="ecommerce.onDeactivateBankClick('${bank.id}')">
+                <i class="fas fa-unlink text-secondary"></i>
+            </a>
+        `;
+    }
+    html += `
+            <a class="btn px-1" href="/ecommerce/banks/${bank.id}/edit">
+                <i class="fas fa-edit text-primary"></i>
+            </a>
+            <button type="button" class="btn pl-1" onclick="ecommerce.onDeleteBankClick(${bank.id}, '${escape(bank.name)}');">
+                <i class="fas fa-trash text-danger"></i>
+            </button>
+        </td>
+    </tr>`;
+	return html;
+}
+ecommerce.fetchBankList();
+</script>
+<th:block layout:fragment="post-scripts">
+    <script th:replace="~{ecommerce/bank/scripts :: delete}" />
+</th:block>
+</body>
+</html>

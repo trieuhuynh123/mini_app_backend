@@ -1,0 +1,98 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="content">
+    <div class="modal fade pt-4rem" id="discount-products">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="discount-products-modal-title">
+                        [[#{discount_on_products}]]
+                    </h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="addColorForm" onsubmit="return false;">
+                        <div class="form-group row">
+                            <label for="discountProductsPercent" class="col-4 col-form-label">
+                                [[#{discount_percent}]] (<span class="text-danger">*</span>)
+                            </label>
+                            <div class="col-8">
+                                <label class="col-form-label text-danger d-none" id="discountProductsPercentErrorLabel" for="discountProductsPercent">
+                                    <i class="far fa-times-circle"></i> <span id="discountProductsPercentError">[[#{invalid}]]</span>
+                                </label>
+                                <input type="number" name="percent" id="discountProductsPercent"
+                                       class="form-control" th:placeholder="#{example} + ': 30'"
+                                       value="default"
+                                       onkeydown="ecommerce.onKeyDownToDiscountProducts();">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <div>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">[[#{cancel}]]</button>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="ecommerce.discountOnProducts();">
+                        [[#{submit}]]
+                    </button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+</th:block>
+<script th:fragment="scripts">
+// ========== show discount products modal =============
+ecommerce.showDiscountProductsModal = function() {
+    ecommerce.openedProductBulkActionModel = $('#discount-products');
+    ecommerce.openedProductBulkActionModel.modal('show');
+}
+
+$(document).ready(() => {
+    $('#discount-products').on('shown.bs.modal', function () {
+        $('#discountProductsPercent').focus();
+    });
+});
+
+ecommerce.onKeyDownToDiscountProducts = function() {
+    if(event.key === 'Enter') {
+        ecommerce.discountOnProducts();
+    }
+}
+
+ecommerce.discountOnProducts = function() {
+    ecommerce.discountProductsPercent = $('#discountProductsPercent').val();
+    if (ecommerce.discountProductsPercent) {
+        var discountPercentValue = parseFloat(ecommerce.discountProductsPercent);
+        if (discountPercentValue >= 0 && discountPercentValue <= 100) {
+            $('#discountProductsPercentErrorLabel').addClass('d-none');
+            ecommerce.doProductBulkAction('discount');
+        } else {
+            $('#discountProductsPercentErrorLabel').removeClass('d-none');
+        }
+    }
+}
+</script>
+</body>
+</html>

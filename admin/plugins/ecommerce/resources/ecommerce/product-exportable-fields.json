@@ -1,0 +1,142 @@
+[
+  {
+    "title": "PRODUCT TYPE",
+    "field": "productType",
+    "defaultValue": ""
+  },
+  {
+    "title": "PRODUCT GROUP",
+    "field": "productGroupName",
+    "defaultValue": ""
+  },
+  {
+    "title": "PRODUCT CODE",
+    "field": "productCode",
+    "defaultValue": ""
+  },
+  {
+    "title": "PRODUCT BARCODE",
+    "field": "productSecondaryCode",
+    "defaultValue": ""
+  },
+  {
+    "title": "PRODUCT NAME",
+    "field": "productName",
+    "defaultValue": ""
+  },
+  {
+    "title": "BRAND NAME",
+    "field": "branchName",
+    "defaultValue": ""
+  },
+  {
+    "title": "PRICE",
+    "field": "price",
+    "defaultValue": ""
+  },
+  {
+    "title": "ORIGINAL PRICE",
+    "field": "originalPrice",
+    "defaultValue": ""
+  },
+  {
+    "title": "REMAINING QUANTITY",
+    "field": "remainingQuantity",
+    "defaultValue": ""
+  },
+  {
+    "title": "SUPPLIER NAME",
+    "field": "supplierName",
+    "defaultValue": ""
+  },
+  {
+    "title": "CUSTOMER ORDER",
+    "field": "customerOrderQuantity",
+    "defaultValue": ""
+  },
+  {
+    "title": "EXPECTED TO BE OUT OF STOCK",
+    "field": "expectedToBeOutOfStockInDays",
+    "defaultValue": "0"
+  },
+  {
+    "title": "MINIMUM STOCK",
+    "field": "minimumStock",
+    "defaultValue": ""
+  },
+  {
+    "title": "MAXIMUM STOCK",
+    "field": "maximumStock",
+    "defaultValue": ""
+  },
+  {
+    "title": "UNIT",
+    "field": "unit",
+    "defaultValue": ""
+  },
+  {
+    "title": "BASIC UNIT",
+    "field": "basicUnit",
+    "defaultValue": ""
+  },
+  {
+    "title": "CONVERTED QUANTITY",
+    "field": "convertedQuantity",
+    "defaultValue": ""
+  },
+  {
+    "title": "PROPERTIES",
+    "field": "properties",
+    "defaultValue": ""
+  },
+  {
+    "title": "RELATED PRODUCT CODE",
+    "field": "relatedProductCode",
+    "defaultValue": ""
+  },
+  {
+    "title": "IMAGE URLS",
+    "field": "colorMediaUrlList",
+    "defaultValue": ""
+  },
+  {
+    "title": "WEIGHT IN GRAM",
+    "field": "deliverableProduct.weightInGram",
+    "defaultValue": ""
+  },
+  {
+    "title": "LOYALTY POINTS",
+    "field": "loyaltyPoints",
+    "defaultValue": ""
+  },
+  {
+    "title": "AVAILABLE FOR SALE",
+    "field": "availableForSale",
+    "defaultValue": ""
+  },
+  {
+    "title": "SOLD QUANTITY",
+    "field": "soldQuantity",
+    "defaultValue": ""
+  },
+  {
+    "title": "DESCRIPTION",
+    "field": "description",
+    "defaultValue": ""
+  },
+  {
+    "title": "NOTES TEMPLATE",
+    "field": "notesTemplate",
+    "defaultValue": ""
+  },
+  {
+    "title": "LOCATION",
+    "field": "location",
+    "defaultValue": ""
+  },
+  {
+    "title": "COMPONENT PRODUCTS",
+    "field": "componentProducts",
+    "defaultValue": ""
+  }
+]

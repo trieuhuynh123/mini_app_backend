@@ -1,0 +1,148 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~ 
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~ 
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~ 
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org">
+<body>
+<script th:fragment="add-edit">
+// ========== add or edit shopWarehouse ===========
+ecommerce.addOrEditShopWarehouse = function(action) {
+    var formData = ezyadmin.formDataToObject(action + 'ShopWarehouseForm');
+    var url = (action == 'add')
+        ? '/ecommerce/api/v1/shops/' + ecommerce.selectedShopId + '/warehouses/add'
+        : '/ecommerce/api/v1/shops/' + ecommerce.selectedShopId + '/warehouses/' + ecommerce.editShopWarehouseId;
+    $.ajax({
+        type: action == 'add' ? 'POST' : 'PUT',
+        url: url,
+        data: JSON.stringify(formData),
+        contentType: 'application/json',
+        success: function (data) {
+            var warehouseId = action == 'add'
+                ? data.addedId
+                : ecommerce.editShopWarehouseId;
+            window.location = '/ecommerce/shops/' + ecommerce.selectedShopId
+                + '/warehouses/' + warehouseId
+                + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+        },
+        error: function (data, e) {
+            ezyadmin.processUpdateApiErrors(formData, data);
+        }
+    });
+};
+</script>
+<script th:fragment="delete" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.do_you_want_to_delete_warehouse_pwarehouse_of_shop_pname = /*[[#{do_you_want_to_delete_warehouse_pwarehouse_of_shop_pname}]]*/;
+/*]]>*/
+// ========== shopWarehouse delete =============
+ecommerce.onDeleteShopWarehouseClick = function(
+    shopWarehouseId,
+    shopWarehouseDisplayName,
+    shopName
+) {
+    ecommerce.selectedShopWarehouseId = shopWarehouseId;
+    $('#delete-shop-warehouse-modal-body-content')
+        .text(
+            ezyadmin
+                .messages
+                .do_you_want_to_delete_warehouse_pwarehouse_of_shop_pname
+                .replace('{0}', unescape(shopWarehouseDisplayName))
+                .replace('{1}', unescape(shopName))
+        );
+    $('#delete-shop-warehouse-modal').modal('show');
+}
+
+ecommerce.deleteShopWarehouse = function() {
+    $.ajax({
+        type: 'delete',
+        url: '/ecommerce/api/v1/warehouses/' + ecommerce.selectedShopWarehouseId,
+        timeout: 60000,
+        success: function () {
+            $('#delete-shop-warehouse-modal').modal('hide');
+            if (ecommerce.fetchWarehouseList) {
+                ecommerce.fetchWarehouseList('current');
+            } else {
+                window.location = '/ecommerce/shops/' + ecommerce.selectedShopId
+                    + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+            }
+        },
+        error: function (data, e) {
+            ezyadmin.processUpdateApiErrors({}, data);
+        }
+    });
+}
+
+ezyadmin.onPromptConfirmed = function(modalId) {
+    if (modalId == 'delete-shop-warehouse-modal') {
+        ecommerce.deleteShopWarehouse();
+    }
+}
+</script>
+<script th:fragment="change">
+ecommerce.onShopChange = function(e) {
+    var shopId = $(e).val();
+    ecommerce.changeWarehousesByShop(shopId);
+}
+
+ecommerce.changeWarehousesByShop = function(shopId) {
+    $.ajax({
+        type: "GET",
+        url: '/ecommerce/api/v1/shops/' +
+            shopId +
+            '/warehouses',
+        success: function(warehouses) {
+            var html = '';
+            warehouses.forEach((warehouse) => {
+                html += `<option value="${warehouse.id}">${warehouse.displayName}</option>`;
+            });
+            $(`#${ecommerce.warehousesSelectId}`).html(html);
+            if (warehouses.length <= 1) {
+                $(`#${ecommerce.warehousesSelectId}`)
+                    .prop('multiple', false)
+                    .removeClass('multiple-select-height');
+            } else {
+                $(`#${ecommerce.warehousesSelectId}`)
+                    .prop('multiple', true)
+                    .addClass('multiple-select-height');
+            }
+        },
+        error: function(data, e) {
+            ezyadmin.processGetApiErrors(data);
+        }
+    });
+}
+</script>
+<script th:fragment="set-as-main" th:inline="javascript">
+// ========== set as main shop warehouse =============
+ecommerce.setAsMainShopWarehouse = function(warehouseId) {
+    $.ajax({
+        type: 'PUT',
+        url: '/ecommerce/api/v1/shops/' + ecommerce.selectedShopId +
+             '/warehouses/' + warehouseId +
+             '/set-as-main',
+        success: function () {
+            location.reload();
+        },
+        error: function (data, e) {
+            ezyadmin.processUpdateApiErrors({}, data);
+        }
+    });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,761 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~ 
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~ 
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~ 
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org">
+<body>
+<script th:fragment="add-edit">
+// =========== icon ===================
+ecommerce.selectIconImage = function(action) {
+    ezyadmin.showMediaModal('productIconImage')
+        .onMediaSelected(media => {
+            $('#productIconImage').attr(
+                'src',
+                ezyadmin.extractMediaUrl(media)
+            )
+            .removeClass('d-none')
+            .show();
+            ecommerce.productIconImage = media;
+            $('#' + action + 'ProductIconImage').val(media.originalName);
+            ezyadmin.closeMediaModal();
+        });
+}
+
+// =========== banner ===================
+ecommerce.selectBannerImage = function(action) {
+    ezyadmin.showMediaModal('productBannerImage')
+        .onMediaSelected(media => {
+            $('#productBannerImage').attr(
+                'src',
+                ezyadmin.extractMediaUrl(media)
+            )
+            .removeClass('d-none')
+            .show();
+            ecommerce.productBannerImage = media;
+            $('#' + action + 'ProductBannerImage').val(media.originalName);
+            ezyadmin.closeMediaModal();
+        });
+}
+
+// ========== search user ===========
+ecommerce.onSearchUserModalCloseWithUserDataByAction = function(action, user) {
+    ecommerce.selectedProductOwner = user;
+    $('#' + action + 'ProductOwner').val(
+        user.name + '<' + user.username + '>'
+    );
+}
+
+// =========== discount percent =============
+ecommerce.onProductOriginalPriceKeyUp = function(action, e) {
+  var originalPrice = $(e).val();
+  var discountPercent = $('#' + action + 'ProductDiscountPercent').val();
+  if (originalPrice) {
+    var price = originalPrice - originalPrice * discountPercent / 100;
+    $('#' + action + 'ProductPrice').val(price);
+  }
+}
+
+ecommerce.onProductDiscountPercentKeyUp = function(action, e) {
+  var originalPrice = $('#' + action + 'ProductOriginalPrice').val();
+  var discountPercent = $(e).val();
+  if (originalPrice) {
+    var price = originalPrice - originalPrice * discountPercent / 100;
+    $('#' + action + 'ProductPrice').val(price);
+  }
+}
+
+// ========== add or edit product ===========
+ecommerce.addOrEditProduct = function(action) {
+    var formData = ezyadmin.formDataToObject(action + 'ProductForm');
+    if (ecommerce.selectedProductOwner) {
+        formData.productOwnerId = ecommerce.selectedProductOwner.userId;
+    }
+    if (ecommerce.productIconImage) {
+        formData['iconImageId'] = ecommerce.productIconImage.id;
+    }
+    if (ecommerce.productBannerImage) {
+        formData['bannerImageId'] = ecommerce.productBannerImage.id;
+    }
+    var multipleWarehouseIds = $('#' + action + 'ProductWarehouse')
+        .prop('multiple');
+    if (!Array.isArray(formData.warehouseIds)) {
+        if (formData.warehouseIds) {
+            formData.warehouseIds = [formData.warehouseIds];
+        } else {
+            formData.warehouseIds = [];
+        }
+    }
+    formData.deliveryRequired = $('#' + action + 'ProductDeliveryRequired')
+        .prop('checked');
+    formData.small = $('#' + action + 'ProductSmall')
+        .prop('checked');
+    formData.fragile = $('#' + action + 'ProductFragile')
+        .prop('checked');
+    formData.luxury = $('#' + action + 'ProductLuxury')
+        .prop('checked');
+    formData.document = $('#' + action + 'ProductDocument')
+        .prop('checked');
+    formData.liquid = $('#' + action + 'ProductLiquid')
+        .prop('checked');
+    formData.agricultural = $('#' + action + 'ProductAgricultural')
+        .prop('checked');
+    formData.food = $('#' + action + 'ProductFood')
+        .prop('checked');
+    formData.driedFood = $('#' + action + 'ProductDriedFood')
+        .prop('checked');
+    formData.fullBox = $('#' + action + 'ProductFullBox')
+        .prop('checked');
+    formData.shortShelfLife = $('#' + action + 'ProductShortShelfLife')
+        .prop('checked');
+    formData.sharpEdges = $('#' + action + 'ProductSharpEdges')
+        .prop('checked');
+    formData.requiringProperOrientation = $('#' + action + 'ProductRequiringProperOrientation')
+        .prop('checked');
+    var toGramValue = (inputValue, type) => {
+        var value = inputValue || 0;
+        if (type == 'g') {
+            return value;
+        }
+        if (type == 'kg') {
+            return value * 1000;
+        }
+    };
+    var toMillimeterValue = (inputValue, type) => {
+        var value = inputValue || 0;
+        if (type == 'mm') {
+            return value;
+        }
+        if (type == 'cm') {
+            return value * 100;
+        }
+        if (type == 'm') {
+            return value * 1000;
+        }
+    };
+    formData.weightInGram = toGramValue(formData.weight, formData.weightType);
+    formData.widthInMillimeter = toMillimeterValue(formData.width, formData.widthType);
+    formData.heightInMillimeter = toMillimeterValue(formData.height, formData.heightType);
+    formData.lengthInMillimeter = toMillimeterValue(formData.length, formData.lengthType);
+
+    delete formData.weight;
+    delete formData.weightType;
+    delete formData.width;
+    delete formData.widthType;
+    delete formData.height;
+    delete formData.heightType;
+    delete formData.length;
+    delete formData.lengthType;
+    delete formData.discountPercent;
+
+    var url = (action == 'add')
+        ? '/ecommerce/api/v1/products/add'
+        : '/ecommerce/api/v1/products/' + ecommerce.editProductId;
+    $.ajax({
+        type: action == 'add' ? 'POST' : 'PUT',
+        url: url,
+        data: JSON.stringify(formData),
+        contentType: 'application/json',
+        success: function (data) {
+            if (ezyadmin.currentParentURL == '/ecommerce/products') {
+                window.location = '/ecommerce/products/' + (ecommerce.editProductId || data.addedId)
+                    + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+            } else {
+                window.location = (ezyadmin.currentParentURL || '/ecommerce/products')
+                  + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+            }
+        },
+        error: function (data, e) {
+            ezyadmin.processUpdateApiErrors(formData, data);
+        }
+    });
+};
+</script>
+<script th:fragment="delete" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.do_you_want_to_delete_product_pname = /*[[#{do_you_want_to_delete_product_pname}]]*/;
+/*]]>*/
+// ========== product delete =============
+ecommerce.onDeleteProductClick = function(productId, productName) {
+    ecommerce.selectedProductId = productId || ecommerce.selectedProductId;
+    $('#delete-product-modal-body-content')
+        .text(
+            ezyadmin
+                .messages
+                .do_you_want_to_delete_product_pname
+                .replace('{0}', unescape(productName || ecommerce.selectedProductName))
+        );
+    $('#delete-product-modal').modal('show');
+}
+
+ecommerce.deleteProduct = function() {
+    $.ajax({
+        type: 'delete',
+        url: '/ecommerce/api/v1/products/' + ecommerce.selectedProductId,
+        timeout: 60000,
+        success: function () {
+            $('#delete-product-modal').modal('hide');
+            if (ecommerce.fetchProductList) {
+                ecommerce.fetchProductList('current');
+            } else {
+                window.location = (ezyadmin.currentParentURL || '/ecommerce/products')
+                    + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+            }
+        },
+        error: function (data, e) {
+            ezyadmin.processUpdateApiErrors({}, data);
+        }
+    });
+}
+
+ezyadmin.onPromptConfirmed = function(modalId) {
+    ecommerce.onPromptProductActionConfirmed(modalId);
+}
+
+ecommerce.onPromptProductActionConfirmed = function(modalId) {
+    if (modalId == 'delete-product-modal') {
+        ecommerce.deleteProduct();
+    }
+}
+</script>
+<script th:fragment="delete-color" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.do_you_want_to_delete_color_pcolor_from_product_pname = /*[[#{do_you_want_to_delete_color_pcolor_from_product_pname}]]*/;
+/*]]>*/
+// ========== product delete =============
+ecommerce.onDeleteProductColorClick = function(colorId, colorName) {
+    ecommerce.selectedColorId = colorId;
+    $('#delete-product-color-modal-body-content')
+        .text(
+            ezyadmin
+                .messages
+                .do_you_want_to_delete_color_pcolor_from_product_pname
+                .replace('{0}', colorName)
+                .replace('{1}', ecommerce.selectedProductName)
+        );
+    $('#delete-product-color-modal').modal('show');
+}
+
+ecommerce.deleteProductColor = function() {
+    $.ajax({
+        type: 'DELETE',
+        url: '/ecommerce/api/v1/product-colors/' + ecommerce.selectedColorId,
+        success: function () {
+            $('#delete-product-color-modal').modal('hide');
+            if (ecommerce.fetchProductColorNames) {
+                ecommerce.fetchProductColorNames();
+                if (ecommerce.fetchProductSizeColorPrices) {
+                    ecommerce.fetchProductSizeColorPrices();
+                }
+            } else {
+                window.location = '/ecommerce/products/' + ecommerce.selectedProductId
+                    + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+            }
+        },
+        error: function (data, e) {
+            ezyadmin.processUpdateApiErrors({}, data);
+        }
+    });
+}
+
+ezyadmin.onPromptConfirmed = function(modalId) {
+    if (modalId == 'delete-product-color-modal') {
+        ecommerce.deleteProductColor();
+    }
+}
+</script>
+<script th:fragment="delete-material" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.do_you_want_to_delete_material_pmaterial_from_product_pname = /*[[#{do_you_want_to_delete_material_pmaterial_from_product_pname}]]*/;
+/*]]>*/
+// ========== product delete =============
+ecommerce.onDeleteProductMaterialClick = function(materialId, materialName) {
+    ecommerce.selectedMaterialId = materialId;
+    $('#delete-product-material-modal-body-content')
+        .text(
+            ezyadmin
+                .messages
+                .do_you_want_to_delete_material_pmaterial_from_product_pname
+                .replace('{0}', materialName)
+                .replace('{1}', ecommerce.selectedProductName)
+        );
+    $('#delete-product-material-modal').modal('show');
+}
+
+ecommerce.deleteProductMaterial = function() {
+    $.ajax({
+        type: 'DELETE',
+        url: '/ecommerce/api/v1/product-materials/' + ecommerce.selectedMaterialId,
+        success: function () {
+            $('#delete-product-material-modal').modal('hide');
+            if (ecommerce.fetchProductMaterialNames) {
+                ecommerce.fetchProductMaterialNames();
+                if (ecommerce.fetchProductSizeMaterialPrices) {
+                    ecommerce.fetchProductSizeMaterialPrices();
+                }
+            } else {
+                window.location = '/ecommerce/products/' + ecommerce.selectedProductId
+                    + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+            }
+        },
+        error: function (data, e) {
+            ezyadmin.processUpdateApiErrors({}, data);
+        }
+    });
+}
+
+ezyadmin.onPromptConfirmed = function(modalId) {
+    if (modalId == 'delete-product-material-modal') {
+        ecommerce.deleteProductMaterial();
+    }
+}
+</script>
+<script th:fragment="delete-size-color-price">
+// ========== product delete =============
+ecommerce.onDeleteProductSizeColorPrice = function(productSizeColorPriceId) {
+    $.ajax({
+        type: 'DELETE',
+        url: '/ecommerce/api/v1/product-size-color-prices/' + productSizeColorPriceId,
+        success: function () {
+            if (ecommerce.fetchProductSizeColorPrices) {
+                ecommerce.fetchProductSizeColorPrices();
+            } else {
+                window.location = '/ecommerce/products/' + ecommerce.selectedProductId
+                    + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+            }
+        },
+        error: function (data, e) {
+            ezyadmin.processUpdateApiErrors({}, data);
+        }
+    });
+}
+</script>
+<script th:fragment="delete-product-metadata" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.do_you_want_to_delete_metadata_pmetadata_from_product_pname = /*[[#{do_you_want_to_delete_metadata_pmetadata_from_product_pname}]]*/;
+/*]]>*/
+// ========== product delete =============
+ecommerce.onDeleteProductMetadataClick = function(metadataId) {
+    ecommerce.selectedProductMetadataId = metadataId;
+    var metadata = ecommerce.productMetadataById[metadataId];
+    $('#delete-product-metadata-modal-body-content')
+        .text(
+            ezyadmin
+                .messages
+                .do_you_want_to_delete_metadata_pmetadata_from_product_pname
+                .replace('{0}', ezyadmin.getI18nMessage(metadata.metaKey))
+                .replace('{1}', ecommerce.selectedProductName)
+        );
+    $('#delete-product-metadata-modal').modal('show');
+}
+// ========== product delete =============
+ecommerce.deleteProductMetadata = function() {
+    $.ajax({
+        type: 'DELETE',
+        url: '/ecommerce/api/v1/product-metadata/' + ecommerce.selectedProductMetadataId,
+        success: function () {
+            $('#delete-product-metadata-modal').modal('hide');
+            ecommerce.fetchProductMetadataList();
+        },
+        error: function (data, e) {
+            ezyadmin.processUpdateApiErrors({}, data);
+        }
+    });
+}
+</script>
+<script th:fragment="bulk-actions" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.product_s = /*[[#{product_s}]]*/;
+ezyadmin.messages.selected_pcount_products = /*[[#{selected_pcount_products}]]*/;
+/*]]>*/
+// =============== do products actions ========
+ecommerce.productIdChecksByListName = {};
+ecommerce.getProductIdChecks = function(inputListName) {
+    var listName = inputListName || ecommerce.selectedProductListName;
+    return listName
+        ? ecommerce.productIdChecksByListName[listName]
+        : ecommerce.productIdChecks;
+}
+ecommerce.onMultiProductsClick = function(e, listName) {
+    var checked = $(e).prop('checked');
+    $(`input[name="productIds${listName || ''}"]`).each(function() {
+        var checkbox = $(this);
+        var productId = parseInt(checkbox.val());
+        var productIdChecks = ecommerce.getProductIdChecks(listName);
+        productIdChecks[productId] = checked;
+        checkbox.prop('checked', checked);
+    });
+    ecommerce.showOrHideSelectedProductsCount(listName);
+}
+
+ecommerce.onProductCheckChange = function(checkbox, listName) {
+    var productId = parseInt(checkbox.value);
+    var productIdChecks = ecommerce.getProductIdChecks(listName);
+    productIdChecks[productId] = checkbox.checked;
+    ecommerce.showOrHideSelectedProductsCount(listName);
+}
+
+ecommerce.showOrHideSelectedProductsCount = function(listName) {
+    var count = 0;
+    var productIdChecks = ecommerce.getProductIdChecks(listName);
+    Object.values(productIdChecks).forEach((checked) => {
+        if (checked) {
+            ++count;
+        }
+    });
+    if (count) {
+        $('.selected-product-count')
+            .text(ezyadmin.messages.selected_pcount_products.replace('{0}', count))
+            .removeClass('d-none');
+    } else {
+        $('.selected-product-count').addClass('d-none');
+    }
+}
+
+ecommerce.performProductBulkAction = function(listName) {
+    ecommerce.selectedProductListName = listName;
+    var action = $('#productBulkAction').val();
+    if (!action) {
+        var selectItem = $(`#productBulkAction${listName}`);
+        if (selectItem) {
+            action = selectItem.val();
+        }
+    }
+    if (!action) {
+        return;
+    } else if (action == 'DISCOUNT') {
+        ecommerce.showDiscountProductsModal();
+        return;
+    } else if (action == 'IMPORT_PRODUCT_PRICES_FROM_FILE') {
+        ecommerce.showImportProductPricesModel();
+        return;
+    } else if (action == 'EXPORT_PRODUCTS_TO_FILE') {
+        ecommerce.exportProductItemsToExcel();
+        return;
+    }
+    var actionLowerCase = action.toLowerCase();
+    var actionText = ezyadmin.messages[actionLowerCase].toLowerCase();
+    var modalIdPrefix = actionLowerCase.replaceAll('_', '-');
+    $('#' + modalIdPrefix + '-product-modal-body-content').text(
+        ezyadmin.messages.do_you_want_to_paction_products.replace('{0}', actionText)
+    );
+    ecommerce.openedProductBulkActionModel = $('#' + modalIdPrefix + '-product-modal');
+    ecommerce.openedProductBulkActionModel.modal('show');
+}
+
+ecommerce.onPromptProductBulkActionConfirmed = function(modalId) {
+    if (modalId == 'archive-product-modal') {
+        ecommerce.doProductBulkAction('archive');
+    } else if (modalId == 'delete-product-modal') {
+        ecommerce.doProductBulkAction('delete');
+    } else if (modalId == 'draft-product-modal') {
+        ecommerce.doProductBulkAction('draft');
+    } else if (modalId == 'publish-product-modal') {
+        ecommerce.doProductBulkAction('publish');
+    } else if (modalId == 'cancel-discount-product-modal') {
+        ecommerce.doProductBulkAction('cancel-discount');
+    } else if (modalId == 'add-to-warehouse-product-modal') {
+        ecommerce.doProductBulkAction('add-to-warehouse');
+    } else if (modalId == 'remove-from-warehouse-product-modal') {
+        ecommerce.doProductBulkAction('remove-from-warehouse');
+    } else if (modalId == 'add-to-category-product-modal') {
+        ecommerce.doProductBulkAction('add-to-category');
+    } else if (modalId == 'remove-from-category-product-modal') {
+        ecommerce.doProductBulkAction('remove-from-category');
+    } else if (modalId == 'add-to-tag-product-modal') {
+        ecommerce.doProductBulkAction('add-to-tag');
+    } else if (modalId == 'remove-from-tag-product-modal') {
+        ecommerce.doProductBulkAction('remove-from-tag');
+    } else if (modalId == 'upcoming-launches-product-modal') {
+        ecommerce.doProductBulkAction('coming-soon');
+    } else if (modalId == 'stop-selling-product-modal') {
+        ecommerce.doProductBulkAction('stop-selling');
+    } else if (modalId == 'add-to-product-set-product-modal') {
+        ecommerce.doProductBulkAction('add-to-product-set');
+    } else if (modalId == 'remove-from-product-set-product-modal') {
+        ecommerce.doProductBulkAction('remove-from-product-set');
+    } else if (modalId == 'add-to-product-upsell-product-modal') {
+        ecommerce.doProductBulkAction('add-to-product-upsell');
+    } else if (modalId == 'remove-from-product-upsell-product-modal') {
+        ecommerce.doProductBulkAction('remove-from-product-upsell');
+    }
+}
+
+ecommerce.getCheckedProductIds = function() {
+    var productIds = [];
+    var productIdChecks = ecommerce.getProductIdChecks();
+    Object.entries(productIdChecks).forEach(([key, value]) => {
+        if (value) {
+            productIds.push(key);
+        }
+    });
+    return productIds;
+}
+
+ecommerce.doProductBulkAction = function(action) {
+    var productIds = ecommerce.getCheckedProductIds();
+    if (productIds.length == 0) {
+        return;
+    }
+    var type = 'PUT';
+    var formData = null;
+    var url = '/ecommerce/api/v1/products/' + action;
+    var paramName = 'ids';
+    if (action == 'delete') {
+        type = 'DELETE';
+        url = '/ecommerce/api/v1/products';
+    } else if (action == 'discount') {
+        formData = {
+            discountPercent: ecommerce.discountProductsPercent
+        };
+    } else if (action == 'add-to-warehouse'
+        || action == 'remove-from-warehouse'
+    ) {
+        url = '/ecommerce/api/v1/warehouses/' +
+              ecommerce.selectedWarehouseId + '/products';
+        paramName = 'productIds';
+        if (action == 'add-to-warehouse') {
+            url += '/add';
+            type = 'POST';
+        }
+        if (action == 'remove-from-warehouse') {
+            type = 'DELETE';
+        }
+    } else if (action == 'add-to-category'
+        || action == 'remove-from-category'
+    ) {
+        url = '/ecommerce/api/v1/product-categories/' +
+              ecommerce.selectedCategoryId + '/products';
+        paramName = 'productIds';
+        if (action == 'add-to-category') {
+            url += '/add';
+            type = 'POST';
+        }
+        if (action == 'remove-from-category') {
+            type = 'DELETE';
+        }
+    } else if (action == 'add-to-tag'
+        || action == 'remove-from-tag'
+    ) {
+        url = '/ecommerce/api/v1/product-tags/' +
+              ecommerce.selectedTagId + '/products';
+        paramName = 'productIds';
+        if (action == 'add-to-tag') {
+            url += '/add';
+            type = 'POST';
+        }
+        if (action == 'remove-from-tag') {
+            type = 'DELETE';
+        }
+    } else if (action == 'add-to-product-set'
+        || action == 'remove-from-product-set'
+    ) {
+        url = '/ecommerce/api/v1/products/' +
+              ecommerce.selectedProductId + '/set-products';
+        paramName = 'productIds';
+        if (action == 'add-to-product-set') {
+            url += '/add';
+            type = 'POST';
+        }
+        if (action == 'remove-from-product-set') {
+            type = 'DELETE';
+        }
+    } else if (action == 'add-to-product-upsell'
+        || action == 'remove-from-product-upsell'
+    ) {
+        url = '/ecommerce/api/v1/products/' +
+              ecommerce.selectedProductId + '/upsell-products';
+        paramName = 'productIds';
+        if (action == 'add-to-product-upsell') {
+            url += '/add';
+            type = 'POST';
+        }
+        if (action == 'remove-from-product-upsell') {
+            type = 'DELETE';
+        }
+    }
+    url += '?' + paramName + '=' + productIds.join(',');
+    $.ajax({
+        type: type,
+        url: url,
+        data: formData ? JSON.stringify(formData) : null,
+        contentType: 'application/json'
+    }).done(function () {
+        $('#checkAllProductsCheckBox').prop('checked', false);
+        var productIdChecks = ecommerce.getProductIdChecks();
+        Object.keys(productIdChecks).forEach(key => delete productIdChecks[key]);
+        if (ecommerce.openedProductBulkActionModel) {
+            ecommerce.openedProductBulkActionModel.modal('hide');
+        }
+        if (ecommerce.fetchProductList) {
+            ecommerce.fetchProductList('current');
+        } else if (ecommerce.fetchSetProductList || ecommerce.fetchUpsellProductList) {
+            if (ecommerce.fetchSetProductList) {
+                ecommerce.fetchSetProductList('current');
+            } if (ecommerce.fetchUpsellProductList) {
+                ecommerce.fetchUpsellProductList('current');
+            }
+        } else {
+            location.reload();
+        }
+    }).fail(function (msg) {
+        var errorBody;
+        if (msg.responseJSON && msg.responseJSON.permission == 'denied') {
+            errorBody = ezyadmin.messages.permission_denied;
+        }
+        var actionMessageKey = action.toLowerCase().replaceAll('-', '_');
+        ezyadmin.shortToast(
+            'bg-danger',
+            (ezyadmin.messages[actionMessageKey] || ezyadmin.toDisplayString(actionMessageKey)) +
+                ' ' + ezyadmin.messages.product_s.toLowerCase() + ' ' +
+                ezyadmin.messages.failed.toLowerCase(),
+            errorBody
+        );
+    });
+}
+</script>
+<script th:fragment="export-product-items-to-excel" th:inline="javascript">
+/*<![CDATA[*/
+ecommerce.productItemExportableFields = /*[[${productItemExportableFields}]]*/;
+ecommerce.exportedProductItemsFileNamePattern = /*[[${exportedProductItemsFileNamePattern}]]*/;
+/*]]>*/
+
+if (ecommerce.productItemExportableFields) {
+    ecommerce.productItemExportableFields = JSON.parse(
+        ecommerce.productItemExportableFields
+    );
+} else {
+    ecommerce.productItemExportableFields = [];
+}
+
+ecommerce.exportProductItemsToExcel = function() {
+    ecommerce.exportableProductItems = [];
+    ecommerce.fetchExportableProductItemList();
+}
+
+ecommerce.fetchExportableProductItemList = function(action) {
+    var queryString = '';
+    var productIds = ecommerce.getCheckedProductIds();
+    queryString += '&productIds=' + productIds.join(',');
+    if (ecommerce.moreExportableProductItemList) {
+        queryString += ecommerce.moreExportableProductItemList();
+    }
+    if (action == 'current') {
+        if (ecommerce.lastProductPackageQueryString) {
+            queryString = ecommerce.lastProductPackageQueryString;
+        }
+    } else if (action == 'next') {
+        if (ecommerce.lastExportableProductItemToken.next) {
+            queryString += '&nextPageToken=' + ecommerce.lastExportableProductItemToken.next;
+        } else {
+            return;
+        }
+    } else if (action == 'prev') {
+        if (ecommerce.lastExportableProductItemToken.prev) {
+            queryString += '&prevPageToken=' + ecommerce.lastExportableProductItemToken.prev;
+        } else {
+            return;
+        }
+    } else if (action == 'last') {
+        queryString += '&lastPage=true';
+    }
+    $.ajax({
+        url: '/ecommerce/api/v1/products/export?limit=300' + queryString,
+        type: 'GET',
+        dataType: 'json'
+    })
+    .done(function(data) {
+        ecommerce.exportableProductItems = ecommerce
+            .exportableProductItems
+            .concat(data.items);
+        if (data.pageToken.next) {
+            ecommerce.lastExportableProductItemToken = data.pageToken;
+            ecommerce.fetchExportableProductItemList('next');
+        } else {
+            ecommerce.doExportProductItemsToExcel();
+            ezyadmin.hideLoadingScreen();
+        }
+    })
+    .fail(function(e) {
+        ezyadmin.hideLoadingScreen();
+        ezyadmin.processGetApiErrors(e);
+    });
+}
+
+ecommerce.decorateExportableProductItem = function(productItem) {
+    var mediaUrlList = [];
+    (productItem.mediaList || []).forEach((media) => {
+         mediaUrlList.push(ezyadmin.webUrl + ezyadmin.extractMediaUrl(media));
+    });
+    productItem.mediaUrlList = mediaUrlList.join(',');
+
+    var colorMediaUrlList = [];
+    (productItem.colorMediaList || []).forEach((media) => {
+         colorMediaUrlList.push(ezyadmin.webUrl + ezyadmin.extractMediaUrl(media));
+    });
+    productItem.colorMediaUrlList = colorMediaUrlList.join(',');
+}
+
+ecommerce.doExportProductItemsToExcel = function() {
+    var wb = XLSX.utils.book_new();
+    var data = [];
+    var titles = [];
+    var cellLengths = [];
+    ecommerce.productItemExportableFields.forEach((field) => {
+        titles.push(field.title);
+        cellLengths.push(field.title.length);
+    });
+    data.push(titles);
+    ecommerce.exportableProductItems.forEach((productItem) => {
+        ecommerce.decorateExportableProductItem(productItem);
+        var flattenProductItem = ezyadmin.flattenObject(
+            productItem
+        );
+        var cells = [];
+        ecommerce.productItemExportableFields.forEach((field, index) => {
+            var value = flattenProductItem[field.field] || field.defaultValue;
+            if (field.dateTimeFormat) {
+                value = ezyadmin.formatTimeStamp(value, field.dateTimeFormat);
+            }
+            cells.push(value);
+            cellLengths[index] = Math.min(
+                Math.max(cellLengths[index], (value + '').length),
+                60
+            );
+        });
+        data.push(cells);
+    });
+    var ws = XLSX.utils.aoa_to_sheet(data);
+    wb.SheetNames.push("Sheet1");
+    wb.Sheets["Sheet1"] = ws;
+    ws['!cols'] = [];
+    cellLengths.forEach((cellLength) => {
+        ws['!cols'].push({wch: cellLength});
+    });
+    var nowDate = moment().format('YYYYMMDD');
+    var nowDateTime = moment().format('YYYYMMDD_HH_mm_ss');
+    var fileNamePrefix = ecommerce
+        .exportedProductItemsFileNamePattern
+        .replace('${date}', nowDate)
+        .replace('${dateTime}', nowDateTime)
+        .replace('${totalProducts}', ecommerce.exportableProductItems.length);
+    var fileName = `${fileNamePrefix}.xlsx`;
+    XLSX.writeFile(wb, fileName);
+}
+</script>
+</body>
+</html>

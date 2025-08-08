@@ -1,0 +1,353 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<head>
+    <script>
+        var ecommerce = {};
+    </script>
+</head>
+<body>
+<div layout:fragment="content" class="row">
+    <div class="col-12">
+        <form id="editAffiliateTokenForm">
+            <div class="form-group row">
+                <label for="editAffiliateTokenShop" class="col-sm-3 col-form-label">
+                    [[#{shop}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="shopId" id="editAffiliateTokenShop"
+                           class="form-control" th:placeholder="#{shop}"
+                           th:value="${shop != null ? (shop.displayName + '&lt;' + shop.id + '&gt;') : ''}"
+                           autocomplete="off" inputmode="text">
+                </div>
+                <label id="editAffiliateTokenShopErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editAffiliateTokenShop">
+                    <i class="far fa-times-circle"></i> <span id="editAffiliateTokenShopError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editAffiliateTokenValue" class="col-sm-3 col-form-label">
+                    [[#{affiliate_token}]] (<span class="text-danger">*</span>)
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="affiliateToken" id="editAffiliateTokenValue"
+                           class="form-control" th:placeholder="#{affiliate_token}"
+                           th:value="${affiliateToken.affiliateToken}">
+                </div>
+                <label id="editAffiliateTokenValueErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editAffiliateTokenValue">
+                    <i class="far fa-times-circle"></i> <span id="editAffiliateTokenValueError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editAffiliateTokenType" class="col-md-3 col-form-label">
+                    [[#{token_type}]]
+                </label>
+                <div class="col-lg-3 col-md-4">
+                    <select name="affiliateTokenType" id="editAffiliateTokenType" class="form-control">
+                        <option th:each="affiliateTokenType : ${affiliateTokenTypes}"
+                                th:value="${affiliateTokenType.toString()}"
+                                th:selected="${affiliateToken.affiliateTokenType == affiliateTokenType.toString()}">
+                            [[#{${affiliateTokenType.toString().toLowerCase()}}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="editAffiliateTokenTypeErrorLabel" class="col-lg-7 col-md-6 col-form-label text-danger d-none" for="editAffiliateTokenType">
+                    <i class="far fa-times-circle"></i> <span id="editAffiliateTokenTypeError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editAffiliateTokenCategory" class="col-sm-3 col-form-label">
+                    [[#{category}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="categoryName" id="editAffiliateTokenCategory"
+                           class="form-control" th:placeholder="#{category_name}"
+                           th:value="${affiliateToken.categoryName}">
+                </div>
+                <label id="editAffiliateTokenCategoryErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editAffiliateTokenCategory">
+                    <i class="far fa-times-circle"></i> <span id="editAffiliateTokenCategoryError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editAffiliateTokenVoucherId" class="col-sm-3 col-form-label">
+                    [[#{voucher}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="voucherId" id="editAffiliateTokenVoucherId"
+                           class="form-control" th:placeholder="#{voucher}"
+                           th:value="${voucher != null ? (voucher.displayName + '<' + voucher.id + '>') : ''}">
+                </div>
+                <label id="editAffiliateTokenVoucherIdErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editAffiliateTokenVoucherId">
+                    <i class="far fa-times-circle"></i> <span id="editAffiliateTokenVoucherIdError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editAffiliateTokenLimited" class="col-sm-3 col-form-label">
+                    [[#{limited}]]
+                </label>
+                <div class="col-9 d-flex align-items-center">
+                    <input type="checkbox" name="limited" id="editAffiliateTokenLimited" class="wh-1rem"
+                           th:checked="${affiliateToken.limited}">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="editAffiliateTokenQuantity" class="col-sm-3 col-form-label">
+                    [[#{quantity}]]
+                </label>
+                <div class="col-lg-3 col-md-4">
+                    <input type="number" name="quantity" id="editAffiliateTokenQuantity"
+                           class="form-control" th:placeholder="#{quantity}"
+                           th:value="${affiliateToken.quantity}">
+                </div>
+                <label id="editAffiliateTokenQuantityErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editAffiliateTokenQuantity">
+                    <i class="far fa-times-circle"></i> <span id="editAffiliateTokenQuantityError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editAffiliateTokenQuantityPerUser" class="col-sm-3 col-form-label">
+                    [[#{quantity_per_user}]]
+                </label>
+                <div class="col-lg-3 col-md-4">
+                    <input type="number" name="quantityPerUser" id="editAffiliateTokenQuantityPerUser"
+                           class="form-control" th:placeholder="#{quantity_per_user}"
+                           th:value="${affiliateToken.quantityPerUser}">
+                </div>
+                <label id="editAffiliateTokenQuantityPerUserErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editAffiliateTokenQuantityPerUser">
+                    <i class="far fa-times-circle"></i> <span id="editAffiliateTokenQuantityPerUserError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editAffiliateTokenCommissionPercent" class="col-sm-3 col-form-label">
+                    [[#{commission_percent}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="number" name="commissionPercent" id="editAffiliateTokenCommissionPercent"
+                           class="form-control" th:placeholder="#{example} + ': 30'"
+                           th:value="${affiliateToken.commissionPercent}">
+                </div>
+                <label id="editAffiliateTokenCommissionPercentErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editAffiliateTokenCommissionPercent">
+                    <i class="far fa-times-circle"></i> <span id="editAffiliateTokenCommissionPercentError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editAffiliateTokenCommissionAmount" class="col-sm-3 col-form-label">
+                    [[#{commission_amount}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="number" name="commissionAmount" id="editAffiliateTokenCommissionAmount"
+                           class="form-control" th:placeholder="#{commission_amount}"
+                           th:value="${affiliateToken.commissionAmount}">
+                </div>
+                <label id="editAffiliateTokenCommissionAmountErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editAffiliateTokenCommissionAmount">
+                    <i class="far fa-times-circle"></i> <span id="editAffiliateTokenCommissionAmountError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editAffiliateTokenForCurrency" class="col-md-3 col-form-label">
+                    [[#{for_currency}]]
+                </label>
+                <div class="col-lg-3 col-md-4">
+                    <select name="forCurrencyId" id="editAffiliateTokenForCurrency" class="form-control">
+                        <option th:each="currency : ${currencies}"
+                                th:value="${currency.id}"
+                                th:selected="${currency.id == affiliateToken.forCurrencyId}">
+                            [[#{${currency.isoCode}}]]
+                            -
+                            [[#{${currency.displayName}}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="editAffiliateTokenForCurrencyErrorLabel" class="col-lg-7 col-md-6 col-form-label text-danger d-none" for="editAffiliateTokenForCurrency">
+                    <i class="far fa-times-circle"></i> <span id="editAffiliateTokenForCurrencyError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editAffiliateTokenValidFrom" class="col-sm-3 col-form-label">
+                    [[#{linked_user}]] (<span class="text-danger">*</span>)
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="affiliateUserId" id="editAffiliateTokenAffiliateUser"
+                           class="form-control" th:placeholder="#{linked_user}"
+                           th:value="${affiliateUser != null ? (affiliateUser.name + '<' + affiliateUser.username + '>') : ''}"
+                           autocomplete="off" inputmode="text">
+                </div>
+                <label id="editAffiliateTokenAffiliateUserErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editAffiliateTokenAffiliateUser">
+                    <i class="far fa-times-circle"></i> <span id="editAffiliateTokenAffiliateUserError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editAffiliateTokenNotes" class="col-sm-3 col-form-label">
+                    [[#{notes}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <textarea type="number" name="notes" id="editAffiliateTokenNotes"
+                              class="form-control" th:placeholder="#{notes}">[[${affiliateToken.notes}]]</textarea>
+                </div>
+                <label id="editAffiliateTokenNotesErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editAffiliateTokenNotes">
+                    <i class="far fa-times-circle"></i> <span id="editAffiliateTokenNotesError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editAffiliateTokenValidFrom" class="col-sm-3 col-form-label">
+                    [[#{valid_from}]]
+                </label>
+                <div class="col-lg-3 col-md-4">
+                    <input type="text" name="validFrom" id="editAffiliateTokenValidFrom"
+                           class="form-control" th:placeholder="#{valid_from}"
+                           autocomplete="off" inputmode="text">
+                </div>
+                <label id="editAffiliateTokenValidFromErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editAffiliateTokenValidFrom">
+                    <i class="far fa-times-circle"></i> <span id="editAffiliateTokenValidFromError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editAffiliateTokenExpiredAt" class="col-sm-3 col-form-label">
+                    [[#{expired_at}]]
+                </label>
+                <div class="col-lg-3 col-md-4">
+                    <input type="text" name="expiredAt" id="editAffiliateTokenExpiredAt"
+                           class="form-control" th:placeholder="#{expired_at}"
+                           autocomplete="off" inputmode="text">
+                </div>
+                <label id="editAffiliateTokenExpiredAtErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editAffiliateTokenExpiredAt">
+                    <i class="far fa-times-circle"></i> <span id="editAffiliateTokenExpiredAtError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editAffiliateTokenStatus" class="col-md-3 col-form-label">
+                    [[#{status}]]
+                </label>
+                <div class="col-lg-3 col-md-3">
+                    <select name="status" id="editAffiliateTokenStatus" class="form-control">
+                        <option th:each="affiliateTokenStatus : ${affiliateTokenStatuses}"
+                                th:value="${affiliateTokenStatus.toString()}"
+                                th:selected="${affiliateToken.status == affiliateTokenStatus.toString()}">
+                            [[#{${affiliateTokenStatus.toString().toLowerCase()}}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="editShopStatusErrorLabel" class="col-lg-3 col-md-6 col-form-label text-danger d-none" for="editAffiliateTokenStatus">
+                    <i class="far fa-times-circle"></i> <span id="editShopStatusError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="row">
+                <div class="col-md-3"></div>
+                <div class="col-lg-2 col-md-3">
+                    <button type="button" class="btn btn-primary btn-block" onclick="ecommerce.editAffiliateToken();">[[#{submit}]]</button>
+                </div>
+                <div class="col-lg-7 col-md-6"></div>
+                <!-- /.col -->
+            </div>
+        </form>
+    </div>
+    <div class="col-12 mb-3"></div>
+</div>
+<th:block layout:fragment="modals">
+    <th:block th:replace="~{modals/search-user :: content}" />
+</th:block>
+<script layout:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ecommerce.editAffiliateTokenId = /*[[${affiliateToken.id}]]*/;
+ecommerce.editAffiliateTokenValidFrom = /*[[${affiliateToken.validFrom}]]*/;
+ecommerce.editAffiliateTokenExpiredAt = /*[[${affiliateToken.expiredAt}]]*/;
+ecommerce.affiliateUserId = /*[[${affiliateUser != null ? affiliateUser.userId : 0}]]*/;
+ecommerce.affiliateTokenValidFrom = /*[[${affiliateToken.validFrom}]]*/ '';
+ecommerce.affiliateTokenExpiredAt = /*[[${affiliateToken.expiredAt}]]*/ '';
+/*]]>*/
+
+// ========== add affiliateToken =============
+ecommerce.editAffiliateToken = function() {
+    ecommerce.addOrEditAffiliateToken('edit');
+}
+</script>
+<th:block layout:fragment="post-scripts">
+    <script th:replace="~{fragments/date-range-picker :: scripts}" />
+    <script th:replace="~{scripts/suggestion :: input}" />
+    <script th:replace="~{scripts/suggestion :: user}" />
+    <script th:replace="~{ecommerce/scripts/suggestion :: shop}" />
+    <script th:replace="~{ecommerce/scripts/suggestion :: voucher}" />
+    <script th:replace="~{ecommerce/affiliate-token/scripts :: add-edit}" />
+</th:block>
+<script layout:fragment="final-scripts">
+ecommerce.registerShopAutocomplete('editAffiliateTokenShop');
+ecommerce.registerVoucherAutocomplete('editAffiliateTokenVoucherId');
+ezyadmin.registerUserAutocomplete('editAffiliateTokenAffiliateUser');
+
+$(document).ready(() => {
+    ezyadmin.createDateRangePicker(
+        '#editAffiliateTokenValidFrom',
+        {
+            autoUpdateInput: false,
+            singleDatePicker: true,
+            timePicker: true,
+            timePicker24Hour: true,
+            timePickerSeconds: true,
+            locale: {
+                format: ezyadmin.defaultDateTimeFormat
+            }
+        }
+    );
+    $('#editAffiliateTokenValidFrom').on('apply.daterangepicker', function(ev, picker) {
+        ecommerce.affiliateTokenValidFrom = picker.startDate.unix() * 1000;
+        $('#editAffiliateTokenValidFrom').val(
+            ezyadmin.formatTimeStamp(ecommerce.affiliateTokenValidFrom)
+        );
+    });
+    if (ecommerce.affiliateTokenValidFrom) {
+        $('#editAffiliateTokenValidFrom')
+            .data('daterangepicker')
+            .setStartDate(ezyadmin.formatTimeStamp(ecommerce.affiliateTokenValidFrom));
+        $('#editAffiliateTokenValidFrom').val(
+            ezyadmin.formatTimeStamp(ecommerce.affiliateTokenValidFrom)
+        );
+    }
+
+    ezyadmin.createDateRangePicker(
+        '#editAffiliateTokenExpiredAt',
+        {
+            autoUpdateInput: false,
+            singleDatePicker: true,
+            timePicker: true,
+            timePicker24Hour: true,
+            timePickerSeconds: true,
+            locale: {
+                format: ezyadmin.defaultDateTimeFormat
+            },
+        }
+    );
+    $('#editAffiliateTokenExpiredAt').on('apply.daterangepicker', function(ev, picker) {
+        ecommerce.affiliateTokenExpiredAt = picker.startDate.unix() * 1000;
+        $('#editAffiliateTokenExpiredAt').val(
+            ezyadmin.formatTimeStamp(ecommerce.affiliateTokenExpiredAt)
+        );
+    });
+    if (ecommerce.affiliateTokenExpiredAt) {
+        $('#editAffiliateTokenExpiredAt')
+            .data('daterangepicker')
+            .setStartDate(ezyadmin.formatTimeStamp(ecommerce.affiliateTokenExpiredAt));
+        $('#editAffiliateTokenExpiredAt').val(
+            ezyadmin.formatTimeStamp(ecommerce.affiliateTokenExpiredAt)
+        );
+    }
+});
+</script>
+</body>
+</html>

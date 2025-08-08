@@ -1,0 +1,247 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<head>
+    <script>
+        var ecommerce = {};
+    </script>
+</head>
+<body>
+<div layout:fragment="content" class="row">
+    <div class="col-lg-9 col-md-7 col-0"></div>
+    <div class="col-lg-3 col-md-5 col-12 page-search">
+        <label for="shopSearchKeyword" class="text-nowrap">[[#{search}]]: </label>
+        <input type="text" class="form-control" placeholder="Keyword" id="shopSearchKeyword"
+               onkeydown="ecommerce.onKeydownToSearchShop();">
+    </div>
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-body table-responsive p-0">
+                <table class="table table-bordered table-hover text-nowrap align-middle-cells">
+                    <thead>
+                    <tr>
+                        <th>[[#{id}]]</th>
+                        <th>[[#{icon}]]</th>
+                        <th>[[#{display_name}]]</th>
+                        <th>[[#{owner}]]</th>
+                        <th>[[#{phone_number}]]</th>
+                        <th class="text-center">[[#{tax_percent}]]</th>
+                        <th class="text-center">[[#{default}]]</th>
+                        <th class="text-center">[[#{status}]]</th>
+                        <th class="text-center">[[#{created_at}]]</th>
+                        <th class="text-center">[[#{actions}]]</th>
+                    </tr>
+                    </thead>
+                    <tbody id="shopListBody">
+                    </tbody>
+                </table>
+            </div>
+            <!-- /.card-body -->
+            <div class="card-footer clearfix">
+                <span><span id="shopCountText">0</span>
+                    [[${#strings.toLowerCase(#messages.msg('of'))}]]
+                    <span id="totalShopText">0</span>
+                    [[${#strings.toLowerCase(#messages.msg('shops'))}]]
+                </span>
+                <ul class="pagination pagination-sm m-0 float-right">
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="firstPageButton">
+                            <i class="fas fa-arrow-circle-left pl-1 pr-1"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="prevPageButton">[[#{prev}]]</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="nextPageButton">[[#{next}]]</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="lastPageButton">
+                            <i class="fas fa-arrow-circle-right pl-1 pr-1"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.card-footer -->
+        </div>
+    </div>
+</div>
+<th:block layout:fragment="modals">
+    <th:block th:replace="~{fragments/prompt :: content(id='delete-shop-modal', title=confirm, confirmButton=delete, closeButton=close)}" />
+</th:block>
+<script layout:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ecommerce.defaultShopId = /*[[${defaultShopId}]]*/ '';
+ezyadmin.messages.activated = /*[[#{activated}]]*/ '';
+ezyadmin.messages.inactivated = /*[[#{inactivated}]]*/ '';
+ezyadmin.messages.set_as = /*[[#{set_as}]]*/ '';
+ezyadmin.messages.yes = /*[[#{yes}]]*/ '';
+/*]]>*/
+// ========== shops init =============
+ezyadmin.onNewButtonClick = function() {
+    window.location = '/ecommerce/shops/add'
+        + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+}
+
+// ========== shop search =============
+ecommerce.onKeydownToSearchShop = function() {
+    if(event.key === 'Enter') {
+        ecommerce.shopSearchKeyword = $('#shopSearchKeyword').val();
+        ecommerce.fetchShopList();
+    }
+}
+
+// ========== shop pagination =============
+$('#firstPageButton').click(() => {
+    ecommerce.fetchShopList('first');
+});
+$('#lastPageButton').click(() => {
+    ecommerce.fetchShopList('last');
+});
+$('#nextPageButton').click(() => {
+    ecommerce.fetchShopList('next');
+});
+$('#prevPageButton').click(() => {
+    ecommerce.fetchShopList('prev');
+});
+
+// ========== shop list =============
+ecommerce.fetchShopList = function(action) {
+    var queryString = '';
+    if (ecommerce.shopSearchKeyword) {
+        queryString += '&keyword=' + ecommerce.shopSearchKeyword;
+    }
+    if (action == 'current') {
+        if (ecommerce.lastShopQueryString) {
+            queryString = ecommerce.lastShopQueryString;
+        }
+    } else if (action == 'next') {
+        if (ecommerce.lastShopPageToken.next) {
+            queryString += '&nextPageToken=' + ecommerce.lastShopPageToken.next;
+        } else {
+            return;
+        }
+    } else if (action == 'prev') {
+        if (ecommerce.lastShopPageToken.prev) {
+            queryString += '&prevPageToken=' + ecommerce.lastShopPageToken.prev;
+        } else {
+            return;
+        }
+    } else if (action == 'last') {
+        queryString += '&lastPage=true';
+    }
+    $.ajax({
+        url: '/ecommerce/api/v1/shops?limit=12' + queryString,
+        type: 'GET',
+        dataType: 'json'
+    })
+    .done(function(data) {
+        $('#shopCountText').text(data.count);
+        $('#totalShopText').text(ezyadmin.formatNumberWithCommas(data.total));
+        ecommerce.lastShopQueryString = queryString;
+        ecommerce.lastShopPageToken = data.pageToken;
+        $('#shopListBody').html(ecommerce.buildShopListBodyHtml(data.items));
+        if (data.continuation.hasNext) {
+            $('#nextPageButton').removeClass('text-secondary');
+        } else {
+            $('#nextPageButton').addClass('text-secondary');
+        }
+        if (data.continuation.hasPrevious) {
+            $('#prevPageButton').removeClass('text-secondary');
+        } else {
+            $('#prevPageButton').addClass('text-secondary');
+        }
+    })
+    .fail(function(e) {
+    	ezyadmin.processGetApiErrors(e);
+    });
+}
+
+ecommerce.buildShopListBodyHtml = function(shops) {
+    var html = '';
+    shops.forEach((shop) => {
+        html += ecommerce.buildShopListItemHtml(shop);
+    });
+    return html;
+}
+ecommerce.buildShopListItemHtml = function(shop) {
+    var statusColor = ezyadmin.getTextColorByStatus(shop.status);
+    var html = `
+        <tr>
+            <td class="vertical-middle">${shop.id}</td>
+            <td class="vertical-middle">
+                ${shop.iconImage ? `<img src="${ezyadmin.extractMediaUrl(shop.iconImage)}" width="64" class="object-fit-cover">` : ''}
+            </td>
+            <td class="vertical-middle">
+                <a href="/ecommerce/shops/${shop.id}${ezyadmin.lang ? `?lang=${ezyadmin.lang}` : ''}">${shop.displayName}</a>
+            </td>
+            <td class="vertical-middle">
+                ${shop.owner ? `<a href="/users/${shop.owner.username}${ezyadmin.lang ? `?lang=${ezyadmin.lang}` : ''}">${shop.owner.name}</a>` : ''}
+            </td>
+            <td class="vertical-middle">
+                <a href="tel:${shop.companyPhoneNumber}">${shop.companyPhoneNumber || ''}</a>
+            </td>
+            <td class="vertical-middle text-center">
+                ${ shop.taxPercent ? (shop.taxPercent + '%') : ''}
+            </td>
+            <td class="vertical-middle text-center">
+                ${ecommerce.defaultShopId == shop.id ? ezyadmin.messages.yes : `
+                    <button type="button" class="btn btn-link" onclick="ecommerce.setAsDefaultShop(${shop.id})">
+                        ${ezyadmin.messages.set_as}
+                    </button>
+                `}
+            </td>
+            <td class="vertical-middle ${statusColor}">
+                ${ezyadmin.getI18nMessage(shop.status.toLowerCase())}
+            </td>
+            <td class="vertical-middle">
+                ${ezyadmin.formatTimeStamp(shop.createdAt)}
+            </td>
+            <td class="vertical-middle">
+                <a class="btn pr-1" href="/ecommerce/shops/${shop.id}${ezyadmin.lang ? `?lang=${ezyadmin.lang}` : ''}">
+                    <i class="fas fa-eye text-info"></i>
+                </a>
+                <button type="button" class="btn pr-1" onclick="ecommerce.editShop(${shop.id});">
+                    <i class="fas fa-edit text-primary"></i>
+                </button>
+                <button type="button" class="btn pl-1" onclick="ecommerce.onDeleteShopClick(${shop.id}, '${shop.displayName}');">
+                    <i class="fas fa-trash text-danger"></i>
+                </button>
+            </td>
+        </tr>
+    `;
+	return html;
+}
+ecommerce.fetchShopList();
+
+// ============== shop actions =============
+ecommerce.editShop = function(id) {
+    window.location = '/ecommerce/shops/' + id + '/edit'
+        + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+}
+</script>
+<th:block layout:fragment="post-scripts">
+    <script th:replace="~{ecommerce/shop/scripts :: set-as-default}" />
+    <script th:replace="~{ecommerce/shop/scripts :: delete}" />
+</th:block>
+</body>
+</html>

@@ -1,0 +1,527 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="content">
+    <div class="modal fade pt-4rem" id="save-country" style="z-index: 1041;">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="save-country-modal-title">
+                        [[#{add_new_country}]]
+                    </h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="saveCountryForm">
+                        <div class="form-group row">
+                            <label for="saveCountryCode" class="col-4 col-form-label">
+                                [[#{code}]] (<span class="text-danger">*</span>)
+                            </label>
+                            <div class="col-8">
+                                <label class="col-form-label text-danger d-none" id="saveCountryCodeErrorLabel" for="saveCountryCode">
+                                    <i class="far fa-times-circle"></i> <span id="saveCountryCodeError"></span>
+                                </label>
+                                <input type="text" name="code" id="saveCountryCode"
+                                       class="form-control" th:placeholder="#{code}"
+                                       onkeydown="ecommerce.onKeyDownToSaveCountry('add')">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="saveCountryLocalName" class="col-4 col-form-label">
+                                [[#{local_name}]] (<span class="text-danger">*</span>)
+                            </label>
+                            <div class="col-8">
+                                <label class="col-form-label text-danger d-none" id="saveCountryLocalNameErrorLabel" for="saveCountryLocalName">
+                                    <i class="far fa-times-circle"></i> <span id="saveCountryLocalNameError"></span>
+                                </label>
+                                <input type="text" name="localName" id="saveCountryLocalName"
+                                       class="form-control" th:placeholder="#{name}"
+                                       onkeydown="ecommerce.onKeyDownToSaveCountry('add')">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="saveCountryInternationalName" class="col-4 col-form-label">
+                                [[#{international_name}]] (<span class="text-danger">*</span>)
+                            </label>
+                            <div class="col-8">
+                                <label class="col-form-label text-danger d-none" id="saveCountryInternationalNameErrorLabel" for="saveCountryInternationalName">
+                                    <i class="far fa-times-circle"></i> <span id="saveCountryInternationalNameError"></span>
+                                </label>
+                                <input type="text" name="internationalName" id="saveCountryInternationalName"
+                                       class="form-control" th:placeholder="#{international_name}"
+                                       onkeydown="ecommerce.onKeyDownToSaveCountry('add')">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="saveCountryDialingCode" class="col-4 col-form-label">
+                                [[#{dialing_code}]]
+                            </label>
+                            <div class="col-8">
+                                <label class="col-form-label text-danger d-none" id="saveCountryDialingCodeErrorLabel" for="saveCountryDialingCode">
+                                    <i class="far fa-times-circle"></i> <span id="saveCountryDialingCodeError"></span>
+                                </label>
+                                <input type="text" name="dialingCode" id="saveCountryDialingCode"
+                                       class="form-control" th:placeholder="#{international_name}"
+                                       onkeydown="ecommerce.onKeyDownToSaveCountry('add')">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="saveCountryCurrencyIsoCode" class="col-4 col-form-label">
+                                [[#{currency_iso_code}]]
+                            </label>
+                            <div class="col-8">
+                                <label class="col-form-label text-danger d-none" id="saveCountryCurrencyIsoCodeErrorLabel" for="saveCountryCurrencyIsoCode">
+                                    <i class="far fa-times-circle"></i> <span id="saveCountryCurrencyIsoCodeError"></span>
+                                </label>
+                                <input type="text" name="currencyIsoCode" id="saveCountryCurrencyIsoCode"
+                                       class="form-control" th:placeholder="#{international_name}"
+                                       onkeydown="ecommerce.onKeyDownToSaveCountry('add')">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="saveCountryCapitalName" class="col-4 col-form-label">
+                                [[#{capital_name}]]
+                            </label>
+                            <div class="col-8">
+                                <label class="col-form-label text-danger d-none" id="saveCountryCapitalNameErrorLabel" for="saveCountryCapitalName">
+                                    <i class="far fa-times-circle"></i> <span id="saveCountryCapitalNameError"></span>
+                                </label>
+                                <input type="text" name="capitalName" id="saveCountryCapitalName"
+                                       class="form-control" th:placeholder="#{international_name}"
+                                       onkeydown="ecommerce.onKeyDownToSaveCountry('add')">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="saveCountryFlag" class="col-4 col-form-label">
+                                [[#{flag}]]
+                            </label>
+                            <div class="col-8">
+                                <label class="col-form-label text-danger d-none" id="saveCountryFlagErrorLabel" for="saveCountryFlag">
+                                    <i class="far fa-times-circle"></i> <span id="saveCountryFlagError"></span>
+                                </label>
+                                <input type="text" name="flag" id="saveCountryFlag"
+                                       class="form-control" th:placeholder="#{example} + ': fi fi-gb'"
+                                       onkeydown="ecommerce.onKeyDownToSaveCountry('add')">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="saveCountryImage" class="col-4 col-form-label">
+                                [[#{image}]]
+                            </label>
+                            <div class="col-8">
+                                <div class="input-group cursor-pointer" onclick="ecommerce.selectCountryImage();">
+                                    <input type="text" name="imageId"
+                                           id="saveCountryImage"
+                                           class="form-control" th:placeholder="#{select_an_image}">
+                                    <div class="input-group-append">
+                                        <div class="input-group-text">
+                                            <span>[[#{browse}]]</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-4"></div>
+                            <div class="col-4">
+                                <img id="countryImage" class="object-fit-cover mt-1 d-none" src="#" height="64">
+                            </div>
+                            <div class="col-md-4"></div>
+                        </div>
+                        <div class="form-group row mb-0">
+                            <label for="saveCountryActive" class="col-4 col-form-label">[[#{active}]]</label>
+                            <div class="col-8 d-flex align-items-center">
+                                <input type="checkbox" name="active" id="saveCountryActive" class="wh-1rem">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <div>
+                        <button type="button" class="btn btn-default" data-dismiss="modal"
+                                onclick="ecommerce.resetSaveCountryModal();">[[#{cancel}]]</button>
+                        <button type="button" class="btn btn-default"
+                                onclick="ecommerce.resetSaveCountryModal();">[[#{reset}]]</button>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="ecommerce.saveCountry();"
+                            id="save-country-modal-button">
+                        [[#{add}]]
+                    </button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+</th:block>
+<script th:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.activated = /*[[#{activated}]]*/;
+ezyadmin.messages.add = /*[[#{add}]]*/;
+ezyadmin.messages.add_new_country = /*[[#{add_new_country}]]*/;
+ezyadmin.messages.do_you_want_to_delete_country_pname = /*[[#{do_you_want_to_delete_country_pname}]]*/;
+ezyadmin.messages.do_you_want_to_fetch_country_information_of_pcountry_from_pname = /*[[#{do_you_want_to_fetch_country_information_of_pcountry_from_pname}]]*/;
+ezyadmin.messages.edit = /*[[#{edit}]]*/;
+ezyadmin.messages.edit_country = /*[[#{edit_country}]]*/;
+ezyadmin.messages.inactivated = /*[[#{inactivated}]]*/;
+ezyadmin.messages.of = /*[[#{of}]]*/;
+ezyadmin.messages.provinces = /*[[#{provinces}]]*/;
+ezyadmin.messages.set_as = /*[[#{set_as}]]*/;
+ezyadmin.messages.yes = /*[[#{yes}]]*/;
+/*]]>*/
+// ========== select country =============
+ecommerce.selectCountry = function(countryId) {
+    ecommerce.selectedCountry = ecommerce.countryById[countryId];
+    ecommerce.setProvincesTitle();
+    ecommerce.fetchProvinces();
+    ecommerce.fetchCountryFetcherNames();
+}
+
+// ========== show save country modal =============
+ecommerce.showSaveCountryModal = function(action, countryId) {
+    ecommerce.saveCountryAction = action;
+    $('#countryImage').addClass('d-none');
+    $('#saveCountryImage').val('');
+    if (action == 'add') {
+        ecommerce.resetSaveCountryModal();
+        $('#save-country-modal-title').text(ezyadmin.messages.add_new_country);
+        $('#save-country-modal-button').text(ezyadmin.messages.add);
+    } else {
+        $('#save-country-modal-title').text(ezyadmin.messages.edit_country);
+        $('#save-country-modal-button').text(ezyadmin.messages.edit);
+        ezyadmin.resetFormData(ecommerce.saveCountryFormView);
+        ecommerce.selectedCountryId = countryId;
+        ecommerce.selectedCountry = ecommerce.countryById[countryId];
+        var country = ecommerce.selectedCountry;
+        if (country) {
+            $('#saveCountryCode').val(country.code);
+            $('#saveCountryLocalName').val(country.localName);
+            $('#saveCountryInternationalName').val(country.internationalName);
+            $('#saveCountryDialingCode').val(country.dialingCode);
+            $('#saveCountryCurrencyIsoCode').val(country.currencyIsoCode);
+            $('#saveCountryCapitalName').val(country.capitalName);
+            $('#saveCountryFlag').val(country.flagIcon);
+            $('#saveCountryActive').prop('checked', country.status == 'ACTIVATED');
+            ecommerce.selectedCountryImageId = country.imageId;
+            var image = ecommerce.countryImageById[country.imageId];
+            if (image) {
+                $('#countryImage').attr(
+                    'src',
+                    ezyadmin.extractMediaUrl(image)
+                ).removeClass('d-none');
+                $('#saveCountryImage').val(image.originalName);
+            }
+        }
+    }
+    $('#save-country').modal('show');
+}
+
+ecommerce.saveCountryFormView = {
+    saveCountryCode: true,
+    saveCountryLocalName: true,
+    saveCountryInternationalName: true,
+    saveCountryDialingCode: true,
+    saveCountryCurrencyIsoCode: true,
+    saveCountryCapitalName: true,
+    saveCountryFlag: true
+};
+
+ecommerce.resetSaveCountryModal = function() {
+    ezyadmin.resetFormData(ecommerce.saveCountryFormView);
+}
+
+// ========== get countries =============
+ecommerce.fetchCountries = function() {
+    $.ajax({
+        type: "GET",
+        url: '/ecommerce/api/v1/countries',
+        success: function(data) {
+            ecommerce.countries = data;
+            ecommerce.countryById = {};
+            ecommerce.countries.forEach((country) => {
+                ecommerce.countryById[country.id] = country;
+            });
+            if (ecommerce.countries.length) {
+                var country = ecommerce.selectedCountry;
+                if (country) {
+                    country = ecommerce.countryById[ecommerce.selectedCountry.id];
+                }
+                if (!country) {
+                    country = ecommerce.countries[0];
+                }
+                ecommerce.selectedCountry = country;
+                $('#countryListBody').html(
+                    ecommerce.buildCountryListBodyHtml(ecommerce.countries)
+                );
+                ecommerce.setProvincesTitle();
+                ecommerce.showAddProvinceButton();
+                ecommerce.selectCountry(ecommerce.selectedCountry.id);
+            } else {
+                location.reload();
+            }
+        },
+        error: function(data, e) {
+            ezyadmin.processGetApiErrors(data);
+        }
+    });
+}
+
+ecommerce.buildCountryListBodyHtml = function() {
+    var html = '';
+    ecommerce.countries.forEach((country, index) => {
+        html += ecommerce.buildCountryItemHtml(country, index);
+    });
+    return html;
+}
+
+ecommerce.buildCountryItemHtml = function(country, index) {
+    var image = ecommerce.countryImageById[country.imageId];
+    html = `
+        <tr>
+            <td class="text-center pl-2p5">${index + 1}</td>
+            <td class="text-center"><i class="${country.flagIcon}"></i></td>
+            <td class="text-center">
+                <img src="${ezyadmin.extractMediaUrl(image)}"
+                     class="object-fit-cover ${image ? '' : 'd-none'}" width="32" height="32">
+            </td>
+            <td class="text-center">${country.code}</td>
+            <td>${country.localName}</td>
+            <td>${country.internationalName}</td>
+            <td class="text-center">${country.dialingCode || ''}</td>
+            <td class="text-center">${country.currencyIsoCode || ''}</td>
+            <td>${country.capitalName || ''}</td>
+            <td class="text-center">
+    `;
+    if (ecommerce.defaultCountryId == country.id) {
+        html += ezyadmin.messages.yes;
+    } else {
+        html += `
+            <button type="button" class="btn btn-link" onclick="ecommerce.setAsDefaultCountry(${country.id})">
+                ${ezyadmin.messages.set_as}
+            </button>
+        `;
+    }
+	html += `
+        </td>
+        <td status="${country.status}"
+            class="text-center status-text ${ezyadmin.getTextColorByStatus(country.status)}">
+            ${ezyadmin.getI18nMessage(country.status?.toLowerCase() || '')}
+        </td>
+        <td class="text-center">
+            <a class="text-primary pr-1 cursor-pointer"
+               onclick="ecommerce.selectCountry(${country.id})">
+                <i class="fas fa-hand-pointer"></i>
+            </a>
+            <a class="text-primary pr-1 cursor-pointer"
+               onclick="ecommerce.showSaveCountryModal('edit', ${country.id})">
+                <i class="fas fa-edit"></i>
+            </a>
+            <a onclick="ecommerce.onDeleteCountryClick(${country.id}, '${country.internationalName}')"
+               class="text-danger cursor-pointer">
+                <i class="fas fa-trash"></i>
+            </a>
+        </td>
+    </tr>
+    `;
+    return html;
+}
+
+ecommerce.setProvincesTitle = function() {
+    var provincesTitle = ezyadmin.messages.provinces + ' ' +
+        ezyadmin.messages.of + ' ' +
+    ecommerce.selectedCountry.internationalName;
+    $('#provincesTitle').text(provincesTitle);
+}
+
+ecommerce.showAddProvinceButton = function() {
+    if (ecommerce.selectedCountry) {
+        $('#addProvinceButton').removeClass('d-none');
+    }
+}
+
+// ========== save country =============
+ecommerce.onKeyDownToSaveCountry = function() {
+    if(event.key === 'Enter') {
+    	ecommerce.saveCountry();
+    }
+}
+
+ecommerce.saveCountry = function() {
+    var formData = ezyadmin.formDataToObject('saveCountryForm');
+    formData.active = $('#saveCountryActive').prop('checked');
+    formData.imageId = ecommerce.selectedCountryImageId || 0;
+    var action = ecommerce.saveCountryAction;
+    $.ajax({
+        type: action == 'add' ? 'POST' : 'PUT',
+        url: '/ecommerce/api/v1/countries/' +
+            (action == 'add' ? 'add' : ecommerce.selectedCountryId),
+        data: formData,
+        success: function (data) {
+            if (action == 'add') {
+                ecommerce.selectedCountry = null;
+            }
+            ecommerce.fetchCountries();
+            $('#save-country').modal('hide');
+            ecommerce.resetSaveCountryModal();
+        },
+        error: function (e) {
+            var errors = e.responseJSON || {};
+            errors.saveCountryCode = errors.code;
+            errors.saveCountryLocalName = errors.localName;
+            errors.saveCountryInternationalName = errors.internationalName;
+            errors.saveCountryDialingCode = errors.dialingCode;
+            errors.saveCountryCurrencyIsoCode = errors.currencyIsoCode;
+            errors.saveCountryCapitalName = errors.capitalName;
+            errors.saveCountryFlag = errors.flag;
+            ezyadmin.processUpdateApiErrors(ecommerce.saveCountryFormView, e);
+        }
+    });
+}
+
+// ========== delete country =============
+ecommerce.onDeleteCountryClick = function(id, internationalName) {
+    ecommerce.selectedCountryId = id;
+    $('#delete-country-modal-body-content')
+        .text(
+            ezyadmin
+                .messages
+                .do_you_want_to_delete_country_pname
+                .replace('{0}', internationalName)
+        );
+    $('#delete-country-modal').modal('show');
+}
+
+ecommerce.deleteCountry = function() {
+    $.ajax({
+        type: 'DELETE',
+        url: '/ecommerce/api/v1/countries/' + ecommerce.selectedCountryId,
+        success: function () {
+            $('#delete-country-modal').modal('hide');
+            ecommerce.fetchCountries();
+        },
+        error: function (data, e) {
+            ezyadmin.processUpdateApiErrors({}, data);
+        }
+    });
+}
+
+// ========== country fetchers =============
+ecommerce.fetchCountryFetcherNames = function() {
+    $.ajax({
+        type: "GET",
+        url: '/ecommerce/api/v1/countries/' +
+            ecommerce.selectedCountry.code +
+            '/fetcher-names',
+        success: function(fetcherNames) {
+            if (fetcherNames.length) {
+                $('#fetchProvincesFromDiv')
+                    .removeClass('d-none')
+                    .addClass('d-flex');
+            } else {
+                $('#fetchProvincesFromDiv')
+                    .removeClass('d-flex')
+                    .addClass('d-none');
+            }
+            var html = '';
+            fetcherNames.forEach((fetcherName) => {
+                html += `
+                    <a class="dropdown-item cursor-pointer"
+                       onclick="ecommerce.onFetchCountryClick('${fetcherName}')">
+                        ${fetcherName}
+                    </a>
+                `;
+            });
+            $('#provincesFetchersDiv').html(html);
+        },
+        error: function(data, e) {
+            ezyadmin.processGetApiErrors(data);
+        }
+    });
+}
+
+ecommerce.onFetchCountryClick = function(fetcherName) {
+    ecommerce.selectedFetcherName = fetcherName;
+    $('#fetch-country-modal-body-content')
+        .text(
+            ezyadmin
+                .messages
+                .do_you_want_to_fetch_country_information_of_pcountry_from_pname
+                .replace('{0}', ecommerce.selectedCountry.internationalName)
+                .replace('{1}', ecommerce.selectedFetcherName)
+        );
+    $('#fetch-country-modal').modal('show');
+}
+
+ecommerce.fetchCountry = function() {
+    ezyadmin.showLoadingScreen();
+    $.ajax({
+        type: 'POST',
+        url: '/ecommerce/api/v1/countries/' +
+            ecommerce.selectedCountry.code +
+            '/fetchers/' + ecommerce.selectedFetcherName +
+            '/fetch',
+        success: function () {
+            $('#fetch-country-modal').modal('hide');
+            window.location = '/ecommerce/countries'
+                + '?selectedCountryCode=' + ecommerce.selectedCountry.code
+                + (ezyadmin.lang ? '&lang=' + ezyadmin.lang : '');
+        },
+        error: function (data, e) {
+            ezyadmin.hideLoadingScreen();
+            ezyadmin.processUpdateApiErrors({}, data);
+        }
+    });
+}
+
+// =========== country image ===================
+ecommerce.selectCountryImage = function(action) {
+    ezyadmin.showMediaModal('countryImage')
+        .onMediaSelected(media => {
+            $('#countryImage').attr(
+                'src',
+                ezyadmin.extractMediaUrl(media)
+            )
+            .removeClass('d-none')
+            .show();
+            ecommerce.countryImageById[media.id] = media;
+            ecommerce.selectedCountryImageId = media.id;
+            $('#saveCountryImage').val(media.originalName);
+            ezyadmin.closeMediaModal();
+        });
+}
+</script>
+<script th:fragment="set-as-default" th:inline="javascript">
+// ========== set as default country =============
+ecommerce.setAsDefaultCountry = function(countryId) {
+    $.ajax({
+        type: 'PUT',
+        url: '/ecommerce/api/v1/countries/' + countryId + '/set-as-default',
+        success: function () {
+            ecommerce.defaultCountryId = countryId;
+            ecommerce.fetchCountries('current');
+        },
+        error: function (data, e) {
+            ezyadmin.processUpdateApiErrors({}, data);
+        }
+    });
+}
+</script>
+</body>
+</html>

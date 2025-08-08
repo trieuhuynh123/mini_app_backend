@@ -1,0 +1,261 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<head>
+    <script>
+        var ecommerce = {};
+    </script>
+</head>
+<body>
+<div layout:fragment="content" class="row">
+    <div class="col-md-10 col-sm-12">
+        <form id="addShopForm">
+            <div class="form-group row">
+                <label for="addShopName" class="col-sm-3 col-form-label">
+                    [[#{shop_name}]] (<span class="text-danger">*</span>)
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="shopName" id="addShopName"
+                           class="form-control" th:placeholder="#{shop_name}">
+                </div>
+                <label id="addShopNameErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addShopName">
+                    <i class="far fa-times-circle"></i> <span id="addShopNameError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addShopOwner" class="col-md-3 col-form-label">
+                    [[#{shop_owner}]]
+                </label>
+                <div class="col-lg-7 col-md-6 pr-0">
+                    <input type="text" name="addShopOwner" id="addShopOwner"
+                           class="form-control" th:placeholder="#{shop_owner}">
+                </div>
+                <label id="addShopOwnerErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addShopOwner">
+                    <i class="far fa-times-circle"></i> <span id="addShopOwnerError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addShopIconImage" class="col-md-3 col-form-label">
+                    [[#{icon_image}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <div class="input-group cursor-pointer" onclick="ecommerce.selectIconImage('add');">
+                        <input type="text" name="shopIconImage"
+                               id="addShopIconImage"
+                               class="form-control" th:placeholder="#{select_an_image}">
+                        <div class="input-group-append">
+                            <div class="input-group-text">
+                                <span>[[#{browse}]]</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <label id="addShopIconImageErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addShopIconImage">
+                    <i class="far fa-times-circle"></i> <span id="addShopIconImageError">[[#{invalid}]]</span>
+                </label>
+                <div class="col-md-3"></div>
+                <div class="col-md-4">
+                    <img id="shopIconImage" class="object-fit-cover mt-1 d-none" src="#" height="64">
+                </div>
+                <div class="col-md-5"></div>
+            </div>
+            <div class="form-group row">
+                <label for="addShopBannerImage" class="col-md-3 col-form-label">
+                    [[#{banner_image}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <div class="input-group cursor-pointer" onclick="ecommerce.selectBannerImage('add');">
+                        <input type="text" name="shopBannerImage"
+                               id="addShopBannerImage"
+                               class="form-control" th:placeholder="#{select_an_image}">
+                        <div class="input-group-append">
+                            <div class="input-group-text">
+                                <span>[[#{browse}]]</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <label id="addShopBannerImageErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addShopBannerImage">
+                    <i class="far fa-times-circle"></i> <span id="addShopBannerImageError">[[#{invalid}]]</span>
+                </label>
+                <div class="col-md-3"></div>
+                <div class="col-md-4">
+                    <img id="shopBannerImage" class="object-fit-cover mt-1 d-none" src="#" height="64">
+                </div>
+                <div class="col-md-5"></div>
+            </div>
+            <div class="form-group row">
+                <label for="addShopTaxPercent" class="col-sm-3 col-form-label">
+                    [[#{tax_percentage_on_each_order}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="number" name="taxPercent" id="addShopTaxPercent"
+                           class="form-control" th:placeholder="#{example} + ': 10'">
+                </div>
+                <label id="addShopTaxPercentErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addShopTaxPercent">
+                    <i class="far fa-times-circle"></i> <span id="addShopTaxPercentError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addShopCompanyName" class="col-sm-3 col-form-label">
+                    [[#{company_name}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="companyName" id="addShopCompanyName"
+                           class="form-control" th:placeholder="#{company_name}">
+                </div>
+                <label id="addShopCompanyNameErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addShopCompanyName">
+                    <i class="far fa-times-circle"></i> <span id="addShopCompanyNameError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addShopCompanyEmail" class="col-sm-3 col-form-label">
+                    [[#{company_email}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="companyEmail" id="addShopCompanyEmail"
+                           class="form-control" th:placeholder="#{company_email}">
+                </div>
+                <label id="addShopCompanyEmailErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addShopCompanyEmail">
+                    <i class="far fa-times-circle"></i> <span id="addShopCompanyEmailError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addShopCompanyPhoneNumber" class="col-sm-3 col-form-label">
+                    [[#{company_phone_number}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="companyPhoneNumber" id="addShopCompanyPhoneNumber"
+                           class="form-control" th:placeholder="#{company_phone_number}">
+                </div>
+                <label id="addShopCompanyPhoneNumberErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addShopCompanyPhoneNumber">
+                    <i class="far fa-times-circle"></i> <span id="addShopCompanyPhoneNumberError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addShopCompanyAddress" class="col-sm-3 col-form-label">
+                    [[#{company_address}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="companyAddress" id="addShopCompanyAddress"
+                           class="form-control" th:placeholder="#{company_address}">
+                </div>
+                <label id="addShopCompanyAddressErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addShopCompanyAddress">
+                    <i class="far fa-times-circle"></i> <span id="addShopCompanyAddressError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addShopCompanyLegalRepresentative" class="col-sm-3 col-form-label">
+                    [[#{company_legal_representative}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="companyLegalRepresentative" id="addShopCompanyLegalRepresentative"
+                           class="form-control" th:placeholder="#{company_legal_representative}">
+                </div>
+                <label id="addShopCompanyLegalRepresentativeErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addShopCompanyLegalRepresentative">
+                    <i class="far fa-times-circle"></i> <span id="addShopCompanyLegalRepresentativeError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addShopCompanyTaxCode" class="col-sm-3 col-form-label">
+                    [[#{company_tax_code}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="companyTaxCode" id="addShopCompanyTaxCode"
+                           class="form-control" th:placeholder="#{company_tax_code}">
+                </div>
+                <label id="addShopCompanyTaxCodeErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addShopCompanyTaxCode">
+                    <i class="far fa-times-circle"></i> <span id="addShopCompanyTaxCodeError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addShopCompanyLicensedDate" class="col-sm-3 col-form-label">
+                    [[#{company_licensed_date}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="companyLicensedDate" id="addShopCompanyLicensedDate"
+                           class="form-control" placeholder="yyyy-MM-dd">
+                </div>
+                <label id="addShopCompanyLicensedDateErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addShopCompanyLicensedDate">
+                    <i class="far fa-times-circle"></i> <span id="addShopCompanyLicensedDateError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addShopCompanyTaxSubmissionLocation" class="col-sm-3 col-form-label">
+                    [[#{company_tax_submission_location}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="companyTaxSubmissionLocation" id="addShopCompanyTaxSubmissionLocation"
+                           class="form-control" th:placeholder="#{company_tax_submission_location}">
+                </div>
+                <label id="addShopCompanyTaxSubmissionLocationErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addShopCompanyTaxSubmissionLocation">
+                    <i class="far fa-times-circle"></i> <span id="addShopCompanyTaxSubmissionLocationError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addShopStatus" class="col-md-3 col-form-label">[[#{status}]]</label>
+                <div class="col-lg-3 col-md-3">
+                    <select name="shopStatus" id="addShopStatus" class="form-control">
+                        <option th:each="shopStatus : ${shopStatuses}"
+                                th:value="${shopStatus.toString()}">
+                            [[#{${shopStatus.toString().toLowerCase()}}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="addShopStatusErrorLabel" class="col-lg-6 col-md-6 col-form-label text-danger d-none" for="addShopStatus">
+                    <i class="far fa-times-circle"></i> <span id="addShopStatusError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="row">
+                <div class="col-md-3"></div>
+                <div class="col-lg-2 col-md-3">
+                    <button type="button" class="btn btn-primary btn-block" onclick="ecommerce.addNewShop();">[[#{submit}]]</button>
+                </div>
+                <div class="col-lg-7 col-md-6"></div>
+                <!-- /.col -->
+            </div>
+        </form>
+    </div>
+    <div class="col-md-2 col-sm-0"></div>
+    <div class="col-12 mb-3"></div>
+</div>
+<script layout:fragment="scripts">
+// ========== add shop =============
+ecommerce.addNewShop = function() {
+    ecommerce.addOrEditShop('add');
+}
+
+ezyadmin.onSearchUserModalCloseWithUserData = function(user) {
+    ecommerce.onSearchUserModalCloseWithUserDataByAction('add', user);
+}
+</script>
+<th:block layout:fragment="post-scripts">
+    <script th:replace="~{scripts/suggestion :: input}" />
+    <script th:replace="~{scripts/suggestion :: user}" />
+    <script th:replace="~{ecommerce/shop/scripts :: add-edit}" />
+    <script>
+        ezyadmin.registerUserAutocomplete('addShopOwner');
+    </script>
+</th:block>
+</body>
+
+</html>

@@ -1,0 +1,239 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~ 
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~ 
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~ 
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="content">
+    <div id="col-12">
+        <div class="row" id="orderListBody">
+        </div>
+    </div>
+    <div class="col-12 text-center mt-4 pagination-arrows d-none"
+         id="order-list-pagination">
+        <span id="firstPageButton" data-bs-toggle="tooltip" th:title="#{first_page}">
+            <i class="fas fa-chevron-left"></i>
+        </span>
+        <span id="prevPageButton" data-bs-toggle="tooltip" th:title="#{previous_page}">
+            <i class="fas fa-angle-double-left"></i>
+        </span>
+        <a>|</a>
+        <span id="nextPageButton" data-bs-toggle="tooltip" th:title="#{next_page}">
+            <i class="fas fa-angle-double-right"></i>
+        </span>
+        <span id="lastPageButton" data-bs-toggle="tooltip" th:title="#{last_page}">
+            <i class="fas fa-chevron-right"></i>
+        </span>
+    </div>
+</th:block>
+<script th:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ezyweb.messages.order_id = /*[[#{order_id}]]*/ '';
+ezyweb.messages.first_product = /*[[#{first_product}]]*/ '';
+ezyweb.messages.total_quantity = /*[[#{total_quantity}]]*/ '';
+ezyweb.messages.total_amount = /*[[#{total_amount}]]*/ '';
+ezyweb.messages.status = /*[[#{status}]]*/ '';
+ezyweb.messages.created_at = /*[[#{created_at}]]*/ '';
+ezyweb.messages.invalidated = /*[[#{invalidated}]]*/ '';
+ezyweb.messages.paid = /*[[#{paid}]]*/ '';
+ezyweb.messages.payment_error = /*[[#{payment_error}]]*/ '';
+ezyweb.messages.rejected = /*[[#{rejected}]]*/ '';
+ezyweb.messages.unpaid = /*[[#{unpaid}]]*/ '';
+ezyweb.messages.waiting_for_confirmation=/*[[#{waiting_for_confirmation}]]*/ '';
+ezyweb.messages.waiting_for_payment=/*[[#{waiting_for_payment}]]*/ '';
+/*]]>*/
+var orderPageToken = {};
+
+$(document).ready(() => {
+    $('[data-bs-toggle="tooltip"]').tooltip();
+});
+
+// ================== init ====================
+var onOrderClick = function(orderId) {
+    window.location = `/orders/${orderId}`
+        + (ezyweb.lang ? '?lang=' + ezyweb.lang : '');
+}
+
+// ========== order pagination ===========
+$('#firstPageButton').click(() => {
+    fetchOrderList('first');
+});
+$('#lastPageButton').click(() => {
+    fetchOrderList('last');
+});
+$('#nextPageButton').click(() => {
+    fetchOrderList('next');
+});
+$('#prevPageButton').click(() => {
+    fetchOrderList('prev');
+});
+
+// ========== orders =============
+var fetchOrderList = function(action) {
+    var queryString = '';
+    if (action == 'next') {
+        if (orderPageToken.next) {
+            queryString += '&nextPageToken=' + orderPageToken.next;
+        } else {
+            return;
+        }
+    } else if (action == 'prev') {
+        if (orderPageToken.prev) {
+            queryString += '&prevPageToken=' + orderPageToken.prev;
+        } else {
+            return;
+        }
+    } else if (action == 'last') {
+        queryString += '&lastPage=true';
+    }
+    $.ajax({
+        url: `/api/v1/orders?limit=12${queryString}`,
+        type: 'GET',
+        dataType: 'json'
+    })
+    .done(function(data) {
+        orderPageToken = data.pageToken;
+        $('#orderListBody').html(
+            buildOrderListBodyHtml(data.items)
+        );
+        if (data.continuation.hasNext) {
+            $('#nextPageButton').removeClass('text-secondary');
+        } else {
+            $('#nextPageButton').addClass('text-secondary');
+        }
+        if (data.continuation.hasPrevious) {
+            $('#prevPageButton').removeClass('text-secondary');
+        } else {
+            $('#prevPageButton').addClass('text-secondary');
+        }
+        if (data.count < data.total) {
+            $('#order-list-pagination').removeClass('d-none');
+        } else {
+            $('#order-list-pagination').addClass('d-none');
+        }
+        $(window).scrollTop(0);
+    })
+    .fail(function(e) {
+        ezyweb.processGetApiErrors(e);
+    });
+}
+
+var buildOrderListBodyHtml = function(orders) {
+    var html = `
+        <div class="col-md-12 d-md-block d-none">
+            <div class="table-responsive">
+                <table class="table order-list-table">
+                <thead>
+                <tr>
+                    <th>${ezyweb.messages.order_id}</th>
+                    <th>${ezyweb.messages.first_product}</th>
+                    <th>${ezyweb.messages.total_amount}</th>
+                    <th>${ezyweb.messages.status}</th>
+                    <th>${ezyweb.messages.created_at}</th>
+                </tr>
+                </thead>
+                <tbody>
+    `;
+    orders.forEach((order) => {
+        html += buildOrderListItemHtml(order);
+    });
+     html += `
+                    </div>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    `;
+    html += `
+        <div class="col-md-12 d-md-none d-flex flex-column gap-3">
+    `;
+    orders.forEach((order, index) => {
+        html += buildOrderListItemHtmlForMobile(order);
+        if (index < orders.length - 1) {
+            html += '<hr />';
+        }
+    });
+    html += `
+    </div>
+    `;
+    return html;
+}
+
+var buildOrderListItemHtml = function(order) {
+    var html = `<tr class="cursor-pointer" onclick="onOrderClick(${order.id})">
+        <td class="align-middle">${order.id}</td>
+        <td class="align-middle">
+    `;
+    if (order.firstProduct) {
+	    if (order.firstProduct.iconImageUrl) {
+            html += '<img src="' + order.firstProduct.iconImageUrl +
+                '" width="64" class="object-fit-cover me-2">';
+        }
+        html += order.firstProduct.productName;
+	}
+	html += `
+	    </td>
+        <td class="align-middle">${order.formattedTotalAmountMoney}${order.currency.symbol}</td>
+        <td class="align-middle">${ezyweb.getI18nMessage(order.status.toLowerCase())}</td>
+        <td class="align-middle">${ezyweb.formatTimeStamp(order.createdAt)}</td>
+    </tr>`;
+    return html;
+}
+
+var buildOrderListItemHtmlForMobile = function(order) {
+    var html = `
+        <div class="d-flex flex-column gap-2 cursor-pointer"
+             onclick="onOrderClick(${order.id})">
+            <div>
+                <b>${ezyweb.messages.order_id}</b>:
+                <span>${order.id}</span>
+            </div>
+            <div>
+                <b>${ezyweb.messages.first_product}</b>:
+    `;
+    if (order.firstProduct) {
+        var imageUrl = order.firstProduct.iconImageUrl || order.firstProduct.bannerImageUrl;
+	    if (imageUrl) {
+            html += '<img src="' + imageUrl +
+                '" width="64" class="object-fit-cover me-1">';
+        }
+        html += order.firstProduct.productName;
+	}
+	html += `
+            </div>
+            <div>
+                <b>${ezyweb.messages.total_amount}</b>:
+                <span>${order.formattedTotalAmountMoney}${order.currency.symbol}</span>
+            </div>
+            <div>
+                <b>${ezyweb.messages.status}</b>:
+                <span>${ezyweb.getI18nMessage(order.status.toLowerCase())}</span>
+            </div>
+            <div>
+                <b>${ezyweb.messages.created_at}</b>:
+                <span>${ezyweb.formatTimeStamp(order.createdAt)}</span>
+            </div>
+        </div>
+    `;
+    return html;
+}
+
+fetchOrderList();
+</script>
+</body>
+</html>

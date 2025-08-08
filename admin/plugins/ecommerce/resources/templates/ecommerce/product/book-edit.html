@@ -1,0 +1,264 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<head>
+    <script>
+      var ecommerce = {};
+    </script>
+</head>
+<body>
+<div layout:fragment="content" class="row">
+    <div class="col-md-10 col-sm-12">
+        <form id="editProductBookForm">
+            <div class="form-group row">
+                <label for="editBookAuthor" class="col-sm-3 col-form-label">
+                    [[#{book_name}]]
+                </label>
+                <div class="col-sm-9">
+                    <a th:href="${'/products/' + product.id}">
+                        [[${product.productName}]]
+                    </a>
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="editBookAuthor" class="col-sm-3 col-form-label">
+                    [[#{author}]] (<span class="text-danger">*</span>)
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="author" id="editBookAuthor"
+                           class="form-control" th:placeholder="#{author}"
+                           th:value="${bookAuthor != null ? (bookAuthor.name + '<' + bookAuthor.username + '>') : (book != null ? book.author : '')}">
+                </div>
+                <label id="editBookAuthorErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editBookAuthor">
+                    <i class="far fa-times-circle"></i> <span id="editBookAuthorError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editBookAuthorUrl" class="col-sm-3 col-form-label">
+                    [[#{author_url}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="authorUrl" id="editBookAuthorUrl"
+                           class="form-control" th:placeholder="#{author_url}"
+                           th:value="${book != null ? book.authorUrl : ''}">
+                </div>
+                <label id="editBookAuthorUrlErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editBookAuthorUrl">
+                    <i class="far fa-times-circle"></i> <span id="editBookAuthorUrlError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editBookType" class="col-md-3 col-form-label">
+                    [[#{book_type}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <div class="input-group cursor-pointer">
+                        <select name="bookType" id="editBookType" class="form-control">
+                            <option th:each="bookType : ${bookTypes}"
+                                    th:value="${bookType}"
+                                    th:selected="${book != null ? (book.bookType == bookType.toString()) : false}">
+                                [[#{${bookType.toString().toLowerCase()}}]]
+                            </option>
+                        </select>
+                    </div>
+                </div>
+                <label id="editBookTypeErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editBookType">
+                    <i class="far fa-times-circle"></i> <span id="editBookTypeError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editBookNumberOfPages" class="col-md-3 col-form-label">
+                    [[#{number_of_pages}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <div class="input-group cursor-pointer">
+                        <input type="number" name="pages"
+                               id="editBookNumberOfPages"
+                               class="form-control" th:placeholder="#{number_of_pages}"
+                               th:value="${book != null ? book.pages : ''}">
+                    </div>
+                </div>
+                <label id="editBookNumberOfPagesErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editBookNumberOfPages">
+                    <i class="far fa-times-circle"></i> <span id="editBookNumberOfPagesError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editBookCoverType" class="col-sm-3 col-form-label">
+                    [[#{cover_type}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <div class="input-group cursor-pointer">
+                        <select name="coverType" id="editBookCoverType" class="form-control">
+                            <option th:each="coverType : ${coverTypes}"
+                                    th:value="${coverType}"
+                                    th:selected="${book != null ? (book.coverType == coverType.toString()) : false}">
+                                [[#{${coverType.toString().toLowerCase()}}]]
+                            </option>
+                        </select>
+                    </div>
+                </div>
+                <label id="editBookCoverTypeErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editBookCoverType">
+                    <i class="far fa-times-circle"></i> <span id="editBookCoverTypeError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editBookAffiliate" class="col-md-3 col-form-label">
+                    [[#{affiliate}]]
+                </label>
+                <div class="col-lg-3 col-md-4">
+                    <input type="text" name="affiliate" id="editBookAffiliate"
+                           class="form-control" th:placeholder="#{affiliate}"
+                           th:value="${book != null ? book.affiliate : ''}">
+                </div>
+                <label id="editBookAffiliateErrorLabel" class="col-lg-7 col-md-6 col-form-label text-danger d-none" for="editBookAffiliate">
+                    <i class="far fa-times-circle"></i> <span id="editBookAffiliateError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editBookPreviewLink" class="col-sm-3 col-form-label">
+                    [[#{preview_link}]]
+                </label>
+                <div class="col-lg-3 col-md-4">
+                    <input type="text" name="previewLink" id="editBookPreviewLink"
+                           class="form-control" th:placeholder="#{preview_link}"
+                           th:value="${book != null ? book.previewLink : ''}">
+                </div>
+                <label id="editBookPreviewLinkErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editBookPreviewLink">
+                    <i class="far fa-times-circle"></i> <span id="editBookPreviewLinkError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editBookDistributionCompany" class="col-sm-3 col-form-label">
+                    [[#{distribution_company}]]
+                </label>
+                <div class="col-lg-3 col-md-4">
+                    <input type="text" name="distributionCompany" id="editBookDistributionCompany"
+                           class="form-control" th:placeholder="#{distribution_company}"
+                           th:value="${book != null ? book.distributionCompany : ''}">
+                </div>
+                <label id="editBookDistributionCompanyErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editBookDistributionCompany">
+                    <i class="far fa-times-circle"></i> <span id="editBookDistributionCompanyError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editBookPublisher" class="col-sm-3 col-form-label">
+                    [[#{publisher}]]
+                </label>
+                <div class="col-9 d-flex align-items-center">
+                    <input type="text" name="publisher" id="editBookPublisher"
+                           class="form-control" th:placeholder="#{publisher}"
+                           th:value="${book != null ? book.publisher : ''}">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="editBookReleasedAt" class="col-md-3 col-form-label">
+                    [[#{released_at}]]
+                </label>
+                <div class="col-lg-3 col-md-4">
+                    <input type="datetime-local" name="releasedAt" id="editBookReleasedAt"
+                           class="form-control" th:placeholder="#{released_at}">
+                </div>
+                <label id="editBookReleasedAtErrorLabel" class="col-lg-7 col-md-6 col-form-label text-danger d-none" for="editBookReleasedAt">
+                    <i class="far fa-times-circle"></i> <span id="editBookReleasedAtError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="row">
+                <div class="col-md-3"></div>
+                <div class="col-lg-2 col-md-3">
+                    <button type="button" class="btn btn-primary btn-block"
+                            onclick="ecommerce.editProductBook();">
+                        [[#{submit}]]
+                    </button>
+                </div>
+                <div class="col-lg-7 col-md-6"></div>
+                <!-- /.col -->
+            </div>
+        </form>
+    </div>
+    <div class="col-md-2 col-sm-0"></div>
+    <div class="col-12 mb-3"></div>
+</div>
+<script layout:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ecommerce.selectedProductId = /*[[${product.id}]]*/ null;
+ecommerce.bookReleasedAt = /*[[${book != null ? book.releasedAt : 0}]]*/;
+ecommerce.bookAuthorUserId = /*[[${bookAuthor != null ? bookAuthor.id : 0}]]*/;
+/*]]>*/
+
+// ================== edit book ======
+if (ecommerce.bookReleasedAt) {
+    $('#editBookReleasedAt').val(
+        new Date(ecommerce.bookReleasedAt).toISOString().slice(0, 16)
+    );
+}
+
+ecommerce.extractBookAuthorUserId = function() {
+    var value = $('#editBookAuthor').val().trim();
+    ecommerce.bookAuthorUserId = value
+        && value.indexOf('<') > 0
+        && value.indexOf('>') > 0
+            ? (ezyadmin.getSelectedAutocompleteFieldData(
+                'editBookAuthor',
+                (user) => user.userId
+            ) || ecommerce.bookAuthorUserId)
+            : 0;
+}
+
+ecommerce.editProductBook = function() {
+    var formData = ezyadmin.formDataToObject('editProductBookForm');
+    formData.authorUserId = ecommerce.bookAuthorUserId;
+    if (formData.releasedAt) {
+        formData.releasedAt = moment(formData.releasedAt).format('x');
+    }
+    ecommerce.extractBookAuthorUserId();
+    formData.authorUserId = ecommerce.bookAuthorUserId;
+    $.ajax({
+        type: 'PUT',
+        url: '/ecommerce/api/v1/products/' + ecommerce.selectedProductId + '/book',
+        data: JSON.stringify(formData),
+        contentType: 'application/json',
+        success: function (data) {
+            window.location = '/ecommerce/products/'
+                + ecommerce.selectedProductId + '/book'
+                + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+        },
+        error: function (e) {
+            var formView = {
+                editBookAuthor: true,
+                editBookNumberOfPages: true
+            };
+            var errors = e.responseJSON || {};
+            errors.editBookAuthor = errors.author;
+            errors.editBookNumberOfPages = errors.pages;
+            ezyadmin.processUpdateApiErrors(formView, e);
+        }
+    });
+}
+</script>
+<th:block layout:fragment="post-scripts">
+    <script th:replace="~{scripts/suggestion :: input}" />
+    <script th:replace="~{scripts/suggestion :: user}" />
+</th:block>
+</body>
+<script layout:fragment="final-scripts">
+    ezyadmin.registerUserAutocomplete('editBookAuthor');
+</script>
+</html>

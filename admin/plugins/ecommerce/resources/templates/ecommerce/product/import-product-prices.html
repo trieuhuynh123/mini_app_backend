@@ -1,0 +1,210 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~ 
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~ 
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~ 
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="content">
+    <div class="modal fade pt-4rem" role="dialog" id="import-product-prices-modal">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">[[#{import_product_prices_from_file}]]</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div>
+                        <div class="form-group">
+                            <label for="importProductPricesFile" class="btn btn-primary">
+                                [[#{choose_csv_file}]]
+                                <input type="file" id="importProductPricesFile" accept=".csv" class="d-none"
+                                       onchange="ecommerce.onImportProductPricesFileChanged(this);"/>
+                            </label>
+                            <span id="importProductPricesFileName" class="ml-2"></span>
+                        </div>
+                        <div class="mb-2">[[#{import_product_prices_from_file_notes}]]</div>
+                        <div id="importProductPricesPreview">
+                            <table class="table table-responsive max-height-30vn-scroll">
+                                <thead>
+                                    <tr>
+                                        <th class="text-nowrap">#</th>
+                                        <th class="text-nowrap">[[#{product_code}]]</th>
+                                        <th class="text-nowrap">[[#{price}]]</th>
+                                        <th class="text-nowrap">[[#{original_price}]]</th>
+                                        <th class="text-nowrap">[[#{currency_iso_code}]]</th>
+                                        <th class="text-nowrap">[[#{price_by_size_and_color}]]</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="importProductPriceListBody">
+                                    <tr>
+                                        <td>1</td>
+                                        <td>product_a</td>
+                                        <td>1000</td>
+                                        <td>2000</td>
+                                        <td>USD</td>
+                                        <td>L:default:20||XL:red:30</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2</td>
+                                        <td>product_b</td>
+                                        <td>2000</td>
+                                        <td></td>
+                                        <td>USD</td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td>3</td>
+                                        <td>product_c</td>
+                                        <td>3000</td>
+                                        <td></td>
+                                        <td>USD</td>
+                                        <td>Customize:default:20||Customize:red:30||L:green:20</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        [[#{close}]]
+                    </button>
+                    <button type="button" class="btn btn-primary" data-dismiss="modal"
+                            onclick="ecommerce.importProductPricesFromFile();">
+                        [[#{submit}]]
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</th:block>
+<script th:fragment="scripts">
+ecommerce.showImportProductPricesModel = function() {
+	$('#import-product-prices-modal').modal('show');
+}
+
+ecommerce.hideImportProductPricesModel = function() {
+	$('#import-product-prices-modal').modal('hide');
+}
+
+ecommerce.onImportProductPricesFileChanged = function(input) {
+    ezyadmin.onCsvFileChanged(input, (file, rows) => {
+        $('#importProductPricesFileName').text(file.name);
+        ecommerce.productPricesFromFileToImport = ecommerce
+            .extractProductPricesFromCsvRows(rows)
+        $('#importProductPriceListBody').html(
+            ecommerce.buildImportProductPriceListBodyHtml(
+                ecommerce.productPricesFromFileToImport
+            )
+        );
+    });
+}
+
+ecommerce.extractProductPricesFromCsvRows = function(rows) {
+    var productPrices = [];
+    rows.forEach((cells) => {
+        var productSizeColorPricesText = cells.length > 5
+            ? cells[5].trim()
+            : '';
+        var productSizeColorPricesStrList = productSizeColorPricesText.split('||');
+        var productSizeColorPrices = [];
+        productSizeColorPricesStrList.forEach((item) => {
+            var strs = item.split(':');
+            if (strs.length == 4 && !isNaN(strs[3].trim())) {
+                productSizeColorPrices.push({
+                    sizeName: strs[0].trim(),
+                    colorName: strs[1].trim(),
+                    materialName: strs[2].trim(),
+                    price: +(strs[3].trim())
+                });
+            } else if (strs.length == 3 && !isNaN(strs[2].trim())) {
+                productSizeColorPrices.push({
+                    sizeName: strs[0].trim(),
+                    colorName: strs[1].trim(),
+                    price: +(strs[2].trim())
+                });
+            }
+        });
+        productPrices.push({
+            productCode: cells.length > 1 ? cells[1].trim() : null,
+            price: cells.length > 2 ? cells[2].trim() : null,
+            originalPrice: cells.length > 3 ? cells[3].trim() : null,
+            currencyIsoCode: cells.length > 4 ? cells[4].trim() : null,
+            productSizeColorPrices: productSizeColorPrices
+        });
+    });
+    return productPrices;
+}
+
+ecommerce.buildImportProductPriceListBodyHtml = function(productPrices) {
+    var html = '';
+    productPrices.forEach((productPrice, index) => {
+        var productSizeColorPricesTextList = [];
+        productPrice.productSizeColorPrices.forEach((item) => {
+            productSizeColorPricesTextList.push([
+                [item.sizeName, item.colorName, item.materialName, item.price]
+                    .filter(item => item)
+                    .join(':')
+            ]);
+        });
+        html += `
+            <tr>
+                <td>${index}</td>
+                <td>${productPrice.productCode}</td>
+                <td>${productPrice.price}</td>
+                <td>${productPrice.originalPrice}</td>
+                <td>${productPrice.currencyIsoCode}</td>
+                <td>${productSizeColorPricesTextList.join('||')}</td>
+            </tr>
+        `;
+    });
+    return html;
+}
+
+ecommerce.importProductPricesFromFile = function() {
+    if (!ecommerce.productPricesFromFileToImport
+        || !ecommerce.productPricesFromFileToImport.length
+    ) {
+        return;
+    }
+    ezyadmin.showLoadingScreen();
+    $.ajax({
+        type: 'PUT',
+        url: '/ecommerce/api/v1/products/prices',
+        contentType: 'application/json',
+        data: JSON.stringify({productPrices: ecommerce.productPricesFromFileToImport}),
+        success: function (responseData) {
+            ezyadmin.hideLoadingScreen();
+            if (ecommerce.onProductPricesImportedFromFile) {
+                ecommerce.onProductPricesImportedFromFile();
+            } else if (ecommerce.fetchProductList) {
+                ecommerce.fetchProductList('current');
+            } else {
+                location.reload();
+            }
+        },
+        error: function (e) {
+            ezyadmin.processUpdateApiErrors({}, e);
+            ezyadmin.hideLoadingScreen();
+        }
+    });
+}
+</script>
+</body>
+</html>

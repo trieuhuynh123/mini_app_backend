@@ -1,0 +1,210 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="content">
+    <div class="modal fade pt-4rem" id="update-product-size-color-price">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="update-product-size-color-price-modal-title">
+                        [[#{update_product_price_by_size_and_color}]]
+                    </h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="updateProductSizeColorPriceForm" onsubmit="return false;">
+                        <div class="form-group row">
+                            <label for="updateProductSizeColorPriceSize" class="col-4 col-form-label">
+                                [[#{size}]]
+                            </label>
+                            <div class="col-8">
+                                <select name="sizeId" id="updateProductSizeColorPriceSize"
+                                        class="form-control form-select">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="updateProductSizeColorPriceColor" class="col-4 col-form-label">
+                                [[#{color}]]
+                            </label>
+                            <div class="col-8">
+                                <select name="colorId" id="updateProductSizeColorPriceColor"
+                                       class="form-control form-select">
+                                    <option value="">[[#{select}]]</option>
+                                    <option th:each="shopProductColor : ${shopProductColors}"
+                                            th:value="${shopProductColor.colorName + '||' + shopProductColor.colorDisplayName + '||' + shopProductColor.colorCode}">
+                                        [[${shopProductColor.colorName + '||' + shopProductColor.colorDisplayName + '||' + shopProductColor.colorCode}]]
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="updateProductSizeColorPriceMaterial" class="col-4 col-form-label">
+                                [[#{material}]]
+                            </label>
+                            <div class="col-8">
+                                <select name="materialId" id="updateProductSizeColorPriceMaterial"
+                                        class="form-control form-select">
+                                    <option value="">[[#{select}]]</option>
+                                    <option th:each="shopProductMaterial : ${shopProductMaterials}"
+                                            th:value="${shopProductMaterial.materialName + '||' + shopProductMaterial.materialDisplayName}">
+                                        [[${shopProductMaterial.materialName + '||' + shopProductMaterial.materialDisplayName}]]
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="updateProductSizeColorPricePrice" class="col-4 col-form-label">
+                                [[#{price}]] (<span class="text-danger">*</span>)
+                            </label>
+                            <div class="col-8">
+                                <label class="col-form-label text-danger d-none" id="updateProductSizeColorPricePriceErrorLabel" for="updateProductSizeColorPricePrice">
+                                    <i class="far fa-times-circle"></i> <span id="updateProductSizeColorPricePriceError"></span>
+                                </label>
+                                <input type="number" name="price" id="updateProductSizeColorPricePrice"
+                                       class="form-control" th:placeholder="#{price}"
+                                       onkeydown="ecommerce.onKeyDownToUpdateProductSizeColorPrice();">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <div>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">[[#{cancel}]]</button>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="ecommerce.saveProductSizeColorPrice();">
+                        [[#{submit}]]
+                    </button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+</th:block>
+<script th:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.select = /*[[#{select}]]*/ '';
+/*]]>*/
+
+// ========== show update product size color price modal =============
+ecommerce.showAddProductSizeColorPriceModal = function() {
+    ecommerce.showUpdateProductSizeColorPriceModal();
+}
+
+ecommerce.showUpdateProductSizeColorPriceModal = function(
+    productSizeColorPriceId
+) {
+    ecommerce.selectedProductSizeColorPrice = productSizeColorPriceId
+        ? ecommerce.productSizeColorPriceById[productSizeColorPriceId]
+        : {};
+    ecommerce.selectedProductSizeColorPriceId = productSizeColorPriceId;
+    ecommerce.changeUpdateProductSizeColorPriceSizeSelect();
+    ecommerce.changeUpdateProductSizeColorColorSizeSelect();
+    ecommerce.changeUpdateProductSizeMaterialMaterialSizeSelect();
+    var price = ecommerce.selectedProductSizeColorPrice.price || '';
+    $('#updateProductSizeColorPricePrice').val(price);
+    $('#update-product-size-color-price').modal('show');
+}
+
+ecommerce.hideUpdateProductSizeColorPriceModal = function() {
+    $('#update-product-size-color-price').modal('hide');
+}
+
+ecommerce.changeUpdateProductSizeColorPriceSizeSelect = function() {
+    var size = ecommerce.selectedProductSizeColorPrice.size || {};
+    var sizeId = size.id;
+    var html = `<option value="">${ezyadmin.messages.select}</option>`;
+    ecommerce.productSizes.forEach((item) => {
+        html += `<option value="${item.id}"${sizeId == item.id ? ' selected' : ''}>
+            ${item.sizeName}
+        </option>`;
+    });
+    $('#updateProductSizeColorPriceSize').html(html);
+}
+
+ecommerce.changeUpdateProductSizeColorColorSizeSelect = function() {
+    var color = ecommerce.selectedProductSizeColorPrice.color || {};
+    var colorId = color.id;
+    var html = `<option value="">${ezyadmin.messages.select}</option>`;
+    ecommerce.productColors.forEach((item) => {
+        html += `<option value="${item.id}"${colorId == item.id ? ' selected' : ''}>
+            ${item.colorName + '||' + item.colorDisplayName + '||' + item.colorCode}
+        </option>`;
+    });
+    $('#updateProductSizeColorPriceColor').html(html);
+}
+
+ecommerce.changeUpdateProductSizeMaterialMaterialSizeSelect = function() {
+    var material = ecommerce.selectedProductSizeColorPrice.material || {};
+    var materialId = material.id;
+    var html = `<option value="">${ezyadmin.messages.select}</option>`;
+    ecommerce.productMaterials.forEach((item) => {
+        html += `<option value="${item.id}"${materialId == item.id ? ' selected' : ''}>
+            ${item.materialDisplayName}
+        </option>`;
+    });
+    $('#updateProductSizeColorPriceMaterial').html(html);
+}
+
+$(document).ready(() => {
+    $('#update-product-size-color-price').on('shown.bs.modal', function () {
+        $('#updateProductSizeColorPricePrice').focus();
+    });
+});
+
+// ========== update product size color price =============
+ecommerce.onKeyDownToUpdateProductSizeColorPrice = function() {
+    if(event.key === 'Enter') {
+        ecommerce.saveProductSizeColorPrice();
+    }
+}
+
+ecommerce.saveProductSizeColorPrice = function() {
+    var formData = ezyadmin.formDataToObject('updateProductSizeColorPriceForm');
+    formData.currencyId = $('#productCurrency').val();
+    $.ajax({
+        type: 'PUT',
+        url: '/ecommerce/api/v1/products/' + ecommerce.selectedProductId +
+             '/size-color-price',
+        data: formData,
+        success: function (data) {
+            ecommerce.hideUpdateProductSizeColorPriceModal();
+            if (ecommerce.fetchProductSizeColorPrices) {
+                ecommerce.fetchProductSizeColorPrices();
+            } else {
+                location.reload();
+            }
+        },
+        error: function (e) {
+            var formView = {
+                updateProductSizeColorPricePrice: true
+            };
+            var errors = e.responseJSON || {};
+            errors.updateProductSizeColorPricePrice = errors.price;
+            ezyadmin.processUpdateApiErrors(formView, e);
+        }
+    });
+}
+</script>
+</body>
+</html>

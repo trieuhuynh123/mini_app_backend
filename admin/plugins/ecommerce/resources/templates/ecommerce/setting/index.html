@@ -1,0 +1,501 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~ 
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~ 
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~ 
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+    xmlns:th="http://www.thymeleaf.org"
+    xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{ezyadmin}">
+<head>
+    <script>
+      var ecommerce = {};
+    </script>
+</head>
+<body>
+<div layout:fragment="content" class="row">
+    <div class="col-md-3 col-5">
+        <span>[[#{product_indexer}]]</span>
+    </div>
+    <div class="col-md-9 col-7">
+        <button type="button" class="btn btn-primary"
+                th:if="${productIndexAppenderStarted != true}"
+                onclick="ecommerce.actProductIndexAppender('start');">
+            [[#{start}]]
+        </button>
+        <button type="button" class="btn btn-danger"
+                th:if="${productIndexAppenderStarted == true}"
+                onclick="ecommerce.actProductIndexAppender('stop');">
+            [[#{stop}]]
+        </button>
+        <button type="button" class="btn btn-info ml-2"
+                th:if="${productIndexAppenderStarted == true}"
+                onclick="ecommerce.actProductIndexAppender('restart');">
+            [[#{restart}]]
+        </button>
+    </div>
+    <div class="col-12 mt-3"></div>
+    <div class="col-md-3 col-5">
+        <span>[[#{delivery_order_creator}]]</span>
+    </div>
+    <div class="col-md-9 col-7">
+        <button type="button" class="btn btn-primary"
+                th:if="${deliveryOrderAppenderStarted != true}"
+                onclick="ecommerce.actDeliveryOrderAppender('start');">
+            [[#{start}]]
+        </button>
+        <button type="button" class="btn btn-danger"
+                th:if="${deliveryOrderAppenderStarted == true}"
+                onclick="ecommerce.actDeliveryOrderAppender('stop');">
+            [[#{stop}]]
+        </button>
+        <button type="button" class="btn btn-info ml-2"
+                th:if="${deliveryOrderAppenderStarted == true}"
+                onclick="ecommerce.actDeliveryOrderAppender('restart');">
+            [[#{restart}]]
+        </button>
+    </div>
+    <div class="col-12 mt-3"></div>
+    <div class="col-md-3 col-5">
+        <span>[[#{order_creator_information_updater}]]</span>
+    </div>
+    <div class="col-md-9 col-7">
+        <button type="button" class="btn btn-primary"
+                th:if="${userOrderAppenderStarted != true}"
+                onclick="ecommerce.actUserOrderAppender('start');">
+            [[#{start}]]
+        </button>
+        <button type="button" class="btn btn-danger"
+                th:if="${userOrderAppenderStarted == true}"
+                onclick="ecommerce.actUserOrderAppender('stop');">
+            [[#{stop}]]
+        </button>
+        <button type="button" class="btn btn-info ml-2"
+                th:if="${userOrderAppenderStarted == true}"
+                onclick="ecommerce.actUserOrderAppender('restart');">
+            [[#{restart}]]
+        </button>
+    </div>
+    <div class="col-12 mt-3"></div>
+    <div class="col-md-3 col-5">
+        <span>[[#{order_status_notifier_for_users}]]</span>
+    </div>
+    <div class="col-md-9 col-7">
+        <button type="button" class="btn btn-primary"
+                th:if="${userOrderNotificationAppenderStarted != true}"
+                onclick="ecommerce.actUserOrderNotificationAppender('start');">
+            [[#{start}]]
+        </button>
+        <button type="button" class="btn btn-danger"
+                th:if="${userOrderNotificationAppenderStarted == true}"
+                onclick="ecommerce.actUserOrderNotificationAppender('stop');">
+            [[#{stop}]]
+        </button>
+        <button type="button" class="btn btn-info ml-2"
+                th:if="${userOrderNotificationAppenderStarted == true}"
+                onclick="ecommerce.actUserOrderNotificationAppender('restart');">
+            [[#{restart}]]
+        </button>
+    </div>
+    <div class="col-12 mt-3"></div>
+    <div class="col-md-3 col-5">
+        <span>[[#{commission_calculator_for_seller_from_customer}]]</span>
+    </div>
+    <div class="col-md-9 col-7">
+        <button type="button" class="btn btn-primary"
+                th:if="${customerSellerCommissionAppenderStarted != true}"
+                onclick="ecommerce.actCustomerSellerCommissionAppender('start');">
+            [[#{start}]]
+        </button>
+        <button type="button" class="btn btn-danger"
+                th:if="${customerSellerCommissionAppenderStarted == true}"
+                onclick="ecommerce.actCustomerSellerCommissionAppender('stop');">
+            [[#{stop}]]
+        </button>
+        <button type="button" class="btn btn-info ml-2"
+                th:if="${customerSellerCommissionAppenderStarted == true}"
+                onclick="ecommerce.actCustomerSellerCommissionAppender('restart');">
+            [[#{restart}]]
+        </button>
+    </div>
+    <div class="col-12 mt-3"></div>
+    <div class="col-md-3 col-5">
+        <span>[[#{commission_calculator_for_seller_from_voucher}]]</span>
+    </div>
+    <div class="col-md-9 col-7">
+        <button type="button" class="btn btn-primary"
+                th:if="${voucherSellerCommissionAppenderStarted != true}"
+                onclick="ecommerce.actVoucherSellerCommissionAppender('start');">
+            [[#{start}]]
+        </button>
+        <button type="button" class="btn btn-danger"
+                th:if="${voucherSellerCommissionAppenderStarted == true}"
+                onclick="ecommerce.actVoucherSellerCommissionAppender('stop');">
+            [[#{stop}]]
+        </button>
+        <button type="button" class="btn btn-info ml-2"
+                th:if="${voucherSellerCommissionAppenderStarted == true}"
+                onclick="ecommerce.actVoucherSellerCommissionAppender('restart');">
+            [[#{restart}]]
+        </button>
+    </div>
+    <div class="col-12 mt-3"></div>
+    <div class="col-md-3 col-5">
+        <span>[[#{commission_calculator_for_seller_from_affiliate}]]</span>
+    </div>
+    <div class="col-md-9 col-7">
+        <button type="button" class="btn btn-primary"
+                th:if="${affiliateSellerCommissionAppenderStarted != true}"
+                onclick="ecommerce.actAffiliateSellerCommissionAppender('start');">
+            [[#{start}]]
+        </button>
+        <button type="button" class="btn btn-danger"
+                th:if="${affiliateSellerCommissionAppenderStarted == true}"
+                onclick="ecommerce.actAffiliateSellerCommissionAppender('stop');">
+            [[#{stop}]]
+        </button>
+        <button type="button" class="btn btn-info ml-2"
+                th:if="${affiliateSellerCommissionAppenderStarted == true}"
+                onclick="ecommerce.actAffiliateSellerCommissionAppender('restart');">
+            [[#{restart}]]
+        </button>
+    </div>
+    <div class="col-md-12">
+        <hr class="mb-4"/>
+    </div>
+    <div class="col-md-12">
+        <form id="updateSettingsForm">
+            <div class="form-group row">
+                <label for="orderManagementEmails" class="col-sm-3 col-form-label">[[#{order_management_emails}]]</label>
+                <div class="col-lg-7 col-md-6">
+                    <textarea name="orderManagementEmails" id="orderManagementEmails" class="form-control" th:placeholder="#{order_management_emails}"
+                              th:text="${#strings.listJoin(orderManagementEmails, ',\n')}" rows="5"></textarea>
+                </div>
+                <label id="orderManagementEmailsErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="orderManagementEmails">
+                    <i class="far fa-times-circle"></i> <span id="orderManagementEmailsError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="notifyNewOrdersPeriod" class="col-sm-3 col-form-label">[[#{notify_new_orders_period}]]</label>
+                <div class="col-lg-7 col-md-6">
+                    <div class="d-flex align-items-center">
+                        <input type="number" name="notifyNewOrdersPeriod" id="notifyNewOrdersPeriod" class="form-control" th:placeholder="#{notify_new_orders_period}"
+                               th:value="${notifyNewOrdersPeriod}">
+                        <span class="ml-2">[[#{minute}]]</span>
+                    </div>
+                </div>
+                <label id="notifyNewOrdersPeriodErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="notifyNewOrdersPeriod">
+                    <i class="far fa-times-circle"></i> <span id="notifyNewOrdersPeriodError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="newInProductsShowTime" class="col-sm-3 col-form-label">[[#{new_in_products_show_time}]]</label>
+                <div class="col-lg-7 col-md-6">
+                    <div class="d-flex align-items-center">
+                        <input type="number" name="newInProductsShowTime" id="newInProductsShowTime" class="form-control" th:placeholder="#{new_in_products_show_time}"
+                               th:value="${newInProductsShowTime}">
+                        <span class="ml-2">[[#{month}]]</span>
+                    </div>
+                </div>
+                <label id="newInProductsShowTimeErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="newInProductsShowTime">
+                    <i class="far fa-times-circle"></i> <span id="newInProductsShowTimeError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="defaultDeliveryRequiredProducts" class="col-sm-3 col-form-label">[[#{products_are_set_to_require_delivery_by_default}]]</label>
+                <div class="col-lg-7 col-md-6 d-flex align-items-center">
+                    <input type="checkbox" name="defaultDeliveryRequiredProducts" id="defaultDeliveryRequiredProducts" class="wh-1rem"
+                           th:checked="${defaultDeliveryRequiredProducts}">
+                </div>
+                <label id="defaultDeliveryRequiredProductsErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="defaultDeliveryRequiredProducts">
+                    <i class="far fa-times-circle"></i> <span id="defaultDeliveryRequiredProductsError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="requireCheckoutEmail" class="col-sm-3 col-form-label">[[#{require_checkout_email}]]</label>
+                <div class="col-lg-7 col-md-6 d-flex align-items-center">
+                    <input type="checkbox" name="requireCheckoutEmail" id="requireCheckoutEmail" class="wh-1rem"
+                           th:checked="${requireCheckoutEmail}">
+                </div>
+                <label id="requireCheckoutEmailErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="requireCheckoutEmail">
+                    <i class="far fa-times-circle"></i> <span id="requireCheckoutEmailError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="allowChangeCheckoutProductCount" class="col-sm-3 col-form-label">[[#{allow_change_checkout_product_count}]]</label>
+                <div class="col-lg-7 col-md-6 d-flex align-items-center">
+                    <input type="checkbox" name="allowChangeCheckoutProductCount" id="allowChangeCheckoutProductCount" class="wh-1rem"
+                           th:checked="${allowChangeCheckoutProductCount}">
+                </div>
+                <label id="allowChangeCheckoutProductCountErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="allowChangeCheckoutProductCount">
+                    <i class="far fa-times-circle"></i> <span id="allowChangeCheckoutProductCountError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="allowSendingOrderNotificationEmails" class="col-sm-3 col-form-label">[[#{allow_sending_order_notification_emails}]]</label>
+                <div class="col-lg-7 col-md-6 d-flex align-items-center">
+                    <input type="checkbox" name="allowSendingOrderNotificationEmails" id="allowSendingOrderNotificationEmails" class="wh-1rem"
+                           th:checked="${allowSendingOrderNotificationEmails}">
+                </div>
+                <label id="allowSendingOrderNotificationEmailsErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="allowSendingOrderNotificationEmails">
+                    <i class="far fa-times-circle"></i> <span id="allowSendingOrderNotificationEmailsError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="allowSendingPaymentConfirmationNotification" class="col-sm-3 col-form-label">[[#{allow_sending_payment_confirmation_notification}]]</label>
+                <div class="col-lg-7 col-md-6 d-flex align-items-center">
+                    <input type="checkbox" name="allowSendingPaymentConfirmationNotification" id="allowSendingPaymentConfirmationNotification" class="wh-1rem"
+                           th:checked="${allowSendingPaymentConfirmationNotification}">
+                </div>
+                <label id="allowSendingPaymentConfirmationNotificationErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="allowSendingPaymentConfirmationNotification">
+                    <i class="far fa-times-circle"></i> <span id="allowSendingPaymentConfirmationNotificationError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="showCollectionName" class="col-sm-3 col-form-label">[[#{show_collection_name}]]</label>
+                <div class="col-lg-7 col-md-6 d-flex align-items-center">
+                    <input type="checkbox" name="showCollectionName" id="showCollectionName" class="wh-1rem"
+                           th:checked="${showCollectionName}">
+                </div>
+                <label id="showCollectionNameErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="showCollectionName">
+                    <i class="far fa-times-circle"></i> <span id="showCollectionNameError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="showMainCollectionName" class="col-sm-3 col-form-label">[[#{show_main_collection_name}]]</label>
+                <div class="col-lg-7 col-md-6 d-flex align-items-center">
+                    <input type="checkbox" name="showMainCollectionName" id="showMainCollectionName" class="wh-1rem"
+                           th:checked="${showMainCollectionName}">
+                </div>
+                <label id="showMainCollectionNameErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="showMainCollectionName">
+                    <i class="far fa-times-circle"></i> <span id="showMainCollectionNameError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="showCountrySelectionOnWeb" class="col-sm-3 col-form-label">[[#{display_country_selection_on_the_web}]]</label>
+                <div class="col-lg-7 col-md-6 d-flex align-items-center">
+                    <input type="checkbox" name="showCountrySelectionOnWeb" id="showCountrySelectionOnWeb" class="wh-1rem"
+                           th:checked="${showCountrySelectionOnWeb}">
+                </div>
+                <label id="showCountrySelectionOnWebErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="showCountrySelectionOnWeb">
+                    <i class="far fa-times-circle"></i> <span id="showCountrySelectionOnWebError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="userAddressRequiredOnWeb" class="col-sm-3 col-form-label">[[#{required_user_address_on_the_web}]]</label>
+                <div class="col-lg-7 col-md-6 d-flex align-items-center">
+                    <input type="checkbox" name="userAddressRequiredOnWeb" id="userAddressRequiredOnWeb" class="wh-1rem"
+                           th:checked="${userAddressRequiredOnWeb}">
+                </div>
+                <label id="userAddressRequiredOnWebErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="userAddressRequiredOnWeb">
+                    <i class="far fa-times-circle"></i> <span id="userAddressRequiredOnWebError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="defaultShippingFeePayer" class="col-sm-3 col-form-label">[[#{default_shipping_fee_payer}]]</label>
+                <div class="col-lg-7 col-md-6 d-flex align-items-center">
+                    <select name="defaultShippingFeePayer" id="defaultShippingFeePayer" class="form-control">
+                        <option th:each="shippingFeePayer : ${shippingFeePayers}"
+                                th:value="${shippingFeePayer}"
+                                th:selected="${shippingFeePayer == defaultShippingFeePayer}">
+                            [[#{${shippingFeePayer.toString().toLowerCase()}}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="defaultShippingFeePayerErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="defaultShippingFeePayer">
+                    <i class="far fa-times-circle"></i> <span id="defaultShippingFeePayerError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="allowPaymentWithinPeriod" class="col-sm-3 col-form-label">[[#{allow_user_to_complete_payment_within_a_certain_period_of_time}]]</label>
+                <div class="col-lg-7 col-md-6 d-flex align-items-center">
+                    <input type="checkbox" name="allowPaymentWithinPeriod" id="allowPaymentWithinPeriod" class="wh-1rem"
+                           th:checked="${allowPaymentWithinPeriod}">
+                </div>
+                <label id="allowPaymentWithinPeriodErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="allowPaymentWithinPeriod">
+                    <i class="far fa-times-circle"></i> <span id="allowPaymentWithinPeriodError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="paymentConfirmationPeriodInMinutes" class="col-sm-3 col-form-label">[[#{payment_confirmation_period}]]</label>
+                <div class="col-lg-7 col-md-6">
+                    <div class="d-flex align-items-center">
+                        <input type="number" name="paymentConfirmationPeriodInMinutes" id="paymentConfirmationPeriodInMinutes" class="form-control" th:placeholder="#{notify_new_orders_period}"
+                               th:value="${paymentConfirmationPeriodInMinutes}">
+                        <span class="ml-2">[[#{minute}]]</span>
+                    </div>
+                </div>
+                <label id="paymentConfirmationPeriodInMinutesErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="paymentConfirmationPeriodInMinutes">
+                    <i class="far fa-times-circle"></i> <span id="paymentConfirmationPeriodInMinutesError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="row">
+                <div class="col-md-3"></div>
+                <div class="col-md-2 mb-2">
+                    <button type="button" class="btn btn-primary btn-block" onclick="ecommerce.updateSettings();">[[#{save}]]</button>
+                </div>
+                <div class="col-md-5"></div>
+                <!-- /.col -->
+            </div>
+        </form>
+    </div>
+</div>
+<script layout:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.save_successfully = /*[[#{save_successfully}]]*/;
+/*]]>*/
+// ================ appenders ==========
+ecommerce.actProductIndexAppender = function(action) {
+    $.ajax({
+        type: 'PUT',
+        url: '/ecommerce/api/v1/settings/product-index-appender/' + action,
+        success: function () {
+            location.reload();
+        },
+        error: function (data, e) {
+            ezyadmin.processUpdateApiErrors({}, data);
+        }
+    });
+}
+
+ecommerce.actDeliveryOrderAppender = function(action) {
+    $.ajax({
+        type: 'PUT',
+        url: '/ecommerce/api/v1/settings/delivery-order-appender/' + action,
+        success: function () {
+            location.reload();
+        },
+        error: function (data, e) {
+            ezyadmin.processUpdateApiErrors({}, data);
+        }
+    });
+}
+
+ecommerce.actUserOrderAppender = function(action) {
+    $.ajax({
+        type: 'PUT',
+        url: '/ecommerce/api/v1/settings/user-order-appender/' + action,
+        success: function () {
+            location.reload();
+        },
+        error: function (data, e) {
+            ezyadmin.processUpdateApiErrors({}, data);
+        }
+    });
+}
+
+ecommerce.actUserOrderNotificationAppender = function(action) {
+    $.ajax({
+        type: 'PUT',
+        url: '/ecommerce/api/v1/settings/user-order-notification-appender/' + action,
+        success: function () {
+            location.reload();
+        },
+        error: function (data, e) {
+            ezyadmin.processUpdateApiErrors({}, data);
+        }
+    });
+}
+
+ecommerce.actCustomerSellerCommissionAppender = function(action) {
+    $.ajax({
+        type: 'PUT',
+        url: '/ecommerce/api/v1/settings/customer-seller-commission-appender/' + action,
+        success: function () {
+            location.reload();
+        },
+        error: function (data, e) {
+            ezyadmin.processUpdateApiErrors({}, data);
+        }
+    });
+}
+
+ecommerce.actVoucherSellerCommissionAppender = function(action) {
+    $.ajax({
+        type: 'PUT',
+        url: '/ecommerce/api/v1/settings/voucher-seller-commission-appender/' + action,
+        success: function () {
+            location.reload();
+        },
+        error: function (data, e) {
+            ezyadmin.processUpdateApiErrors({}, data);
+        }
+    });
+}
+
+ecommerce.actAffiliateSellerCommissionAppender = function(action) {
+    $.ajax({
+        type: 'PUT',
+        url: '/ecommerce/api/v1/settings/affiliate-seller-commission-appender/' + action,
+        success: function () {
+            location.reload();
+        },
+        error: function (data, e) {
+            ezyadmin.processUpdateApiErrors({}, data);
+        }
+    });
+}
+
+// ================ settings ==================
+ecommerce.updateSettings = function() {
+    var formData = ezyadmin.formDataToObject('updateSettingsForm');
+    formData.defaultDeliveryRequiredProducts = $('#defaultDeliveryRequiredProducts')
+        .prop('checked');
+    formData.requireCheckoutEmail = $('#requireCheckoutEmail')
+        .prop('checked');
+    formData.allowChangeCheckoutProductCount = $('#allowChangeCheckoutProductCount')
+        .prop('checked');
+    formData.allowSendingOrderNotificationEmails = $('#allowSendingOrderNotificationEmails')
+        .prop('checked');
+    formData.allowSendingPaymentConfirmationNotification = $('#allowSendingPaymentConfirmationNotification')
+        .prop('checked');
+    formData.showCollectionName = $('#showCollectionName')
+        .prop('checked');
+    formData.showMainCollectionName = $('#showMainCollectionName')
+        .prop('checked');
+    formData.showCountrySelectionOnWeb = $('#showCountrySelectionOnWeb')
+        .prop('checked');
+    formData.userAddressRequiredOnWeb = $('#userAddressRequiredOnWeb')
+        .prop('checked');
+    formData.allowPaymentWithinPeriod = $('#allowPaymentWithinPeriod')
+        .prop('checked');
+    ['orderManagementEmails'].forEach((fieldName) => {
+        if (formData[fieldName]) {
+            var values = formData[fieldName].split(',');
+            formData[fieldName] = [];
+            values.forEach(e => {
+                formData[fieldName].push(e.trim());
+            });
+        } else {
+            formData[fieldName] = [];
+        }
+    });
+    $.ajax({
+        type: 'PUT',
+        url: '/ecommerce/api/v1/settings',
+        data: JSON.stringify(formData),
+        contentType: 'application/json',
+        success: function () {
+            ezyadmin.hideFormErrors(formData);
+            ezyadmin.shortToast('bg-success', ezyadmin.messages.save_successfully);
+        },
+        error: function (data, e) {
+            ezyadmin.processUpdateApiErrors(formData, data);
+        }
+    });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,334 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~ 
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~ 
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~ 
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        xmlns:ezy="http://www.ezyplatform.com/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<head>
+    <script>
+        var ecommerce = {};
+    </script>
+</head>
+<body>
+<div layout:fragment="content" class="row">
+    <div class="col-md-3 col-4"><label>[[#{id}]]:</label></div>
+    <div class="col-md-9 col-8">[[${category.id}]]</div>
+    <div class="col-md-3 col-4"><label>[[#{name}]]:</label></div>
+    <div class="col-md-9 col-8">[[${category.name}]]</div>
+    <div class="col-md-3 col-4"><label>[[#{display_name}]]:</label></div>
+    <div th:class="${webLanguages.size() > 1 ? 'col-md-6 col-5' : 'col-md-9 col-8'}"
+         id="categoryDisplayName">
+        [[${category.displayName}]]
+    </div>
+    <div th:if="${webLanguages.size() > 1}" class="col-3">
+        <select name="language" id="editWebLanguage" class="form-control"
+                onchange="ecommerce.onCategoryWebLanguageChange(this);">
+            <option value="">[[#{default_language}]]</option>
+            <option th:each="webLanguage : ${webLanguages}"
+                    th:value="${webLanguage.code}">
+                [[${webLanguage.name}]]
+            </option>
+        </select>
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{display_order}]]:</label></div>
+    <div class="col-md-9 col-8">[[${category.displayOrder}]]</div>
+    <div class="col-md-3 col-4"><label>[[#{open_category}]]:</label></div>
+    <div class="col-md-9 col-8">
+        <a th:if="${category.openCategory != null}"
+           th:href="${'/ecommerce/product-categories/' + category.openCategory.id}">
+            [[${category.openCategory.displayName}]]
+        </a>
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{open_url}]]:</label></div>
+    <div class="col-md-9 col-8">
+        <a th:if="${category.openUrl != null}" th:href="${category.openUrl}" target="_blank">
+            [[${category.openUrl}]]
+        </a>
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{category_parents}]]:</label></div>
+    <div class="col-md-9 col-8">
+        <button type="button" class="btn btn-outline-primary pt-1 pb-1"
+                onclick="ecommerce.showAddCategoryParentModal();">
+            [[#{add}]]
+        </button>
+        <ol class="pl-3 mt-2 mb-2" id="categoryParentListBody"></ol>
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{category_children}]]:</label></div>
+    <div class="col-md-9 col-8">
+        <button type="button" class="btn btn-outline-primary pt-1 pb-1"
+                onclick="ecommerce.showAddCategoryChildModal();">
+            [[#{add}]]
+        </button>
+        <ol class="pl-3 mt-2 mb-2" id="categoryChildListBody"></ol>
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{description}]]:</label></div>
+    <div class="col-md-9 col-8" th:utext="${category.description}"
+         id="categoryDescription"></div>
+    <div class="col-md-3 col-4"><label>[[#{type}]]:</label></div>
+    <div class="col-md-9 col-8 status-text">
+        [[#{${category.type.toLowerCase()}}]]
+    </div>
+    <div class="col-3 d-flex align-items-center">
+        <label>[[#{icon}]]:</label>
+    </div>
+    <div class="col-9 mt-2 mb-2">
+        <img th:src="${category.iconImage != null ? category.iconImage.getUrlOrDefault('') : ''}"
+             class="object-fit-cover" width="64">
+    </div>
+    <div class="col-3 d-flex align-items-center">
+        <label>[[#{banner}]]:</label>
+    </div>
+    <div class="col-9 mt-2 mb-2">
+        <img th:src="${category.bannerImage != null ? category.bannerImage.getUrlOrDefault('') : ''}"
+             class="object-fit-cover" width="256">
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{status}]]:</label></div>
+    <div class="col-md-9 col-8 status-text" th:attr="status=|${category.status}|">
+        [[#{${category.status.toString().toLowerCase()}}]]
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{created_at}]]:</label></div>
+    <div class="col-md-9 col-8 date-time-string">[[${category.createdAt}]]</div>
+    <div class="col-md-3 col-4"><label>[[#{updated_at}]]:</label></div>
+    <div class="col-md-9 col-8 date-time-string">[[${category.updatedAt}]]</div>
+    <div class="col-md-3 col-4"></div>
+    <div class="col-md-9 col-8">
+        <button type="button" class="btn btn-danger mb-2"
+                th:attr="onclick=|ecommerce.onDeleteCategoryClick()|">
+            [[#{delete}]] <i class="fas fa-trash"></i>
+        </button>
+    </div>
+    <div class="col-12">
+        <hr class="mb-4" />
+    </div>
+    <div class="col-12">
+        <div class="d-flex">
+            <h3>[[#{products}]]</h3>
+            <button type="button" id="addNewProductsButton"
+                    class="btn btn-outline-primary button-next-to-title"
+                    onclick="ecommerce.onAddNewProductsButtonClick();">
+                [[#{add_new}]] <i class="fas fa-plus-circle"></i>
+            </button>
+            <button type="button" id="addProductsDoneButton"
+                    class="btn btn-outline-success button-next-to-title d-none"
+                    onclick="ecommerce.onAddNewProductsDoneButtonClick();">
+                [[#{done}]] <i class="fas fa-check-circle"></i>
+            </button>
+        </div>
+    </div>
+    <th:block th:replace="~{/ecommerce/category/product-list :: content}" />
+    <div class="col-12">
+        <hr class="mb-4" />
+    </div>
+    <div class="col-12">
+        <div class="d-flex">
+            <h3>[[#{medias}]]</h3>
+            <button type="button" id="addNewProductMediaButton"
+                    class="btn btn-outline-primary button-next-to-title"
+                    onclick="ecommerce.onAddNewCategoryMediaButtonClick();">
+                [[#{add_new}]] <i class="fas fa-plus-circle"></i>
+            </button>
+        </div>
+    </div>
+    <th:block th:replace="~{/ecommerce/category/media-list :: content}" />
+    <div class="col-12">
+        <hr class="mb-4" />
+    </div>
+    <div class="col-12">
+        <div class="d-flex">
+            <h3>[[#{product_medias}]]</h3>
+        </div>
+    </div>
+    <th:block th:replace="~{/ecommerce/category/product-media-list :: content}" />
+</div>
+<th:block layout:fragment="modals">
+    <th:block th:replace="~{/ecommerce/category/add-parent :: content}" />
+    <th:block th:replace="~{/ecommerce/category/edit-parent :: content}" />
+    <th:block th:replace="~{/ecommerce/category/add-child :: content}" />
+    <th:block th:replace="~{/ecommerce/category/edit-child :: content}" />
+    <th:block th:replace="~{/ecommerce/product/discount-products :: content}" />
+    <th:block th:replace="~{/ecommerce/product/import-product-prices :: content}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='delete-category-modal', title=confirm, confirmButton=delete, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='delete-category-child-modal', title=confirm, confirmButton=delete, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='delete-category-parent-modal', title=confirm, confirmButton=delete, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='add-category-product-modal', title=confirm, confirmButton=confirm, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='delete-category-product-modal', title=confirm, confirmButton=delete, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='archive-product-modal', title=confirm, confirmButton=archive, closeButton=close, type=delete)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='delete-product-modal', title=confirm, confirmButton=delete, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='draft-product-modal', title=confirm, confirmButton=draft, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='publish-product-modal', title=confirm, confirmButton=activate, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='cancel-discount-product-modal', title=confirm, confirmButton=confirm, closeButton=close, type=delete)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='add-to-category-product-modal', title=confirm, confirmButton=add, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='remove-from-category-product-modal', title=confirm, confirmButton=confirm, closeButton=close, type=delete)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='upcoming-launches-product-modal', title=confirm, confirmButton=confirm, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='stop-selling-product-modal', title=confirm, confirmButton=confirm, closeButton=close)}" />
+</th:block>
+<th:block layout:fragment="import-scripts">
+    <script ezy:vsrc="/ecommerce/js/xlsx.full.min.js"></script>
+</th:block>
+<script layout:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ecommerce.selectedCategoryId = /*[[${category.id}]]*/ '';
+ecommerce.selectedCategoryDisplayName = /*[[${category.displayName}]]*/ '';
+ecommerce.selectedCategoryDescription = /*[[${category.description}]]*/ '';
+ezyadmin.messages.product_s = /*[[#{product_s}]]*/;
+ezyadmin.messages.save_successfully = /*[[#{save_successfully}]]*/ '';
+ezyadmin.messages.save_failed = /*[[#{save_failed}]]*/ '';
+/*]]>*/
+
+ezyadmin.onEditButtonClick = function() {
+    window.location = '/ecommerce/product-categories/' + ecommerce.selectedCategoryId +
+        '/edit' + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+}
+
+// ========== category language change =============
+ecommerce.fetchCategoryI18nCallback = function(data) {
+    $('#categoryDisplayName').text(data.displayName || '');
+    $('#categoryDescription').html(data.description || '')
+}
+
+// ========== category parent ======================
+ecommerce.fetchCategoryParentNames = function(language) {
+    var i18nLanguage = ecommerce.selectedCategoryLanguage;
+    $.ajax({
+        url: '/ecommerce/api/v1/product-categories/' + ecommerce.selectedCategoryId +
+             '/parent-names' + (i18nLanguage ? ('?i18n_lang=' + i18nLanguage) : ''),
+        type: 'GET',
+        dataType: 'json'
+    })
+    .done(function(data) {
+        ecommerce.buildCategoryParentListBodyHtml(data);
+    })
+    .fail(function(e) {
+    	ezyadmin.processGetApiErrors(e);
+    });
+}
+
+ecommerce.buildCategoryParentListBodyHtml = function(categoryParents) {
+    var html = '';
+    categoryParents.forEach((categoryParent) => {
+        html += `
+            <li>
+                <a class="text-wrap" href="${'/ecommerce/product-categories/' + categoryParent.id}">
+                    ${categoryParent.displayName}
+                    (${categoryParent.displayOrder})
+                </a>
+                <a class="text-primary cursor-pointer ml-3"
+                   onclick="ecommerce.showEditCategoryParentModal(${categoryParent.id}, '${escape(categoryParent.displayName)}', ${categoryParent.displayOrder})">
+                    <i class="fas fa-edit"></i>
+                </a>
+                <a class="text-danger cursor-pointer ml-2"
+                   onclick="ecommerce.onDeleteCategoryParentClick(${categoryParent.id}, '${escape(categoryParent.displayName)}')">
+                    <i class="fas fa-trash-alt"></i>
+                </a>
+            </li>
+        `;
+    });
+    $('#categoryParentListBody').html(html);
+}
+
+ecommerce.fetchCategoryParentNames();
+
+// ========== category child ======================
+ecommerce.fetchCategoryChildNames = function(language) {
+    var i18nLanguage = ecommerce.selectedCategoryLanguage;
+    $.ajax({
+        url: '/ecommerce/api/v1/product-categories/' + ecommerce.selectedCategoryId +
+             '/child-names' + (i18nLanguage ? ('?i18n_lang=' + i18nLanguage) : ''),
+        type: 'GET',
+        dataType: 'json'
+    })
+    .done(function(data) {
+        ecommerce.buildCategoryChildListBodyHtml(data);
+    })
+    .fail(function(e) {
+    	ezyadmin.processGetApiErrors(e);
+    });
+}
+
+ecommerce.buildCategoryChildListBodyHtml = function(categoryChildren) {
+    var html = '';
+    categoryChildren.forEach((categoryChild) => {
+        html += `
+            <li>
+                <a class="text-wrap" href="${'/ecommerce/product-categories/' + categoryChild.id}">
+                    ${categoryChild.displayName}
+                    (${categoryChild.displayOrder})
+                </a>
+                <a class="text-primary cursor-pointer ml-3"
+                   onclick="ecommerce.showEditCategoryChildModal(${categoryChild.id}, '${escape(categoryChild.displayName)}', ${categoryChild.displayOrder})">
+                    <i class="fas fa-edit"></i>
+                </a>
+                <a class="text-danger cursor-pointer ml-2"
+                   onclick="ecommerce.onDeleteCategoryChildClick(${categoryChild.id}, '${escape(categoryChild.displayName)}')">
+                    <i class="fas fa-trash-alt"></i>
+                </a>
+            </li>
+        `;
+    });
+    $('#categoryChildListBody').html(html);
+}
+
+ecommerce.fetchCategoryChildNames();
+</script>
+<th:block layout:fragment="post-scripts">
+<script th:replace="~{scripts/suggestion :: input}" />
+<script th:replace="~{ecommerce/scripts/suggestion :: category}" />
+<script th:replace="~{ecommerce/category/scripts :: delete}" />
+<script th:replace="~{ecommerce/category/scripts :: delete-child}" />
+<script th:replace="~{ecommerce/category/scripts :: delete-parent}" />
+<script th:replace="~{ecommerce/category/scripts :: add-product}" />
+<script th:replace="~{ecommerce/category/scripts :: delete-product}" />
+<script th:replace="~{ecommerce/category/scripts :: i18n}" />
+<script th:replace="~{ecommerce/category/add-parent :: scripts}" />
+<script th:replace="~{ecommerce/category/edit-parent :: scripts}" />
+<script th:replace="~{ecommerce/category/add-child :: scripts}" />
+<script th:replace="~{ecommerce/category/edit-child :: scripts}" />
+<script th:replace="~{ecommerce/category/product-list :: scripts}" />
+<script th:replace="~{ecommerce/category/media-list :: scripts}" />
+<script th:replace="~{ecommerce/category/product-media-list :: scripts}" />
+<script th:replace="~{ecommerce/scripts/media :: build-html}" />
+<script th:replace="~{ecommerce/product/scripts :: bulk-actions}" />
+<script th:replace="~{ecommerce/product/scripts :: export-product-items-to-excel}" />
+<script th:replace="~{ecommerce/product/discount-products :: scripts}" />
+<script th:replace="~{ecommerce/product/import-product-prices :: scripts}" />
+<script>
+ezyadmin.onPromptConfirmed = function(modalId) {
+    if (modalId == 'delete-category-modal') {
+        ecommerce.deleteCategory();
+    } else if (modalId == 'delete-category-child-modal') {
+        ecommerce.deleteCategoryChild();
+    } else if (modalId == 'delete-category-parent-modal') {
+        ecommerce.deleteCategoryParent();
+    } else if (modalId == 'add-category-product-modal') {
+        ecommerce.addCategoryProduct();
+    } else if (modalId == 'delete-category-product-modal') {
+        ecommerce.deleteCategoryProduct();
+    } else {
+        ecommerce.onPromptProductBulkActionConfirmed(modalId);
+    }
+}
+
+$(document).ready(() => {
+    ecommerce.addCategoryProductsBulkActionOption();
+});
+</script>
+</th:block>
+</body>
+</html>

@@ -1,0 +1,437 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~ 
+ ~ Licensed under the ezycurrency, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~ 
+ ~     https://youngmonkeys.org/licenses/ezycurrency-1.0.0.txt
+ ~ 
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<head>
+    <script>
+        var ecommerce = {};
+    </script>
+</head>
+<body>
+<div layout:fragment="content" class="row">
+    <div class="col-12">
+        <table id="currencyList" class="table table-bordered table-hover">
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>[[#{iso_code}]]</th>
+                <th>[[#{symbol}]]</th>
+                <th>[[#{display_name}]]</th>
+                <th>[[#{format}]]</th>
+                <th>[[#{decimals}]]</th>
+                <th>[[#{status}]]</th>
+                <th>[[#{default}]]</th>
+                <th>[[#{created_at}]]</th>
+                <th>[[#{actions}]]</th>
+            </tr>
+            </thead>
+            <tbody id="currencyListBody">
+            <tr th:each="currency,iterator : ${currencies}">
+                <td th:text="${iterator.index + 1}"></td>
+                <td>
+                    [[${currency.isoCode}]]
+                </td>
+                <td>
+                    [[${currency.symbol}]]
+                    ([[#{${currency.symbolPosition.toString().toLowerCase()}}]])
+                </td>
+                <td>
+                    [[${currency.displayName}]]
+                </td>
+                <td>
+                    [[${currency.format}]]
+                </td>
+                <td>
+                    [[${currency.decimalLength}]]
+                </td>
+                <td th:attr="status=|${currency.status}|" class="status-text">
+                    [[#{${currency.status.toString().toLowerCase()}}]]
+                </td>
+                <td>
+                    <button type="button" th:if="${currency.id != defaultCurrencyId}"
+                            class="btn btn-link pt-0"
+                            th:attr="onclick=|ecommerce.setDefaultCurrency(${currency.id})|">
+                        [[#{set_as}]]
+                    </button>
+                    <button type="button" th:if="${currency.id == defaultCurrencyId}"
+                            class="btn btn-link text-success pt-0">
+                        [[#{default}]]
+                    </button>
+                </td>
+                <td th:text="${currency.createdAt}" class="date-time-string"></td>
+                <td>
+                    <a class="text-primary pr-2" th:attr="onclick=|ecommerce.showEditCurrencyModal(${currency.id})|">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <a class="text-danger" th:attr="onclick=|ecommerce.onDeleteCurrencyClick(${currency.id}, '${currency.displayName}')|">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+<th:block layout:fragment="modals">
+    <div class="modal fade pt-4rem" id="add-currency">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">[[#{add_new_currency}]]</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="addCurrencyForm">
+                        <div class="form-group row">
+                            <label for="addCurrencyIsoCode" class="col-3 col-form-label">[[#{iso_code}]]:</label>
+                            <div class="col-9">
+                                <label class="col-form-label text-danger d-none" id="addCurrencyIsoCodeErrorLabel" for="addCurrencyIsoCode">
+                                    <i class="far fa-times-circle"></i> <span id="addCurrencyIsoCodeError"></span>
+                                </label>
+                                <input type="text" name="currencyIsoCode" id="addCurrencyIsoCode"
+                                       class="form-control" th:placeholder="#{iso_code}"
+                                       onkeydown="ecommerce.onKeyDownToSaveCurrency('add')">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="addCurrencySymbol" class="col-3 col-form-label">
+                                [[#{symbol}]]:
+                            </label>
+                            <div class="col-9">
+                                <label class="col-form-label text-danger d-none" id="addCurrencySymbolErrorLabel" for="addCurrencySymbol">
+                                    <i class="far fa-times-circle"></i> <span id="addCurrencySymbolError"></span>
+                                </label>
+                                <input type="text" name="currencySymbol" id="addCurrencySymbol"
+                                       class="form-control" th:placeholder="#{symbol}"
+                                       onkeydown="ecommerce.onKeyDownToSaveCurrency('add')">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="addCurrencySymbolPosition" class="col-3 col-form-label">[[#{symbol_position}]]:</label>
+                            <div class="col-9">
+                                <label class="col-form-label text-danger d-none" id="addCurrencySymbolPositionErrorLabel" for="addCurrencySymbolPosition">
+                                    <i class="far fa-times-circle"></i> <span id="addCurrencySymbolPositionError"></span>
+                                </label>
+                                <select name="currencySymbolPosition" id="addCurrencySymbolPosition" class="form-control">
+                                    <option th:each="currencySymbolPosition, iterator : ${currencySymbolPositions}"
+                                            th:value="${currencySymbolPosition.toString()}">
+                                        [[#{${currencySymbolPosition.toString().toLowerCase()}}]]
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="addCurrencyDisplayName" class="col-3 col-form-label">
+                                [[#{display_name}]]:
+                            </label>
+                            <div class="col-9">
+                                <label class="col-form-label text-danger d-none" id="addCurrencyDisplayNameErrorLabel" for="addCurrencyDisplayName">
+                                    <i class="far fa-times-circle"></i> <span id="addCurrencyDisplayNameError"></span>
+                                </label>
+                                <input type="text" name="currencyDisplayName" id="addCurrencyDisplayName"
+                                       class="form-control" th:placeholder="#{display_name}"
+                                       onkeydown="ecommerce.onKeyDownToSaveCurrency('add')">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="addCurrencyFormat" class="col-3 col-form-label">
+                                [[#{format}]]:
+                            </label>
+                            <div class="col-9">
+                                <label class="col-form-label text-danger d-none" id="addCurrencyFormatErrorLabel" for="addCurrencyFormat">
+                                    <i class="far fa-times-circle"></i> <span id="addCurrencyFormatError"></span>
+                                </label>
+                                <input type="text" name="currencyFormat" id="addCurrencyFormat"
+                                       class="form-control" placeholder="#,###.##"
+                                       onkeydown="ecommerce.onKeyDownToSaveCurrency('add')">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="addCurrencyDecimal" class="col-3 col-form-label">[[#{decimals}]]:</label>
+                            <div class="col-9">
+                                <label class="col-form-label text-danger d-none" id="addCurrencyDecimalErrorLabel" for="addCurrencyDecimal">
+                                    <i class="far fa-times-circle"></i> <span id="addCurrencyDecimalError"></span>
+                                </label>
+                                <input type="text" name="currencyDecimal" id="addCurrencyDecimal"
+                                       class="form-control" placeholder="0"
+                                       onkeydown="ecommerce.onKeyDownToSaveCurrency('add')">
+                            </div>
+                        </div>
+                        <div class="form-group row mb-0">
+                            <label for="addCurrencyStatus" class="col-3 col-form-label">[[#{status}]]:</label>
+                            <div class="col-9">
+                                <label class="col-form-label text-danger d-none" id="addCurrencyStatusErrorLabel" for="addCurrencyStatus">
+                                    <i class="far fa-times-circle"></i> <span id="addCurrencyStatusError"></span>
+                                </label>
+                                <select name="currencyStatus" id="addCurrencyStatus" class="form-control">
+                                    <option th:each="currencyStatus : ${currencyStatuses}"
+                                            th:value="${currencyStatus.toString()}">
+                                        [[#{${currencyStatus.toString().toLowerCase()}}]]
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <div>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">
+                            [[#{cancel}]]
+                        </button>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="ecommerce.addNewCurrency();">
+                        [[#{add}]]
+                    </button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+    <div class="modal fade pt-4rem" id="edit-currency">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">[[#{edit_currency}]]</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="editCurrencyForm">
+                        <div class="form-group row">
+                            <label for="editCurrencyIsoCode" class="col-3 col-form-label">[[#{iso_code}]]:</label>
+                            <div class="col-9">
+                                <label class="col-form-label text-danger d-none" id="editCurrencyIsoCodeErrorLabel" for="editCurrencyIsoCode">
+                                    <i class="far fa-times-circle"></i> <span id="editCurrencyIsoCodeError"></span>
+                                </label>
+                                <input type="text" name="currencyIsoCode" id="editCurrencyIsoCode"
+                                       class="form-control" th:placeholder="#{iso_code}"
+                                       onkeydown="ecommerce.onKeyDownToSaveCurrency('edit')">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="editCurrencySymbol" class="col-3 col-form-label">
+                                [[#{symbol}]]:
+                            </label>
+                            <div class="col-9">
+                                <label class="col-form-label text-danger d-none" id="editCurrencySymbolErrorLabel" for="editCurrencySymbol">
+                                    <i class="far fa-times-circle"></i> <span id="editCurrencySymbolError"></span>
+                                </label>
+                                <input type="text" name="currencySymbol" id="editCurrencySymbol"
+                                       class="form-control" th:placeholder="#{symbol}"
+                                       onkeydown="ecommerce.onKeyDownToSaveCurrency('edit')">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="editCurrencySymbolPosition" class="col-3 col-form-label">[[#{symbol_position}]]:</label>
+                            <div class="col-9">
+                                <label class="col-form-label text-danger d-none" id="editCurrencySymbolPositionErrorLabel" for="editCurrencySymbolPosition">
+                                    <i class="far fa-times-circle"></i> <span id="editCurrencySymbolPositionError"></span>
+                                </label>
+                                <select name="currencySymbolPosition" id="editCurrencySymbolPosition" class="form-control">
+                                    <option th:each="currencySymbolPosition, iterator : ${currencySymbolPositions}"
+                                            th:value="${currencySymbolPosition.toString()}">
+                                        [[#{${currencySymbolPosition.toString().toLowerCase()}}]]
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="editCurrencyDisplayName" class="col-3 col-form-label">
+                                [[#{display_name}]]:
+                            </label>
+                            <div class="col-9">
+                                <label class="col-form-label text-danger d-none" id="editCurrencyDisplayNameErrorLabel" for="editCurrencyDisplayName">
+                                    <i class="far fa-times-circle"></i> <span id="editCurrencyDisplayNameError"></span>
+                                </label>
+                                <input type="text" name="currencyDisplayName" id="editCurrencyDisplayName"
+                                       class="form-control" th:placeholder="#{display_name}"
+                                       onkeydown="ecommerce.onKeyDownToSaveCurrency('edit')">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="editCurrencyFormat" class="col-3 col-form-label">
+                                [[#{format}]]:
+                            </label>
+                            <div class="col-9">
+                                <label class="col-form-label text-danger d-none" id="editCurrencyFormatErrorLabel" for="editCurrencyFormat">
+                                    <i class="far fa-times-circle"></i> <span id="editCurrencyFormatError"></span>
+                                </label>
+                                <input type="text" name="currencyFormat" id="editCurrencyFormat"
+                                       class="form-control" placeholder="#,###.##"
+                                       onkeydown="ecommerce.onKeyDownToSaveCurrency('edit')">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="editCurrencyDecimal" class="col-3 col-form-label">
+                                [[#{decimals}]]:
+                            </label>
+                            <div class="col-9">
+                                <label class="col-form-label text-danger d-none" id="editCurrencyDecimalErrorLabel" for="editCurrencyDecimal">
+                                    <i class="far fa-times-circle"></i> <span id="editCurrencyDecimalError"></span>
+                                </label>
+                                <input type="text" name="currencyDecimal" id="editCurrencyDecimal"
+                                       class="form-control" placeholder="0"
+                                       onkeydown="ecommerce.onKeyDownToSaveCurrency('edit')">
+                            </div>
+                        </div>
+                        <div class="form-group row mb-0">
+                            <label for="editCurrencyStatus" class="col-3 col-form-label">[[#{status}]]:</label>
+                            <div class="col-9">
+                                <label class="col-form-label text-danger d-none" id="editCurrencyStatusErrorLabel" for="editCurrencyStatus">
+                                    <i class="far fa-times-circle"></i> <span id="editCurrencyStatusError"></span>
+                                </label>
+                                <select name="currencyStatus" id="editCurrencyStatus" class="form-control">
+                                    <option th:each="currencyStatus : ${currencyStatuses}"
+                                            th:value="${currencyStatus.toString()}">
+                                        [[#{${currencyStatus.toString().toLowerCase()}}]]
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">[[#{cancel}]]</button>
+                    <button type="button" class="btn btn-primary" onclick="ecommerce.editCurrency();">[[#{edit}]]</button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+    <th:block th:replace="~{fragments/prompt :: content(id='delete-currency-modal', title=confirm, confirmButton=delete, closeButton=close)}" />
+</th:block>
+<script layout:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.do_you_want_to_delete_currency_pname = /*[[#{do_you_want_to_delete_currency_pname}]]*/;
+/*]]>*/
+// ============== buttons ===============
+ezyadmin.onNewButtonClick = function() {
+    $('#add-currency').modal('show');
+}
+
+// ============== currency list =======
+ezyadmin.createDataTable('currencyList', 12);
+
+// ============== currency action ===============
+ecommerce.onKeyDownToSaveCurrency = function(action) {
+    if(event.key === 'Enter') {
+    	ecommerce.saveCurrency(action);
+    }
+}
+
+ecommerce.saveCurrency = function(action) {
+    var data = ezyadmin.formDataToObject(action + 'CurrencyForm');
+    $.ajax({
+        type: action == 'add' ? 'POST' : 'PUT',
+        url: '/ecommerce/api/v1/currencies/' + (action == 'add' ? 'add' : ecommerce.selectedCurrencyId),
+        data: JSON.stringify(data),
+        contentType: 'application/json',
+        success: function (responseData) {
+            location.reload();
+        },
+        error: function (e) {
+            ezyadmin.processUpdateApiErrors(data, e);
+        }
+    });
+}
+
+// ========== currency add =============
+ecommerce.addNewCurrency = function() {
+    ecommerce.saveCurrency('add');
+}
+
+// ========== currency edit ============
+ecommerce.showEditCurrencyModal = function(currencyId) {
+    ecommerce.selectedCurrencyId = currencyId;
+    $.ajax({
+        type: 'GET',
+        url: '/ecommerce/api/v1/currencies/' + currencyId,
+        success: function (data) {
+            $('#editCurrencyIsoCode').val(data.isoCode);
+            $('#editCurrencySymbol').val(data.symbol);
+            $('#editCurrencySymbolPosition').val(data.symbolPosition);
+            $('#editCurrencyDisplayName').val(data.displayName);
+            $('#editCurrencyFormat').val(data.format);
+            $('#editCurrencyDecimal').val(data.decimalLength);
+            $('#editCurrencyStatus').val(data.status);
+            $('#edit-currency').modal('show');
+        },
+        error: function (e) {
+            ezyadmin.processGetApiErrors(e);
+        }
+    });
+}
+
+ecommerce.editCurrency = function() {
+    ecommerce.saveCurrency('edit');
+}
+
+// ==================== delete default currency ============
+ecommerce.setDefaultCurrency = function(currencyId) {
+    $.ajax({
+        type: 'PUT',
+        url: '/ecommerce/api/v1/currencies/' + currencyId + '/set-as-default',
+        success: function (data) {
+            window.location = '/ecommerce/currencies'
+                + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+        },
+        error: function (e) {
+            ezyadmin.processGetApiErrors(e);
+        }
+    });
+}
+
+// ==================== delete currency ============
+ecommerce.onDeleteCurrencyClick = function(currencyId, currencyDisplayName) {
+    ecommerce.selectedCurrencyId = currencyId;
+    $('#delete-currency-modal-body-content')
+        .text(
+            ezyadmin
+                .messages
+                .do_you_want_to_delete_currency_pname
+                .replace('{0}', currencyDisplayName)
+        );
+    $('#delete-currency-modal').modal('show');
+}
+
+ezyadmin.onPromptConfirmed = function(modalId) {
+    if (modalId == 'delete-currency-modal') {
+        $.ajax({
+            type: 'DELETE',
+            url: '/ecommerce/api/v1/currencies/' + ecommerce.selectedCurrencyId,
+            success: function (data) {
+                location.reload();
+            },
+            error: function (e) {
+                ezyadmin.processGetApiErrors(e);
+            }
+        });
+    }
+}
+</script>
+</body>
+</html>

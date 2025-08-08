@@ -1,0 +1,101 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<head>
+    <script>
+        var ecommerce = {};
+    </script>
+    <style>
+        .recipient-address {
+            width: 150px;
+        }
+
+        .recipient-address a {
+            text-wrap: wrap;
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content" class="row">
+    <th:block th:replace="~{ecommerce/delivery-order/order-recipient-list :: content}" />
+    <div class="col-12">
+        <hr class="mb-4" />
+    </div>
+    <div class="col-12">
+        <div class="d-flex">
+            <h3>[[#{tracking}]]</h3>
+        </div>
+    </div>
+    <th:block th:replace="~{ecommerce/delivery-order/delivery-order-list :: content}" />
+</div>
+<th:block layout:fragment="modals">
+    <th:block th:replace="~{fragments/prompt :: content(id='deliver-order-modal', title=confirm, confirmButton=confirm, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='delivered-order-modal', title=confirm, confirmButton=confirm, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='reject-order-modal', title=confirm, confirmButton=reject, closeButton=close, type=delete)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='deliver-delivery-order-modal', title=confirm, confirmButton=confirm, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='delivered-delivery-order-modal', title=confirm, confirmButton=confirm, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='reject-delivery-order-modal', title=confirm, confirmButton=reject, closeButton=close, type=delete)}" />
+</th:block>
+<script layout:fragment="scripts">
+ecommerce.changeBrowserUrl = function() {
+    var params = [];
+    if (ecommerce.orderRecipientSearchStatus) {
+        params.push('status=' + ecommerce.orderRecipientSearchStatus);
+    }
+    if (ecommerce.deliveryOrderSearchStatus) {
+        params.push('deliveryOrderStatus=' + ecommerce.deliveryOrderSearchStatus);
+    }
+    if (ezyadmin.lang) {
+        params.push('lang=' + ezyadmin.lang);
+    }
+    var url = '/ecommerce/delivery-orders';
+    if (params.length) {
+        url += '?' + params.join('&');
+    }
+    window.history.pushState({}, '', url);
+}
+</script>
+<th:block layout:fragment="post-scripts">
+<script th:replace="~{ecommerce/delivery-order/order-recipient-list :: scripts}" />
+<script th:replace="~{ecommerce/delivery-order/delivery-order-list :: scripts}" />
+<script th:replace="~{ecommerce/delivery-order/scripts :: actions}" />
+<script th:replace="~{ecommerce/delivery-order/scripts :: delivery-order-actions}" />
+<script>
+ezyadmin.onPromptConfirmed = function(modalId) {
+    if (modalId == 'deliver-order-modal') {
+        ecommerce.deliverOrder();
+    } else if (modalId == 'delivered-order-modal') {
+        ecommerce.finishOrderRecipient();
+    } else if (modalId == 'reject-order-modal') {
+        ecommerce.rejectOrderRecipient();
+    } else  if (modalId == 'deliver-delivery-order-modal') {
+        ecommerce.deliverDeliveryOrder();
+    } else if (modalId == 'delivered-delivery-order-modal') {
+        ecommerce.finishDeliveryOrder();
+    } else if (modalId == 'reject-delivery-order-modal') {
+        ecommerce.rejectDeliveryOrder();
+    }
+}
+</script>
+</th:block>
+</body>
+</html>

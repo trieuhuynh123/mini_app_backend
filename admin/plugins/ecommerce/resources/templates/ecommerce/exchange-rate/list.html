@@ -1,0 +1,324 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~ 
+ ~ Licensed under the ezyexchangeRate, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~ 
+ ~     https://youngmonkeys.org/licenses/ezyexchangeRate-1.0.0.txt
+ ~ 
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<head>
+    <script>
+        var ecommerce = {};
+    </script>
+</head>
+<body>
+<div layout:fragment="content" class="row">
+    <div class="col-12">
+        <table id="exchangeRateList" class="table table-bordered table-hover">
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>[[#{from}]]</th>
+                <th>[[#{to}]]</th>
+                <th>[[#{value}]]</th>
+                <th>[[#{updated_at}]]</th>
+                <th>[[#{actions}]]</th>
+            </tr>
+            </thead>
+            <tbody id="exchangeRateListBody">
+            <tr th:each="exchangeRate,iterator : ${exchangeRates}">
+                <td th:text="${iterator.index + 1}"></td>
+                <td>
+                    <th:block th:if="${exchangeRate.fromCurrency.displayName != null}">
+                        [[${exchangeRate.fromCurrency.displayName}]] ([[${exchangeRate.fromCurrency.isoCode}]])
+                    </th:block>
+                    <th:block th:if="${exchangeRate.fromCurrency.displayName == null}">
+                        [[${exchangeRate.fromCurrency.isoCode}]]
+                    </th:block>
+                </td>
+                <td>
+                    <th:block th:if="${exchangeRate.toCurrency.displayName != null}">
+                        [[${exchangeRate.toCurrency.displayName}]] ([[${exchangeRate.toCurrency.isoCode}]])
+                    </th:block>
+                    <th:block th:if="${exchangeRate.toCurrency.displayName == null}">
+                        [[${exchangeRate.toCurrency.isoCode}]]
+                    </th:block>
+                </td>
+                <td>
+                    [[${exchangeRate.formattedToValue}]]
+                </td>
+                <td class="date-time-string">[[${exchangeRate.updatedAt}]]</td>
+                <td>
+                    <a class="text-primary pr-2" th:attr="onclick=|ecommerce.showEditExchangeRateModal(${exchangeRate.id})|">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <a class="text-danger" th:attr="onclick=|ecommerce.onDeleteExchangeRateClick(${exchangeRate.id}, '${exchangeRate.fromCurrency.isoCode}', '${exchangeRate.toCurrency.isoCode}')|">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+<th:block layout:fragment="modals">
+    <div class="modal fade pt-4rem" id="add-exchangeRate">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">[[#{add_new_exchange_rate}]]</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="addExchangeRateForm">
+                        <div class="form-group row">
+                            <label for="addExchangeRateFromCurrency" class="col-3 col-form-label">[[#{from}]]:</label>
+                            <div class="col-9">
+                                <label class="col-form-label text-danger d-none" id="addExchangeRateFromCurrencyErrorLabel" for="addExchangeRateFromCurrency">
+                                    <i class="far fa-times-circle"></i> <span id="addExchangeRateFromCurrencyError"></span>
+                                </label>
+                                <select name="fromCurrencyId" id="addExchangeRateFromCurrency" class="form-control">
+                                    <option th:each="currency, iterator : ${currencies}"
+                                            th:value="${currency.id}">
+                                        <th:block th:if="${currency.displayName != null}">
+                                            [[${currency.displayName}]] ([[${currency.isoCode}]])
+                                        </th:block>
+                                        <th:block th:if="${currency.displayName == null}">
+                                            [[${currency.isoCode}]]
+                                        </th:block>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="addExchangeRateToCurrency" class="col-3 col-form-label">[[#{to}]]:</label>
+                            <div class="col-9">
+                                <label class="col-form-label text-danger d-none" id="addExchangeRateToCurrencyErrorLabel" for="addExchangeRateToCurrency">
+                                    <i class="far fa-times-circle"></i> <span id="addExchangeRateToCurrencyError"></span>
+                                </label>
+                                <select name="toCurrencyId" id="addExchangeRateToCurrency" class="form-control">
+                                    <option th:each="currency, iterator : ${currencies}"
+                                            th:value="${currency.id}">
+                                        <th:block th:if="${currency.displayName != null}">
+                                            [[${currency.displayName}]] ([[${currency.isoCode}]])
+                                        </th:block>
+                                        <th:block th:if="${currency.displayName == null}">
+                                            [[${currency.isoCode}]]
+                                        </th:block>
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row mb-0">
+                            <label for="addExchangeRateValue" class="col-3 col-form-label">[[#{value}]]:</label>
+                            <div class="col-9">
+                                <label class="col-form-label text-danger d-none" id="addExchangeRateValueErrorLabel" for="addExchangeRateValue">
+                                    <i class="far fa-times-circle"></i> <span id="addExchangeRateValueError"></span>
+                                </label>
+                                <input type="number" name="value" id="addExchangeRateValue"
+                                       class="form-control" th:placeholder="#{value}"
+                                       onkeydown="ecommerce.onKeyDownToSaveExchangeRate('add')">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <div>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">
+                            [[#{cancel}]]
+                        </button>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="ecommerce.addNewExchangeRate();">
+                        [[#{add}]]
+                    </button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+    <div class="modal fade pt-4rem" id="edit-exchange-rate">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">[[#{edit_exchange_rate}]]</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="editExchangeRateForm">
+                        <div class="form-group row">
+                            <label class="col-3 col-form-label">[[#{from}]]:</label>
+                            <div class="col-9" id="editExchangeRateFromCurrency">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-3 col-form-label">
+                                [[#{to}]]:
+                            </label>
+                            <div class="col-9" id="editExchangeRateToCurrency">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="editExchangeRateValue" class="col-3 col-form-label">[[#{value}]]:</label>
+                            <div class="col-9">
+                                <label class="col-form-label text-danger d-none" id="editExchangeRateValueErrorLabel" for="editExchangeRateValue">
+                                    <i class="far fa-times-circle"></i> <span id="editExchangeRateValueError"></span>
+                                </label>
+                                <input type="number" name="value" id="editExchangeRateValue"
+                                       class="form-control" th:placeholder="#{value}"
+                                       onkeydown="ecommerce.onKeyDownToSaveExchangeRate('edit')">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">[[#{cancel}]]</button>
+                    <button type="button" class="btn btn-primary" onclick="ecommerce.editExchangeRate();">[[#{edit}]]</button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+    <th:block th:replace="~{fragments/prompt :: content(id='delete-exchange-rate-modal', title=confirm, confirmButton=delete, closeButton=close)}" />
+</th:block>
+<script layout:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.do_you_want_to_delete_exchange_rate_pname = /*[[#{do_you_want_to_delete_exchange_rate_pname}]]*/;
+/*]]>*/
+// ============== buttons ===============
+ezyadmin.onNewButtonClick = function() {
+    $('#add-exchangeRate').modal('show');
+}
+
+// ============== exchangeRate list =======
+ezyadmin.createDataTable('exchangeRateList', 12);
+
+// ============== exchangeRate action ===============
+ecommerce.onKeyDownToSaveExchangeRate = function(action) {
+    if(event.key === 'Enter') {
+    	ecommerce.saveExchangeRate(action);
+    }
+}
+
+ecommerce.saveExchangeRate = function(action) {
+    var data = ezyadmin.formDataToObject(action + 'ExchangeRateForm');
+    $.ajax({
+        type: action == 'add' ? 'POST' : 'PUT',
+        url: '/ecommerce/api/v1/exchange-rates/' + (action == 'add' ? 'add' : ecommerce.selectedExchangeRateId),
+        data: JSON.stringify(data),
+        contentType: 'application/json',
+        success: function (responseData) {
+            location.reload();
+        },
+        error: function (e) {
+            var formView = {};
+            formView[`${action}ExchangeRateValue`] = true;
+            formView[`${action}ExchangeRateToCurrency`] = true;
+            var errors = e.responseJSON || {};
+        	errors[`${action}ExchangeRateValue`] = errors.value;
+        	errors[`${action}ExchangeRateToCurrency`] = errors.toCurrencyId;
+            ezyadmin.processUpdateApiErrors(formView, e);
+        }
+    });
+}
+
+// ========== exchangeRate add =============
+ecommerce.addNewExchangeRate = function() {
+    ecommerce.saveExchangeRate('add');
+}
+
+// ========== exchangeRate edit ============
+ecommerce.showEditExchangeRateModal = function(exchangeRateId) {
+    ecommerce.selectedExchangeRateId = exchangeRateId;
+    $.ajax({
+        type: 'GET',
+        url: '/ecommerce/api/v1/exchange-rates/' + exchangeRateId,
+        success: function (data) {
+            var currencyToString = (currency) => {
+                return currency.displayName
+                    ? `${currency.displayName} (${currency.isoCode})`
+                    : currency.isoCode;
+            };
+            $('#editExchangeRateFromCurrency').text(currencyToString(data.fromCurrency));
+            $('#editExchangeRateToCurrency').text(currencyToString(data.toCurrency));
+            $('#editExchangeRateValue').val(data.toValue);
+            $('#edit-exchange-rate').modal('show');
+        },
+        error: function (e) {
+            ezyadmin.processGetApiErrors(e);
+        }
+    });
+}
+
+ecommerce.editExchangeRate = function() {
+    ecommerce.saveExchangeRate('edit');
+}
+
+// ==================== delete default exchangeRate ============
+ecommerce.setDefaultExchangeRate = function(exchangeRateId) {
+    $.ajax({
+        type: 'PUT',
+        url: '/ecommerce/api/v1/currencies/' + exchangeRateId + '/set-as-default',
+        success: function (data) {
+            window.location = '/ecommerce/currencies'
+                + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+        },
+        error: function (e) {
+            ezyadmin.processGetApiErrors(e);
+        }
+    });
+}
+
+// ==================== delete exchangeRate ============
+ecommerce.onDeleteExchangeRateClick = function(
+    exchangeRateId,
+    fromCurrencyIsoCode,
+    toCurrencyIsoCode
+) {
+    ecommerce.selectedExchangeRateId = exchangeRateId;
+    $('#delete-exchange-rate-modal-body-content')
+        .text(
+            ezyadmin
+                .messages
+                .do_you_want_to_delete_exchange_rate_pname
+                .replace('{0}', `${fromCurrencyIsoCode} - ${toCurrencyIsoCode}`)
+        );
+    $('#delete-exchange-rate-modal').modal('show');
+}
+
+ezyadmin.onPromptConfirmed = function(modalId) {
+    if (modalId == 'delete-exchange-rate-modal') {
+        $.ajax({
+            type: 'DELETE',
+            url: '/ecommerce/api/v1/exchange-rates/' + ecommerce.selectedExchangeRateId,
+            success: function (data) {
+                location.reload();
+            },
+            error: function (e) {
+                ezyadmin.processGetApiErrors(e);
+            }
+        });
+    }
+}
+</script>
+</body>
+</html>

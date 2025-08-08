@@ -1,0 +1,129 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~ 
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~ 
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~ 
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org">
+<body>
+<script th:fragment="change" th:inline="javascript">
+/*<![CDATA[*/
+ezyweb.messages.select_a_province = /*[[#{select_a_province}]]*/ '';
+ezyweb.messages.select_a_district = /*[[#{select_a_district}]]*/ '';
+ezyweb.messages.select_a_ward = /*[[#{select_a_ward}]]*/ '';
+ezyweb.messages.not_found_option = /*[[#{not_found_option}]]*/;
+/*]]>*/
+var onCountryChange = function(e) {
+    var countryId = $(e).val();
+    changeProvincesByCountryId(countryId);
+}
+
+var changeProvincesByCountryId = function(countryId) {
+    var html = `<option value="">${ezyweb.messages.select_a_province}</option>`;
+    if (!countryId) {
+        $(`#${provincesSelectId}`).html(html);
+        $(`#${districtsSelectId}`).html(
+            `<option value="">${ezyweb.messages.select_a_district}</option>`
+        );
+        $(`#${wardsSelectId}`).html(
+            `<option value="">${ezyweb.messages.select_a_ward}</option>`
+        );
+        return;
+    }
+    $.ajax({
+        type: "GET",
+        url: '/api/v1/countries/' +
+            countryId +
+            '/provinces',
+        success: function(provinces) {
+            provinces.forEach((province) => {
+                html += `<option value="${province.id}">${province.displayName}</option>`;
+            });
+            html += `<option value="0">${ezyweb.messages.not_found_option}</option>`;
+            $(`#${provincesSelectId}`).html(html);
+        },
+        error: function(data, e) {
+            ezyweb.processGetApiErrors(data);
+        }
+    });
+}
+
+var onProvinceChange = function(e) {
+    var provinceId = $(e).val();
+    changeDistrictsByProvinceId(provinceId);
+}
+
+var changeDistrictsByProvinceId = function(provinceId) {
+    var html = `<option value="">${ezyweb.messages.select_a_district}</option>`;
+    if (!provinceId) {
+        $(`#${districtsSelectId}`).html(html);
+        $(`#${wardsSelectId}`).html(
+            `<option value="">${ezyweb.messages.select_a_ward}</option>`
+        );
+        return;
+    }
+    $.ajax({
+        type: "GET",
+        url: '/api/v1/provinces/' +
+            provinceId +
+            '/districts',
+        success: function(districts) {
+            districts.forEach((district) => {
+                html += `<option value="${district.id}">${district.displayName}</option>`;
+            });
+            html += `<option value="0">${ezyweb.messages.not_found_option}</option>`;
+            $(`#${districtsSelectId}`).html(html);
+            changeWardsByDistrictId(
+                districts.length ? districts[0].id : 0
+            );
+        },
+        error: function(data, e) {
+            ezyweb.processGetApiErrors(data);
+        }
+    });
+}
+
+var onDistrictChange = function(e) {
+    var districtId = $(e).val();
+    changeWardsByDistrictId(districtId);
+}
+
+var changeWardsByDistrictId = function(districtId) {
+    var html = `<option value="">${ezyweb.messages.select_a_ward}</option>`;
+    if (!districtId) {
+        $(`#${wardsSelectId}`).html(html);
+        return;
+    }
+    $.ajax({
+        type: "GET",
+        url: '/api/v1/districts/' +
+            districtId +
+            '/wards',
+        success: function(wards) {
+            wards.forEach((ward) => {
+                html += `<option value="${ward.id}">${ward.displayName}</option>`;
+            });
+            html += `<option value="0">${ezyweb.messages.not_found_option}</option>`;
+            $(`#${wardsSelectId}`).html(html);
+        },
+        error: function(data, e) {
+            ezyweb.processGetApiErrors(data);
+        }
+    });
+}
+</script>
+</body>
+</html>

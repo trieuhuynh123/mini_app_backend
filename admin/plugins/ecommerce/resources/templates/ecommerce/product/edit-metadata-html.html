@@ -1,0 +1,81 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="content">
+    <div class="modal fade" id="edit-product-metadata-html">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="edit-product-metadata-html-modal-title">
+                        [[#{edit_product_metadata_html}]]
+                    </h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="editProductMetadataHtmlEditorWrapper">
+                        <div id="editProductMetadataHtmlEditor"></div>
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <div>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">[[#{cancel}]]</button>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="ecommerce.saveProductMetadataHtml();">
+                        [[#{update}]]
+                    </button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+</th:block>
+<script th:fragment="scripts">
+// ========== show add metadata modal =============
+ecommerce.showEditProductMetadataHtmlModal = function(metadataId) {
+    ecommerce.selectedProductMetadataId = metadataId;
+    var metadata = ecommerce.productMetadataById[ecommerce.selectedProductMetadataId];
+    if (!ecommerce.editMetadataHtmlEditor) {
+        ecommerce.editMetadataHtmlEditor = ecommerce.productEditors.createIfNotExists({
+            name: 'editProductMetadata',
+            container: 'editProductMetadataHtmlEditor',
+            height: 450
+        });
+    }
+    ecommerce.editMetadataHtmlEditor.setHtml(metadata.metaTextValue || 'HTML');
+    $('#edit-product-metadata-html').modal('show');
+}
+
+ecommerce.hideEditProductMetadataHtmlModal = function() {
+    $('#edit-product-metadata-html').modal('hide');
+}
+
+// ========== shop product metadata change =============
+ecommerce.saveProductMetadataHtml = function() {
+    var textValue = ecommerce.editMetadataHtmlEditor.getHtml() || 'HTML';
+    var metadata = ecommerce.productMetadataById[ecommerce.selectedProductMetadataId];
+    var formData = { name: metadata.metaKey, textValue: textValue };
+    ecommerce.doSaveProductMetadataValue(formData);
+}
+</script>
+</body>
+</html>

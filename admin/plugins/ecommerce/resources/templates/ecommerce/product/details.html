@@ -1,0 +1,1278 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~ 
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~ 
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~ 
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:ezy="http://www.ezyplatform.com/thymeleaf/layout"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<head>
+    <script>
+        var ecommerce = {};
+        var ezyarticle = {
+            createDefaultEditor: true,
+            defaultTinymceEditorSetting: {
+                height: 600
+            }
+        };
+    </script>
+    <style>
+        .multiple-select-height {
+            height: 60px !important;
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content" class="row">
+    <div class="col-md-3 col-4"><label>[[#{product_id}]]:</label></div>
+    <div class="col-md-9 col-8">[[${product.id}]]</div>
+    <div class="col-md-3 col-4"><label>[[#{code}]]:</label></div>
+    <div class="col-md-9 col-8">[[${product.productCode}]]</div>
+    <div class="col-md-3 col-4"><label>[[#{barcode}]]:</label></div>
+    <div class="col-md-9 col-8">[[${product.secondaryCode}]]</div>
+    <div class="col-md-3 col-4"><label>[[#{display_name}]]:</label></div>
+    <div class="col-md-9 col-8" id="productNameText">[[${product.productName}]]</div>
+    <div class="col-md-3 col-4"><label>[[#{quantity}]]:</label></div>
+    <div class="col-md-9 col-8">[[${product.amount}]]</div>
+    <div class="col-md-3 col-4"><label>[[#{sold_quantity}]]:</label></div>
+    <div class="col-md-9 col-8">[[${product.soldAmount}]]</div>
+    <div class="col-md-3 col-4"><label>[[#{remain}]]:</label></div>
+    <div class="col-md-9 col-8">[[${product.amount - product.soldAmount}]]</div>
+    <div class="col-md-3 col-4"><label for="productCurrency">[[#{product_currency}]]:</label></div>
+    <div class="col-md-9 col-8 row">
+        <div class="col-lg-4 col-md-5">
+            <select id="productCurrency" class="form-control"
+                    onchange="ecommerce.getProductPrices();">
+                <option th:each="currency, iterator : ${currencies}"
+                        th:value="${currency.id}"
+                        th:selected="${currency.id == defaultCurrency.id}">
+                    [[#{${currency.isoCode}}]]
+                    -
+                    [[#{${currency.displayName}}]]
+                </option>
+            </select>
+        </div>
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{price}]] ([[#{include_tax}]]):</label></div>
+    <div class="col-md-9 col-8" id="productPrice">[[${product.formattedPrice}]]</div>
+    <div class="col-md-3 col-4"><label>[[#{original_price}]] ([[#{include_tax}]]):</label></div>
+    <div class="col-md-9 col-8" id="productOriginalPrice">[[${product.formattedOriginalPrice}]]</div>
+    <div class="col-md-3 col-4"><label>[[#{discount_percent}]]:</label></div>
+    <div class="col-md-9 col-8">
+        [[${product.discountPercent}]]%
+        ([[#{discount_percent_input_guide}]])
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{price_by_size_and_color}]]:</label></div>
+    <div class="col-md-9 col-8">
+        <div class="card">
+            <div class="card-body table-responsive p-0">
+                <table class="table table-bordered table-hover text-nowrap align-middle-cells">
+                    <thead>
+                    <tr>
+                        <th>[[#{size}]]</th>
+                        <th>[[#{color}]]</th>
+                        <th>[[#{material}]]</th>
+                        <th>[[#{price}]]</th>
+                        <th>[[#{action}]]</th>
+                    </tr>
+                    </thead>
+                    <tbody id="productSizeColorPriceListBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="my-2">
+            <button type="button" class="btn btn-outline-primary"
+                    onclick="ecommerce.showAddProductSizeColorPriceModal();">
+                [[#{add_new}]]
+            </button>
+        </div>
+    </div>
+    <div class="col-3 d-flex align-items-center">
+        <label>[[#{icon}]]:</label>
+    </div>
+    <div class="col-9 mt-2 mb-2">
+        <img th:src="${product.iconImage != null ? product.iconImage.getUrlOrDefault('') : ''}"
+             class="object-fit-cover" width="64">
+    </div>
+    <div class="col-3 d-flex align-items-center">
+        <label>[[#{banner}]]:</label>
+    </div>
+    <div class="col-9 mt-2 mb-2">
+        <img th:src="${product.bannerImage != null ? product.bannerImage.getUrlOrDefault('') : ''}"
+             class="object-fit-cover" width="256">
+    </div>
+    <div class="col-3 d-flex align-items-center">
+        <label>[[#{categories}]]:</label>
+    </div>
+    <div class="col-md-6 col-9 mt-2 mb-2">
+        <div class="d-flex">
+            <input type="text" name="categoryName" id="addProductCategoryName"
+                   class="form-control" th:placeholder="#{category}"
+                   autocomplete="off" inputmode="text"
+                   onkeydown="ecommerce.onKeydownToAddProductCategory();">
+            <button type="button" class="btn btn-outline-primary pt-1 pb-1 ml-1 mr-1"
+                    onclick="ecommerce.addProductCategory();">
+                [[#{add}]]
+            </button>
+        </div>
+        <ol class="pl-3 mt-2 mb-2" id="productCategoryListBody"></ol>
+    </div>
+    <div class="col-md-3"></div>
+    <div class="col-3 d-flex align-items-center">
+        <label>[[#{tags}]]:</label>
+    </div>
+    <div class="col-md-6 col-9 mt-2 mb-2">
+        <div class="d-flex">
+            <input type="text" name="categoryName" id="addProductTagName"
+                   class="form-control" th:placeholder="#{tag_name}"
+                   autocomplete="off" inputmode="text"
+                   onkeydown="ecommerce.onKeydownToAddProductTags();">
+            <button type="button" class="btn btn-outline-primary pt-1 pb-1 ml-1 mr-1"
+                    onclick="ecommerce.addProductTags();">
+                [[#{add}]]
+            </button>
+        </div>
+        <ol class="pl-3 mt-2 mb-2" id="productTagListBody"></ol>
+    </div>
+    <div class="col-md-3"></div>
+    <div class="col-3 d-flex align-items-center">
+        <label>[[#{sizes}]]:</label>
+    </div>
+    <div class="col-6 mt-2 mb-2">
+        <div class="d-flex align-items-center">
+            <input type="text" name="productSizeNames" id="productSizeNames"
+                   class="form-control" th:placeholder="#{size_names}"
+                   onkeydown="ecommerce.onKeydownToSaveProductSizeNames();">
+            <button type="button" class="btn btn-outline-primary pt-1 pb-1 ml-1 mr-1"
+                    onclick="ecommerce.saveProductSizeNames();">
+                [[#{save}]]
+            </button>
+        </div>
+        <span>[[#{product_size_names_input_guide}]]</span>
+    </div>
+    <div class="col-md-3"></div>
+    <div class="col-3 d-flex align-items-center">
+        <label>[[#{colors}]]:</label>
+    </div>
+    <div class="col-9 mt-2 mb-2">
+        <button type="button" class="btn btn-outline-primary pt-1 pb-1 ml-1 mr-1"
+                onclick="ecommerce.showAddColorModal();">
+            [[#{add}]]
+        </button>
+        <ol class="pl-3 mt-2 mb-2" id="productColorListBody"></ol>
+    </div>
+    <div class="col-3 d-flex align-items-center">
+        <label>[[#{materials}]]:</label>
+    </div>
+    <div class="col-9 mt-2 mb-2">
+        <button type="button" class="btn btn-outline-primary pt-1 pb-1 ml-1 mr-1"
+                onclick="ecommerce.showAddMaterialModal();">
+            [[#{add}]]
+        </button>
+        <ol class="pl-3 mt-2 mb-2" id="productMaterialListBody"></ol>
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{product_type}]]:</label></div>
+    <div class="col-md-9 col-8">
+        [[#{${'product_type_' + product.productType.toLowerCase()}}]]
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{shop}]]:</label></div>
+    <div class="col-md-9 col-8">
+        <a th:if="${product.shop != null}"
+           th:href="${'/ecommerce/shops/' + product.shop.id}">
+            [[${product.shop.displayName}]]
+        </a>
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{display_order}]]:</label></div>
+    <div class="col-md-9 col-8 commas-number-string">[[${product.displayOrder}]]</div>
+    <div class="col-3 d-flex align-items-center">
+        <label>[[#{brands}]]:</label>
+    </div>
+    <div class="col-md-6 col-9 mt-2 mb-2">
+        <div class="d-flex">
+            <input type="text" name="agencyName" id="addProductBrandName"
+                   class="form-control" th:placeholder="#{brand}"
+                   autocomplete="off" inputmode="text"
+                   onkeydown="ecommerce.onKeydownToAddProductAgency('Brand');">
+            <button type="button" class="btn btn-outline-primary pt-1 pb-1 ml-1 mr-1"
+                    onclick="ecommerce.addProductAgency('Brand');">
+                [[#{add}]]
+            </button>
+        </div>
+        <ol class="pl-3 mt-2 mb-2" id="productBrandListBody"></ol>
+    </div>
+    <div class="col-md-3"></div>
+    <div class="col-3 d-flex align-items-center">
+        <label>[[#{suppliers}]]:</label>
+    </div>
+    <div class="col-md-6 col-9 mt-2 mb-2">
+        <div class="d-flex">
+            <input type="text" name="agencyName" id="addProductSupplierName"
+                   class="form-control" th:placeholder="#{supplier}"
+                   autocomplete="off" inputmode="text"
+                   onkeydown="ecommerce.onKeydownToAddProductAgency('Supplier');">
+            <button type="button" class="btn btn-outline-primary pt-1 pb-1 ml-1 mr-1"
+                    onclick="ecommerce.addProductAgency('Brand');">
+                [[#{add}]]
+            </button>
+        </div>
+        <ol class="pl-3 mt-2 mb-2" id="productSupplierListBody"></ol>
+    </div>
+    <div class="col-md-3"></div>
+    <div class="col-3 d-flex align-items-center">
+        <label>[[#{book_information}]]:</label>
+    </div>
+    <div class="col-md-9 col-8">
+        <div>
+            <a th:if="${book != null}" th:href="${'/ecommerce/products/' + product.id + '/book'}">
+                [[#{details}]]
+                <i class="fas fa-external-link-alt"></i>
+            </a>
+            <a th:if="${book == null}" th:href="${'/ecommerce/products/' + product.id + '/book'}">
+                [[#{edit}]]
+                <i class="fas fa-pen-square"></i>
+            </a>
+            <span class="ml-2">[[#{if_this_product_is_a_book}]]</span>
+        </div>
+    </div>
+    <th:block th:if="${deliverableProduct != null}">
+        <div class="col-12">
+            <hr />
+            <h5>
+                [[#{for_goods_that_need_to_be_shipped}]]
+            </h5>
+        </div>
+        <div class="col-md-3 col-4"><label>[[#{delivery_required}]]:</label></div>
+        <div class="col-md-9 col-8">[[#{${deliverableProduct.deliveryRequired ? 'yes' : 'no'}}]]</div>
+        <div class="col-md-3 col-4"><label>[[#{weight}]]:</label></div>
+        <div class="col-md-9 col-8">[[${deliverableProduct.weightInGram}]] [[#{gram}]](s)</div>
+        <div class="col-md-3 col-4"><label>[[#{width}]]:</label></div>
+        <div class="col-md-9 col-8">[[${deliverableProduct.widthInMillimeter}]] [[#{millimeter}]](s)</div>
+        <div class="col-md-3 col-4"><label>[[#{height}]]:</label></div>
+        <div class="col-md-9 col-8">[[${deliverableProduct.heightInMillimeter}]] [[#{millimeter}]](s)</div>
+        <div class="col-md-3 col-4"><label>[[#{length}]]:</label></div>
+        <div class="col-md-9 col-8">[[${deliverableProduct.lengthInMillimeter}]] [[#{millimeter}]](s)</div>
+        <div class="col-md-3 col-4"><label>[[#{small}]]:</label></div>
+        <div class="col-md-9 col-8">[[#{${deliverableProduct.small ? 'yes' : 'no'}}]]</div>
+        <div class="col-md-3 col-4"><label>[[#{fragile}]]:</label></div>
+        <div class="col-md-9 col-8">[[#{${deliverableProduct.fragile ? 'yes' : 'no'}}]]</div>
+        <div class="col-md-3 col-4"><label>[[#{luxury}]]:</label></div>
+        <div class="col-md-9 col-8">[[#{${deliverableProduct.luxury ? 'yes' : 'no'}}]]</div>
+        <div class="col-md-3 col-4"><label>[[#{letters_or_document}]]:</label></div>
+        <div class="col-md-9 col-8">[[#{${deliverableProduct.document ? 'yes' : 'no'}}]]</div>
+        <div class="col-md-3 col-4"><label>[[#{liquid}]]:</label></div>
+        <div class="col-md-9 col-8">[[#{${deliverableProduct.liquid ? 'yes' : 'no'}}]]</div>
+        <div class="col-md-3 col-4"><label>[[#{agricultural}]]:</label></div>
+        <div class="col-md-9 col-8">[[#{${deliverableProduct.agricultural ? 'yes' : 'no'}}]]</div>
+        <div class="col-md-3 col-4"><label>[[#{full_box}]]:</label></div>
+        <div class="col-md-9 col-8">[[#{${deliverableProduct.fullBox ? 'yes' : 'no'}}]]</div>
+        <div class="col-md-3 col-4"><label>[[#{short_shelf_life}]]:</label></div>
+        <div class="col-md-9 col-8">[[#{${deliverableProduct.shortShelfLife ? 'yes' : 'no'}}]]</div>
+        <div class="col-md-3 col-4"><label>[[#{sharp_edges}]]:</label></div>
+        <div class="col-md-9 col-8">[[#{${deliverableProduct.sharpEdges ? 'yes' : 'no'}}]]</div>
+        <div class="col-md-3 col-4"><label>[[#{requiring_proper_orientation}]]:</label></div>
+        <div class="col-md-9 col-8">[[#{${deliverableProduct.requiringProperOrientation ? 'yes' : 'no'}}]]</div>
+    </th:block>
+    <th:block th:if="${invoiceProduct != null}">
+        <div class="col-12">
+            <hr />
+            <h5>
+                [[#{for_invoiced_goods}]]
+            </h5>
+        </div>
+        <div class="col-md-3 col-4"><label>[[#{product_group}]]:</label></div>
+        <div class="col-md-9 col-8">
+            [[${invoiceProduct.itemGroup}]]
+        </div>
+        <div class="col-md-3 col-4"><label>[[#{type_of_tax}]]:</label></div>
+        <div class="col-md-9 col-8">
+            <th:block th:if="${invoiceProduct.itemNature != null}">
+                [[#{${invoiceProduct.itemNature.toLowerCase()}}]]
+            </th:block>
+        </div>
+        <div class="col-md-3 col-4"><label>[[#{product_type}]]:</label></div>
+        <div class="col-md-9 col-8">
+            <th:block th:if="${invoiceProduct.itemType != null}">
+                [[#{${invoiceProduct.itemType.toLowerCase()}}]]
+            </th:block>
+        </div>
+        <div class="col-md-3 col-4"><label>[[#{unit}]]:</label></div>
+        <div class="col-md-9 col-8">
+            <th:block th:if="${invoiceProduct.unit != null}">
+                [[#{${invoiceProduct.unit.toLowerCase()}}]]
+            </th:block>
+        </div>
+        <div class="col-md-3 col-4"><label>[[#{tax_based_on_price_type}]]:</label></div>
+        <div class="col-md-9 col-8">
+            <th:block th:if="${invoiceProduct.taxOnPriceType != null}">
+                [[#{${invoiceProduct.taxOnPriceType.toLowerCase()}}]]
+            </th:block>
+        </div>
+        <div class="col-md-3 col-4"><label>[[#{tax_percent}]]:</label></div>
+        <div class="col-md-9 col-8">
+            [[${invoiceProduct.taxPercent}]]%
+        </div>
+    </th:block>
+    <div class="col-md-3 col-4"><label>[[#{status}]]:</label></div>
+    <div class="col-md-9 col-8 status-text" th:attr="status=|${product.status}|">
+        [[#{${product.status.toString().toLowerCase()}}]]
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{created_at}]]:</label></div>
+    <div class="col-md-9 col-8 date-time-string">[[${product.createdAt}]]</div>
+    <div class="col-md-3 col-4"><label>[[#{updated_at}]]:</label></div>
+    <div class="col-md-9 col-8 date-time-string">[[${product.updatedAt}]]</div>
+    <div class="col-md-3 col-4"></div>
+    <div class="col-md-9 col-8">
+        <a class="btn btn-info mb-2" target="_blank"
+           th:href="${webUrl + productUriPrefix + product.productCode}">
+            [[#{view}]] <i class="fas fa-external-link-alt"></i>
+        </a>
+        <button type="button" class="btn btn-danger mb-2"
+                th:attr="onclick=|ecommerce.onDeleteProductClick()|">
+            [[#{delete}]] <i class="fas fa-trash"></i>
+        </button>
+    </div>
+    <div class="col-12">
+        <hr class="mb-4" />
+    </div>
+    <div class="col-12">
+        <div class="d-flex">
+            <h3>[[#{description}]]</h3>
+        </div>
+    </div>
+    <div class="col-12" id="productDescriptionArea">
+        <div id="productDescriptionPreviewWrapper">
+            <div class="mt-3" id="productDescriptionPreviewContent"
+                 th:utext="${productDescription.description}">
+            </div>
+            <div class="row">
+                <div class="col-md-4"></div>
+                <div class="col-md-4">
+                    <button type="button" class="btn btn-primary form-control"
+                            onclick="ecommerce.onProductDescriptionSwitchToEditModeClick();">
+                        [[#{edit}]]
+                    </button>
+                </div>
+                <div class="col-md-4"></div>
+            </div>
+        </div>
+        <div class="d-none" id="productDescriptionEditorWrapper">
+            <div class="d-flex flex-column">
+                <div id="productDescriptionEditorMenu">
+                    <div class="d-flex mb-1">
+                        <div class="flex-grow-1">
+                            <input type="text" name="productName" id="productDescriptionProductName"
+                                   class="form-control d-none" th:placeholder="#{product_name}">
+                        </div>
+                        <div>
+                            <select name="language" id="productDescriptionLanguage"
+                                    class="form-control"
+                                    onchange="ecommerce.onProductDescriptionLanguageChanged(this);">
+                                <option value="">[[#{default_language}]]</option>
+                                <option th:each="webLanguage : ${webLanguages}"
+                                        th:value="${webLanguage.code}">
+                                    [[${webLanguage.name}]]
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div id="ezyarticleEditor" class="mb-2"></div>
+                <div id="productDescriptionEditorButtons">
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-primary form-control mr-1"
+                                onclick="ecommerce.onSaveProductDescriptionClick();">
+                            [[#{save}]]
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary form-control ml-1"
+                                onclick="ecommerce.onCancelProductDescriptionClick();">
+                            [[#{cancel_changes}]]
+                        </button>
+                        <button type="button" class="btn btn-outline-info form-control ml-1"
+                                onclick="ecommerce.onProductDescriptionSwitchToPreviewModeClick();">
+                            [[#{preview}]]
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12">
+        <hr class="mb-4" />
+    </div>
+    <div class="col-12">
+        <div class="d-flex">
+            <h3>[[#{metadata}]]</h3>
+            <button type="button" id="addNewProductMetadataButton"
+                    class="btn btn-outline-primary button-next-to-title"
+                    onclick="ecommerce.showAddProductMetadataModal();">
+                [[#{add_new}]] <i class="fas fa-plus-circle"></i>
+            </button>
+        </div>
+    </div>
+    <div class="col-12 mt-3"></div>
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body table-responsive p-0">
+                <table class="table table-bordered table-hover text-nowrap align-middle-cells">
+                    <thead>
+                    <tr>
+                        <th>[[#{#}]]</th>
+                        <th>[[#{name}]]</th>
+                        <th>[[#{type}]]</th>
+                        <th>[[#{value}]]</th>
+                        <th>[[#{action}]]</th>
+                    </tr>
+                    </thead>
+                    <tbody id="productMetadataListBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-12">
+        <hr class="mb-4" />
+    </div>
+    <div class="col-12">
+        <div class="d-flex">
+            <h3>[[#{medias}]]</h3>
+            <button type="button" id="addNewProductMediaButton"
+                    class="btn btn-outline-primary button-next-to-title"
+                    onclick="ecommerce.onAddNewProductMediaButtonClick();">
+                [[#{add_new}]] <i class="fas fa-plus-circle"></i>
+            </button>
+        </div>
+    </div>
+    <th:block th:replace="~{/ecommerce/product/media-list :: content}" />
+    <div class="col-12">
+        <hr class="mb-4" />
+    </div>
+    <div class="col-12">
+        <div class="d-flex">
+            <h3>[[#{product_set}]]</h3>
+            <button type="button" id="addSetProductsButton"
+                    class="btn btn-outline-primary button-next-to-title"
+                    onclick="ecommerce.onAddSetProductsButtonClick();">
+                [[#{add_new}]] <i class="fas fa-plus-circle"></i>
+            </button>
+            <button type="button" id="addSetProductsDoneButton"
+                    class="btn btn-outline-success button-next-to-title d-none"
+                    onclick="ecommerce.onAddSetProductsDoneButtonClick();">
+                [[#{done}]] <i class="fas fa-check-circle"></i>
+            </button>
+        </div>
+    </div>
+    <th:block th:replace="~{/ecommerce/product/set-product-list :: content}" />
+    <div class="col-12">
+        <hr class="mb-4" />
+    </div>
+    <div class="col-12">
+        <div class="d-flex">
+            <h3>[[#{upsell_products}]]</h3>
+            <button type="button" id="addUpsellProductsButton"
+                    class="btn btn-outline-primary button-next-to-title"
+                    onclick="ecommerce.onAddUpsellProductsButtonClick();">
+                [[#{add_new}]] <i class="fas fa-plus-circle"></i>
+            </button>
+            <button type="button" id="addUpsellProductsDoneButton"
+                    class="btn btn-outline-success button-next-to-title d-none"
+                    onclick="ecommerce.onAddUpsellProductsDoneButtonClick();">
+                [[#{done}]] <i class="fas fa-check-circle"></i>
+            </button>
+        </div>
+    </div>
+    <th:block th:replace="~{/ecommerce/product/upsell-product-list :: content}" />
+    <div class="col-12">
+        <hr class="mb-4" />
+    </div>
+    <div class="col-12">
+        <div class="d-flex">
+            <h3>[[#{warehouses}]]</h3>
+            <button type="button"
+                    th:if="${product.shop != null && shopWarehouses.size() > 0}"
+                    class="btn btn-outline-primary button-next-to-title"
+                    onclick="ecommerce.showAddWarehouseProductModal();">
+                [[#{add_new}]] <i class="fas fa-plus-circle"></i>
+            </button>
+        </div>
+    </div>
+    <th:block th:replace="~{/ecommerce/product/warehouse-list :: content}" />
+    <div class="col-12 mb-3"></div>
+</div>
+<th:block layout:fragment="modals">
+    <th:block th:replace="~{ecommerce/product/add-color :: content}" />
+    <th:block th:replace="~{ecommerce/product/edit-color :: content}" />
+    <th:block th:replace="~{ecommerce/product/add-material :: content}" />
+    <th:block th:replace="~{ecommerce/product/edit-material :: content}" />
+    <th:block th:replace="~{ecommerce/product/add-metadata :: content}" />
+    <th:block th:replace="~{ecommerce/product/edit-metadata-html :: content}" />
+    <th:block th:replace="~{ecommerce/product/add-set-product :: content}" />
+    <th:block th:replace="~{ecommerce/product/add-upsell-product :: content}" />
+    <th:block th:replace="~{ecommerce/product/save-product-size-color-price :: content}" />
+    <th:block th:replace="~{ecommerce/shop/warehouse/add-warehouse-product :: content}" />
+    <th:block th:replace="~{ecommerce/shop/warehouse/edit-warehouse-product :: content}" />
+    <th:block th:replace="~{/ecommerce/product/discount-products :: content}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='archive-product-modal', title=confirm, confirmButton=archive, closeButton=close, type=delete)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='delete-product-modal', title=confirm, confirmButton=delete, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='draft-product-modal', title=confirm, confirmButton=draft, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='publish-product-modal', title=confirm, confirmButton=activate, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='cancel-discount-product-modal', title=confirm, confirmButton=confirm, closeButton=close, type=delete)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='upcoming-launches-product-modal', title=confirm, confirmButton=confirm, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='stop-selling-product-modal', title=confirm, confirmButton=confirm, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='delete-warehouse-product-modal', title=confirm, confirmButton=delete, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='delete-category-product-modal', title=confirm, confirmButton=delete, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='delete-tag-product-modal', title=confirm, confirmButton=delete, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='delete-agency-product-modal', title=confirm, confirmButton=delete, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='delete-product-color-modal', title=confirm, confirmButton=delete, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='delete-product-material-modal', title=confirm, confirmButton=delete, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='delete-product-metadata-modal', title=confirm, confirmButton=delete, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='delete-set-product-modal', title=confirm, confirmButton=delete, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='add-to-product-set-product-modal', title=confirm, confirmButton=confirm, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='remove-from-product-set-product-modal', title=confirm, confirmButton=confirm, closeButton=close, type=delete)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='delete-upsell-product-modal', title=confirm, confirmButton=delete, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='add-to-product-upsell-product-modal', title=confirm, confirmButton=confirm, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='remove-from-product-upsell-product-modal', title=confirm, confirmButton=confirm, closeButton=close, type=delete)}" />
+</th:block>
+<script layout:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.currentParentURL = /*[[${currentParentURL}]]*/ '';
+ecommerce.selectedProductId = /*[[${product.id}]]*/ '';
+ecommerce.selectedProductName = /*[[${product.productName}]]*/ '';
+ecommerce.editableProductMetadataTypeByName = /*[[${editableMetadataTypeByName}]]*/;
+ezyadmin.messages.save_successfully = /*[[#{save_successfully}]]*/ '';
+ezyadmin.messages.save_failed = /*[[#{save_failed}]]*/ '';
+ezyadmin.messages.add_media = /*[[#{add_media}]]*/ '';
+ezyadmin.messages.text = /*[[#{text}]]*/ '';
+/*]]>*/
+ecommerce.productDescriptionLanguage = '';
+ecommerce.savedProductDescription = $('#productDescriptionPreviewContent').html();
+
+ezyadmin.onEditButtonClick = function() {
+    window.location = '/ecommerce/products/' + ecommerce.selectedProductId + '/edit';
+}
+
+ecommerce.getProductPrices = function() {
+    ecommerce.getProductPrice();
+    ecommerce.fetchProductSizeColorPrices();
+}
+
+ecommerce.getProductPrice = function() {
+    $.ajax({
+        url: '/ecommerce/api/v1/products/' + ecommerce.selectedProductId + '/price?currencyId=' + $('#productCurrency').val(),
+        type: 'GET',
+        dataType: 'json'
+    })
+    .done(function(data) {
+        $('#productPrice').text(data ? data.price : '');
+        $('#productOriginalPrice').text(data ? data.originalPrice : '');
+    })
+    .fail(function(e) {
+        ezyadmin.processGetApiErrors(e);
+    });
+}
+
+ezyadmin.createDataTable('warehouseList', 5);
+
+// ============ product description ==========
+ecommerce.productDescriptionEditor = ecommerce.productDescriptionEditor || {
+    setProductName: (value) => {
+        $('#productDescriptionProductName').val(value);
+    },
+    setContent: (value) => {
+        ezyarticle.editor.setHtml(value);
+    },
+    getContent: () => {
+        return ezyarticle.editor.getHtml();
+    },
+    showProductNameInput: () => {
+        $('#productDescriptionProductName').removeClass('d-none');
+    },
+    hideProductNameInput: () => {
+        $('#productDescriptionProductName').addClass('d-none');
+    }
+};
+
+ecommerce.onProductDescriptionSwitchToEditModeClick = function(e) {
+    $('#productDescriptionPreviewWrapper').addClass('d-none');
+    $('#productDescriptionEditorWrapper').removeClass('d-none');
+}
+
+ecommerce.onProductDescriptionSwitchToPreviewModeClick = function(e) {
+    $('#productDescriptionPreviewContent').html(
+        ecommerce.productDescriptionEditor.getContent()
+    );
+    $('#productDescriptionPreviewWrapper').removeClass('d-none');
+    $('#productDescriptionEditorWrapper').addClass('d-none');
+}
+
+ecommerce.onProductDescriptionLanguageChanged = function(e) {
+    var i18nLanguage = $(e).val();
+    ecommerce.saveProductDescription(() => {
+        ecommerce.productDescriptionLanguage = i18nLanguage;
+        ecommerce.fetchProductDescription();
+        ecommerce.fetchProductCategoryNames();
+    });
+
+}
+
+ecommerce.fetchProductDescription = function(language) {
+    var i18nLanguage = ecommerce.productDescriptionLanguage;
+    $.ajax({
+        url: '/ecommerce/api/v1/products/' + ecommerce.selectedProductId + '/description' +
+             (i18nLanguage ? ('?i18n_lang=' + i18nLanguage) : ''),
+        type: 'GET',
+        dataType: 'json'
+    })
+    .done(function(data) {
+        var productName = data.productName || ecommerce.selectedProductName;
+        $('#productNameText').text(productName);
+        ecommerce.productDescriptionEditor.setProductName(productName);
+        ecommerce.productDescriptionEditor.setContent(
+            data.description || ecommerce.savedProductDescription
+        );
+        if (i18nLanguage) {
+            ecommerce.productDescriptionEditor.showProductNameInput();
+        } else {
+            ecommerce.productDescriptionEditor.hideProductNameInput();
+        }
+    })
+    .fail(function(e) {
+    	ezyadmin.processGetApiErrors(e);
+    });
+}
+
+ecommerce.onSaveProductDescriptionClick = function() {
+    ecommerce.saveProductDescription();
+}
+
+ecommerce.saveProductDescription = function(callback) {
+    var formData = {
+        language: ecommerce.productDescriptionLanguage,
+        productName: $('#productDescriptionProductName').val(),
+        description: ecommerce.productDescriptionEditor.getContent()
+    };
+    $.ajax({
+        type: 'PUT',
+        url: '/ecommerce/api/v1/products/' + ecommerce.selectedProductId + '/description',
+        contentType: 'application/json',
+        data: JSON.stringify(formData),
+        success: function () {
+            ezyadmin.shortToast(
+                'bg-success',
+                ezyadmin.messages.save_successfully
+            );
+            ecommerce.savedProductDescription = formData.description;
+            $('#productNameText').text(
+                formData.productName || ecommerce.selectedProductName
+            );
+            if (callback) {
+                callback();
+            }
+        },
+        error: function (data, e) {
+            ezyadmin.shortToast(
+                'bg-danger',
+                ezyadmin.messages.save_failed
+            );
+            ezyadmin.processUpdateApiErrors({}, data);
+            if (callback) {
+                callback();
+            }
+        }
+    });
+}
+
+ecommerce.onCancelProductDescriptionClick = function() {
+    ecommerce.productDescriptionEditor.setContent(
+        ecommerce.savedProductDescription
+    );
+}
+
+// ========== product product size color price =============
+ecommerce.productSizeColorPriceById = {};
+ecommerce.fetchProductSizeColorPrices = function(language) {
+    $.ajax({
+        url: '/ecommerce/api/v1/products/' + ecommerce.selectedProductId +
+             '/size-color-prices?currencyId=' + $('#productCurrency').val(),
+        type: 'GET',
+        dataType: 'json'
+    })
+    .done(function(data) {
+        data.forEach((item) => {
+            ecommerce.productSizeColorPriceById[item.id] = item;
+        });
+        ecommerce.buildProductSizeColorPriceListBodyHtml(data);
+    })
+    .fail(function(e) {
+        ezyadmin.processGetApiErrors(e);
+    });
+}
+
+ecommerce.buildProductSizeColorPriceListBodyHtml = function(categories) {
+    var html = '';
+    categories.forEach((productSizeColorPrice) => {
+        var size = productSizeColorPrice.size || {};
+        var color = productSizeColorPrice.color || {};
+        var material = productSizeColorPrice.material || {};
+        html += `
+            <tr>
+                <td>${size.sizeDisplayName || size.sizeName || ''}</td>
+                <td>${color.colorDisplayName || color.colorName || ''}</td>
+                <td>${material.materialDisplayName || material.materialName || ''}</td>
+                <td>${productSizeColorPrice.formattedPrice}</td>
+                <td>
+                    <button type="button" class="btn btn-link text-primary"
+                            onclick="ecommerce.showUpdateProductSizeColorPriceModal(${productSizeColorPrice.id})">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <button type="button" class="btn btn-link text-danger"
+                            onclick="ecommerce.onDeleteProductSizeColorPrice(${productSizeColorPrice.id})">
+                        <i class="fas fa-trash-alt"></i>
+                    </a>
+                </td>
+            </tr>
+        `;
+    });
+    $('#productSizeColorPriceListBody').html(html);
+}
+
+ecommerce.fetchProductSizeColorPrices();
+
+// ========== product category =============
+ecommerce.onKeydownToAddProductCategory = function() {
+    if(event.key === 'Enter') {
+        ecommerce.addProductCategory('add');
+    }
+}
+
+ecommerce.addProductCategory = function() {
+    var formData = {
+        categoryName: $('#addProductCategoryName').val()
+    }
+    ezyadmin.setActualFormData(formData);
+    var categoryId;
+    var categoryName = formData.categoryName;
+    if (categoryName) {
+        var category = ezyadmin.latestSuggestedDataByKey[categoryName];
+        if (category) {
+            categoryId = category.id;
+        }
+    }
+    if (!categoryId) {
+        return;
+    }
+    $.ajax({
+        type: 'POST',
+        url: '/ecommerce/api/v1/product-categories/' + categoryId +
+             '/products/' + ecommerce.selectedProductId + '/add',
+        data: formData,
+        success: function (data) {
+            ecommerce.fetchProductCategoryNames();
+            $('#addProductCategoryName').val('');
+        },
+        error: function (e) {
+            ezyadmin.processUpdateApiErrors({}, e);
+        }
+    });
+}
+
+ecommerce.fetchProductCategoryNames = function(language) {
+    var i18nLanguage = ecommerce.productDescriptionLanguage;
+    $.ajax({
+        url: '/ecommerce/api/v1/products/' + ecommerce.selectedProductId + '/category-names' +
+             (i18nLanguage ? ('?i18n_lang=' + i18nLanguage) : ''),
+        type: 'GET',
+        dataType: 'json'
+    })
+    .done(function(data) {
+        ecommerce.buildProductCategoryListBodyHtml(data);
+    })
+    .fail(function(e) {
+    	ezyadmin.processGetApiErrors(e);
+    });
+}
+
+ecommerce.buildProductCategoryListBodyHtml = function(categories) {
+    var html = '';
+    categories.forEach((category) => {
+        html += `
+            <li>
+                <a class="text-wrap" href="${'/ecommerce/product-categories/' + category.id}">
+                    ${category.displayName}
+                </a>
+                <a class="text-danger cursor-pointer ml-2"
+                   onclick="ecommerce.onDeleteCategoryProductClick(${category.id}, '${escape(category.displayName)}')">
+                    <i class="fas fa-trash-alt"></i>
+                </a>
+            </li>
+        `;
+    });
+    $('#productCategoryListBody').html(html);
+}
+
+ecommerce.fetchProductCategoryNames();
+
+// ========== product tags =============
+ecommerce.onKeydownToAddProductTags = function() {
+    if(event.key === 'Enter') {
+        ecommerce.addProductTags('add');
+    }
+}
+
+ecommerce.addProductTags = function() {
+    var tagNames = $('#addProductTagName').val().trim();
+    if (!tagNames) {
+        return;
+    }
+    var tagNameList = tagNames.split(',');
+    tagNameList.forEach((tagName) => {
+        ecommerce.addProductTag(tagName);
+    });
+}
+
+ecommerce.addProductTag = function(tagName) {
+    if (!tagName) {
+        return;
+    }
+    var formData = {
+        tagName: tagName,
+        productId: ecommerce.selectedProductId
+    }
+    $.ajax({
+        type: 'POST',
+        url: '/ecommerce/api/v1/product-tags/add-tag-product',
+        data: formData,
+        success: function (data) {
+            $('#addProductTagName').val('');
+            ecommerce.fetchProductTagNames();
+        },
+        error: function (e) {
+            ezyadmin.processUpdateApiErrors({}, e);
+        }
+    });
+}
+
+ecommerce.fetchProductTagNames = function(language) {
+    var i18nLanguage = ecommerce.productDescriptionLanguage;
+    $.ajax({
+        url: '/ecommerce/api/v1/products/' + ecommerce.selectedProductId + '/tag-names',
+        type: 'GET',
+        dataType: 'json'
+    })
+    .done(function(data) {
+        ecommerce.buildProductTagListBodyHtml(data);
+    })
+    .fail(function(e) {
+        ezyadmin.processGetApiErrors(e);
+    });
+}
+
+ecommerce.buildProductTagListBodyHtml = function(tags) {
+    var html = '';
+    tags.forEach((tag) => {
+        html += `
+            <li>
+                <a class="text-wrap" href="${'/ecommerce/product-tags/' + tag.id}">
+                    ${tag.name}
+                </a>
+                <a class="text-danger cursor-pointer ml-2"
+                   onclick="ecommerce.onDeleteTagProductClick(${tag.id}, '${escape(tag.name)}')">
+                    <i class="fas fa-trash-alt"></i>
+                </a>
+            </li>
+        `;
+    });
+    $('#productTagListBody').html(html);
+}
+
+ecommerce.fetchProductTagNames();
+
+// ========== product sizes =============
+ecommerce.onKeydownToSaveProductSizeNames = function() {
+    if(event.key === 'Enter') {
+        ecommerce.saveProductSizeNames();
+    }
+}
+
+ecommerce.productSizes = [];
+ecommerce.fetchProductSizeNames = function(language) {
+    $.ajax({
+        url: '/ecommerce/api/v1/products/' + ecommerce.selectedProductId + '/size-names',
+        type: 'GET',
+        dataType: 'json'
+    })
+    .done(function(data) {
+        ecommerce.productSizes = data;
+        ecommerce.buildProductSizeListBodyHtml(data);
+    })
+    .fail(function(e) {
+        ezyadmin.processGetApiErrors(e);
+    });
+}
+
+ecommerce.buildProductSizeListBodyHtml = function(sizes) {
+    var sizeNames = [];
+    sizes.forEach((size) => {
+        sizeNames.push(size.sizeName);
+    });
+    $('#productSizeNames').val(sizeNames.join(','));
+}
+
+ecommerce.fetchProductSizeNames();
+
+// ========== product colors =============
+ecommerce.productColors = [];
+ecommerce.fetchProductColorNames = function(language) {
+    $.ajax({
+        url: '/ecommerce/api/v1/products/' + ecommerce.selectedProductId + '/color-names',
+        type: 'GET',
+        dataType: 'json'
+    })
+    .done(function(data) {
+        ecommerce.productColors = data;
+        ecommerce.buildProductColorListBodyHtml(data);
+    })
+    .fail(function(e) {
+        ezyadmin.processGetApiErrors(e);
+    });
+}
+
+ecommerce.buildProductColorListBodyHtml = function(colors) {
+    var html = '';
+    colors.forEach((color) => {
+        html += `
+            <li>
+                <a class="text-wrap" href="${'/ecommerce/products/' + color.productId + '/colors/' + color.id}">
+                    ${color.colorDisplayName} - ${color.colorName}
+                    (<span style="${'color: ' + color.colorCode + ';' + (color.colorCode.match(/^#f+$/) ? 'background-color: black;' : '')}">${color.colorCode}</span>)
+                </a>
+                <a class="text-primary cursor-pointer ml-2"
+                   onclick="ecommerce.showEditColorModal(${color.id}, '${escape(color.colorName)}', '${escape(color.colorDisplayName)}', '${color.colorCode}', '${color.amount}')">
+                    <i class="fas fa-edit"></i>
+                </a>
+                <a class="text-danger cursor-pointer ml-2"
+                   onclick="ecommerce.onDeleteProductColorClick(${color.id}, '${color.colorDisplayName}')">
+                    <i class="fas fa-trash-alt"></i>
+                </a>
+            </li>
+        `;
+    });
+    $('#productColorListBody').html(html);
+}
+
+ecommerce.fetchProductColorNames();
+
+// ========== product materials =============
+ecommerce.productMaterials = [];
+ecommerce.fetchProductMaterialNames = function(language) {
+    $.ajax({
+        url: '/ecommerce/api/v1/products/' + ecommerce.selectedProductId + '/material-names',
+        type: 'GET',
+        dataType: 'json'
+    })
+    .done(function(data) {
+        ecommerce.productMaterials = data;
+        ecommerce.buildProductMaterialListBodyHtml(data);
+    })
+    .fail(function(e) {
+        ezyadmin.processGetApiErrors(e);
+    });
+}
+
+ecommerce.buildProductMaterialListBodyHtml = function(materials) {
+    var html = '';
+    materials.forEach((material) => {
+        html += `
+            <li>
+                <a class="text-wrap" href="${'/ecommerce/products/' + material.productId + '/materials/' + material.id}">
+                    ${material.materialDisplayName}
+                </a>
+                <a class="text-primary cursor-pointer ml-2"
+                   onclick="ecommerce.showEditMaterialModal(${material.id}, '${escape(material.materialName)}', '${escape(material.materialDisplayName)}', '${material.amount}')">
+                    <i class="fas fa-edit"></i>
+                </a>
+                <a class="text-danger cursor-pointer ml-2"
+                   onclick="ecommerce.onDeleteProductMaterialClick(${material.id}, '${material.materialDisplayName}')">
+                    <i class="fas fa-trash-alt"></i>
+                </a>
+            </li>
+        `;
+    });
+    $('#productMaterialListBody').html(html);
+}
+
+ecommerce.fetchProductMaterialNames();
+
+// ========== product agency =============
+ecommerce.onKeydownToAddProductAgency = function(type) {
+    if(event.key === 'Enter') {
+        ecommerce.addProductAgency(type);
+    }
+}
+
+ecommerce.addProductAgency = function(type) {
+    var formData = {
+        type: type.toLowerCase(),
+        agencyName: $(`#addProduct${type}Name`).val()
+    }
+    ezyadmin.setActualFormData(formData);
+    var agencyId;
+    var agencyName = formData.agencyName;
+    if (agencyName) {
+        var agency = ezyadmin.latestSuggestedDataByKey[agencyName];
+        if (agency) {
+            agencyId = agency.id;
+        }
+    }
+    if (!agencyId) {
+        return;
+    }
+    $.ajax({
+        type: 'POST',
+        url: '/ecommerce/api/v1/shop-agencies/' + agencyId +
+             '/products/' + ecommerce.selectedProductId + '/add',
+        data: formData,
+        success: function (data) {
+            ecommerce.fetchProductAgencyNames(type);
+            $(`#addProduct${type}Name`).val('');
+        },
+        error: function (e) {
+            ezyadmin.processUpdateApiErrors({}, e);
+        }
+    });
+}
+
+ecommerce.fetchProductAgencyNames = function(type) {
+    $.ajax({
+        url: '/ecommerce/api/v1/products/' + ecommerce.selectedProductId + '/agency-names' +
+             ('?type=' + type),
+        type: 'GET',
+        dataType: 'json'
+    })
+    .done(function(data) {
+        ecommerce.buildProductAgencyListBodyHtml(data, type);
+    })
+    .fail(function(e) {
+        ezyadmin.processGetApiErrors(e);
+    });
+}
+
+ecommerce.buildProductAgencyListBodyHtml = function(agencies, type) {
+    var html = '';
+    agencies.forEach((agency) => {
+        html += `
+            <li>
+                <a class="text-wrap" href="${'/ecommerce/agencies/' + agency.id}">
+                    ${agency.displayName}
+                </a>
+                <a class="text-danger cursor-pointer ml-2"
+                   onclick="ecommerce.onDeleteAgencyProductClick(${agency.id}, '${type}', '${escape(agency.displayName)}')">
+                    <i class="fas fa-trash-alt"></i>
+                </a>
+            </li>
+        `;
+    });
+    $(`#product${type}ListBody`).html(html);
+}
+
+ecommerce.fetchProductAgencyNames('Brand');
+ecommerce.fetchProductAgencyNames('Supplier');
+
+// ========== product meta list =============
+ecommerce.productMetadataById = {};
+ecommerce.fetchProductMetadataList = function(language) {
+    $.ajax({
+        url: '/ecommerce/api/v1/products/' + ecommerce.selectedProductId + '/metadata-list',
+        type: 'GET',
+        dataType: 'json'
+    })
+    .done(function(data) {
+        data.forEach((item) => {
+            ecommerce.productMetadataById[item.id] = item;
+        });
+        ecommerce.buildProductMetadataListBodyHtml(data);
+    })
+    .fail(function(e) {
+        ezyadmin.processGetApiErrors(e);
+    });
+}
+
+ecommerce.buildProductMetadataListBodyHtml = function(metadataList) {
+    var html = '';
+    metadataList.forEach((metadata, index) => {
+        var dataType = ecommerce.editableProductMetadataTypeByName[metadata.metaKey];
+        html += `
+            <tr>
+                <td>${index + 1}</td>
+                <td>${ezyadmin.getI18nMessage(metadata.metaKey)}</td>
+                <td>${ezyadmin.getI18nMessage(dataType.toLowerCase())}</td>
+                <td class="text-wrap">
+                    <span id="product-metadata-value-${metadata.id}">
+                        ${metadata.metaValue || metadata.metaNumberValue || ezyadmin.removeHtmlTagAndSub(metadata.metaTextValue, 300) || ''}
+                    </span>
+                    <input type="text" id="product-metadata-value-input-${metadata.id}" class="form-control d-none"
+                           onkeydown="ecommerce.onKeyDownToSaveProductMetadataValue(${metadata.id}, '${dataType}');" />
+                </td>
+                <td class="align-middle">
+                    <button type="button" class="btn btn-link text-primary"
+                            onclick="ecommerce.onUpdateProductMetadataValueClick(${metadata.id}, '${dataType}')">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <button type="button" class="btn btn-link text-danger"
+                            onclick="ecommerce.onDeleteProductMetadataClick(${metadata.id})">
+                        <i class="fas fa-trash-alt"></i>
+                    </a>
+                </td>
+            </tr>
+        `;
+    });
+    $('#productMetadataListBody').html(html);
+}
+
+ecommerce.onUpdateProductMetadataValueClick = function(metadataId, dataType) {
+    var metadata = ecommerce.productMetadataById[metadataId];
+    if (dataType == 'TEXT') {
+        $(`#product-metadata-value-${metadataId}`).addClass('d-none');
+        $(`#product-metadata-value-input-${metadataId}`)
+            .val(metadata.metaValue || metadata.metaNumberValue || metadata.metaTextValue || '')
+            .removeClass('d-none');
+    } else {
+        ecommerce.showEditProductMetadataHtmlModal(metadataId);
+    }
+}
+
+ecommerce.onKeyDownToSaveProductMetadataValue = function(metadataId, dataType) {
+    if(event.key != 'Enter') {
+        return;
+    }
+    var value = $(`#product-metadata-value-input-${metadataId}`).val();
+    var metadata = ecommerce.productMetadataById[metadataId];
+    var formData = { name: metadata.metaKey, value: value };
+    if (dataType == 'HTML') {
+        formData.textValue = value;
+    }
+    ecommerce.doSaveProductMetadataValue(formData);
+}
+
+ecommerce.doSaveProductMetadataValue = function(formData) {
+    $.ajax({
+        type: 'PUT',
+        url: '/ecommerce/api/v1/products/' + ecommerce.selectedProductId + '/metadata',
+        data: JSON.stringify(formData),
+        contentType: 'application/json',
+        success: function (data) {
+            ecommerce.hideEditProductMetadataHtmlModal();
+            ecommerce.fetchProductMetadataList();
+        },
+        error: function (e) {
+            ezyadmin.processUpdateApiErrors({}, e);
+        }
+    });
+}
+
+ecommerce.fetchProductMetadataList();
+</script>
+<th:block layout:fragment="post-scripts">
+<script th:replace="~{scripts/suggestion :: input}" />
+<script th:replace="~{ecommerce/scripts/suggestion :: category}" />
+<script th:replace="~{ecommerce/scripts/suggestion :: tag}" />
+<script th:replace="~{ecommerce/scripts/suggestion :: product}" />
+<script th:replace="~{ecommerce/scripts/suggestion :: agency}" />
+<script th:replace="~{ecommerce/product/scripts :: delete}" />
+<script th:replace="~{ecommerce/product/scripts :: delete-color}" />
+<script th:replace="~{ecommerce/product/scripts :: delete-material}" />
+<script th:replace="~{ecommerce/product/scripts :: delete-size-color-price}" />
+<script th:replace="~{ecommerce/product/scripts :: delete-product-metadata}" />
+<script th:replace="~{ecommerce/product/add-color :: scripts}" />
+<script th:replace="~{ecommerce/product/edit-color :: scripts}" />
+<script th:replace="~{ecommerce/product/add-material :: scripts}" />
+<script th:replace="~{ecommerce/product/edit-material :: scripts}" />
+<script th:replace="~{ecommerce/product/add-size :: scripts}" />
+<script th:replace="~{ecommerce/product/add-metadata :: scripts}" />
+<script th:replace="~{ecommerce/product/edit-metadata-html :: scripts}" />
+<script th:replace="~{ecommerce/product/media-list :: scripts}" />
+<script th:replace="~{ecommerce/product/scripts :: bulk-actions}" />
+<script th:replace="~{ecommerce/product/discount-products :: scripts}" />
+<script th:replace="~{ecommerce/product/set-product-list :: scripts}" />
+<script th:replace="~{ecommerce/product/add-set-product :: scripts}" />
+<script th:replace="~{ecommerce/product/upsell-product-list :: scripts}" />
+<script th:replace="~{ecommerce/product/add-upsell-product :: scripts}" />
+<script th:replace="~{ecommerce/product/save-product-size-color-price :: scripts}" />
+<script th:replace="~{ecommerce/scripts/media :: build-html}" />
+<script th:replace="~{ecommerce/category/scripts :: delete-product}" />
+<script th:replace="~{ecommerce/tag/scripts :: delete-product}" />
+<script th:replace="~{ecommerce/shop/agency/scripts :: delete-product}" />
+<script th:replace="~{ecommerce/shop/warehouse/add-warehouse-product :: scripts}" />
+<script th:replace="~{ecommerce/shop/warehouse/edit-warehouse-product :: scripts}" />
+<script th:replace="~{ecommerce/shop/warehouse/delete-warehouse-product :: scripts}" />
+<th:block th:if="${ezyArticleActive == true}">
+    <script ezy:vsrc="/ezyarticle/js/tinymce.js"></script>
+    <script>
+        ecommerce.productEditors = ezyarticle.tinymceEditors;
+    </script>
+</th:block>
+<th:block th:if="${ezyArticleActive != true}">
+    <script ezy:vsrc="/ecommerce/editors/text.js"></script>
+    <script>
+        ecommerce.productEditors = ezyarticle.textEditors;
+    </script>
+</th:block>
+<script>
+ezyadmin.onPromptConfirmed = function(modalId) {
+    if (modalId == 'delete-product-modal') {
+        ecommerce.deleteProduct();
+    } else if (modalId == 'delete-warehouse-product-modal') {
+        ecommerce.deleteWarehouseProduct();
+    } else if (modalId == 'delete-category-product-modal') {
+        ecommerce.deleteCategoryProduct();
+    } if (modalId == 'delete-agency-product-modal') {
+        ecommerce.deleteAgencyProduct();
+    } else if (modalId == 'delete-product-color-modal') {
+        ecommerce.deleteProductColor();
+    }  else if (modalId == 'delete-product-material-modal') {
+        ecommerce.deleteProductMaterial();
+    } else if (modalId == 'delete-product-metadata-modal') {
+        ecommerce.deleteProductMetadata();
+    } else if (modalId == 'delete-tag-product-modal') {
+        ecommerce.deleteTagProduct();
+    } else if (modalId == 'delete-set-product-modal') {
+        ecommerce.deleteSetProduct();
+    } else if (modalId == 'delete-upsell-product-modal') {
+        ecommerce.deleteUpsellProduct();
+    } else {
+        ecommerce.onPromptProductBulkActionConfirmed(modalId);
+    }
+}
+
+ecommerce.productDescriptionEditor.setContent(
+    ecommerce.savedProductDescription
+);
+
+ecommerce.registerCategoryAutocomplete('addProductCategoryName');
+ecommerce.registerTagAutocomplete('addProductTagName');
+ecommerce.registerAgencyAutocomplete('addProductBrandName', 'BRAND');
+ecommerce.registerAgencyAutocomplete('addProductSupplierName', 'SUPPLIER');
+
+$(document).ready(() => {
+    ecommerce.addSetProductsBulkActionOption();
+    ecommerce.addUpsellProductsBulkActionOption();
+});
+</script>
+</th:block>
+</body>
+</html>

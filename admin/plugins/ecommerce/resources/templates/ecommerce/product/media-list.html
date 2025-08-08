@@ -1,0 +1,208 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<head>
+    <script>
+        var ecommerce = {};
+    </script>
+</head>
+<body>
+<div th:fragment="content" class="col-12">
+    <div class="row">
+        <div class="col-12">
+            <div class="text-center">
+                <ul class="media-list mt-3" id="productMediaList">
+                    <li th:each="productMedia : ${productMedias}"
+                        th:id="${'productMediaItem' + productMedia.id}" role="button"
+                        th:attr="onclick=|ezyadmin.showMediaDetails(${productMedia.id})|">
+                        <th:block th:if="${productMedia.type.toString() == 'IMAGE' || productMedia.type.toString() == 'AVATAR'}">
+                            <img th:src="${productMedia.getUrlOrDefault('')}"
+                                 th:alt="${productMedia.originalName}" class="wh-150px img-thumbnail">
+                            <span class="text-danger delete-button"
+                                  aria-hidden="true"
+                                  th:attr="onclick=|ecommerce.onDeleteEcommerceMediaItemClick(${productMedia.id})|">
+                            &times;
+                        </span>
+                        </th:block>
+                        <th:block th:if="${productMedia.type.toString() == 'VIDEO'}">
+                            <video class="video-thumbnail">
+                                <source th:src="${productMedia.getUrlOrDefault('')}" type="video/mp4">
+                                <source th:src="${productMedia.getUrlOrDefault('')}" type="video/ogg">
+                                Your browser does not support the video tag.
+                            </video>
+                            <span class="text-danger delete-button"
+                                  aria-hidden="true"
+                                  th:attr="onclick=|ecommerce.onDeleteEcommerceMediaItemClick(${productMedia.id})|">
+                            &times;
+                        </span>
+                        </th:block>
+                        <th:block th:if="${productMedia.type.toString() == 'AUDIO'}">
+                            <div class="d-flex">
+                                <div class="file-thumbnail audio-thumbnail">
+                                    <audio controls>
+                                        <source th:src="${productMedia.getUrlOrDefault('')}" type="audio/mpeg">
+                                        <source th:src="${productMedia.getUrlOrDefault('')}" type="audio/ogg">
+                                        Your browser does not support the audio tag.'
+                                    </audio>
+                                    <span class="text-dark-always">[[${productMedia.originalName}]]</span>
+                                </div>
+                                <div>
+                                <span class="text-danger delete-button"
+                                      aria-hidden="true"
+                                      th:attr="onclick=|ecommerce.onDeleteEcommerceMediaItemClick(${productMedia.id})|">
+                                    &times;
+                                </span>
+                                </div>
+                            </div>
+                        </th:block>
+                        <th:block th:if="${productMedia.type.toString() != 'IMAGE'
+                                     && productMedia.type.toString() != 'AVATAR'
+                                     && productMedia.type.toString() != 'VIDEO'
+                                     && productMedia.type.toString() != 'AUDIO'}">
+                            <div class="d-flex">
+                                <div class="file-thumbnail">
+                                    <i class="far fa-file text-dark-always"></i>
+                                    <div>
+                                        <span class="text-dark-always">[[${productMedia.originalName}]]</span>
+                                    </div>
+                                </div>
+                                <div>
+                                <span class="text-danger delete-button"
+                                      aria-hidden="true"
+                                      th:attr="onclick=|ecommerce.onDeleteEcommerceMediaItemClick(${productMedia.id})|">
+                                    &times;
+                                </span>
+                                </div>
+                            </div>
+                        </th:block>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+<script th:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.delete_successfully = /*[[#{delete_successfully}]]*/;
+/*]]>*/
+
+// ======== add product category productMedia =======
+ecommerce.onAddNewProductMediaButtonClick = function(e) {
+    ezyadmin.showMediaModal('productProductImage')
+        .onMediaSelected(media => {
+            ecommerce.selectedProductMedia = media;
+            ecommerce.saveProductMedia(media.id);
+            ezyadmin.closeMediaModal();
+        });
+}
+
+ecommerce.saveProductMedia = function(productMediaId) {
+    $.ajax({
+        type: 'PUT',
+        url: '/ecommerce/api/v1/products/' + ecommerce.selectedProductId +
+             '/medias/' + productMediaId,
+        success: function (data) {
+            var html = ecommerce.buildMediaItemHtml(
+                ecommerce.selectedProductMedia,
+                'product'
+            );
+            $('#productMediaList').append(html);
+        },
+        error: function (e) {
+            ezyadmin.processUpdateApiErrors({}, e);
+        }
+    });
+}
+
+ecommerce.onDeleteEcommerceMediaItemClick = function(productMediaId) {
+	ezyadmin.deleteProductMedia(productMediaId);
+	window.event.stopPropagation();
+}
+
+ezyadmin.deleteProductMedia = function(productMediaId) {
+	var actualMediaId = (productMediaId || ezyadmin.selectedMediaId);
+     $.ajax({
+        type: "DELETE",
+        url: '/ecommerce/api/v1/products/' + ecommerce.selectedProductId +
+             '/medias/' + productMediaId,
+        success: function (data) {
+            ezyadmin.shortToast('bg-success', ezyadmin.messages.delete_successfully);
+            $('#productMediaItem' + actualMediaId).remove();
+        },
+        error: function (data, e) {
+           ezyadmin.shortToast('bg-danger', ezyadmin.messages.delete_failed);
+        }
+    });
+}
+
+// ============== add selected media =============
+ezyadmin.handleSelectedMediaIds = function(mediaIds) {
+    ecommerce.saveProductMediaIds(mediaIds, true);
+}
+
+// ============== sort media list =============
+ecommerce.saveProductMediaIds = function(mediaIds, reload) {
+    var formData = {
+        mediaIds: mediaIds
+    };
+    $.ajax({
+        type: 'PUT',
+        url: '/ecommerce/api/v1/products/' + ecommerce.selectedProductId + '/medias',
+        contentType: 'application/json',
+        data: JSON.stringify(formData),
+        success: function () {
+            if (reload) {
+                location.reload();
+            } {
+                ezyadmin.shortToast(
+                    'bg-success',
+                    ezyadmin.messages.save_successfully
+                );
+            }
+        },
+        error: function (data, e) {
+            ezyadmin.shortToast(
+                'bg-danger',
+                ezyadmin.messages.save_failed
+            );
+            ezyadmin.processUpdateApiErrors({}, data);
+        }
+    });
+}
+$(document).ready(() => {
+    $("#productMediaList").sortable({
+        opacity: 0.5,
+        helper : 'clone',
+        update: function(event, ui) {
+            var sortedIds = $(this).sortable("toArray");
+            var mediaIds = [];
+            sortedIds.forEach((e) => {
+                mediaIds.push(parseInt(e.slice("productMediaItem".length)));
+            });
+            ecommerce.saveProductMediaIds(mediaIds);
+        }
+    });
+    $("#productMediaList").disableSelection();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,212 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<body>
+<th:block th:fragment="content">
+    <div class="col-lg-9 col-md-7 col-0"></div>
+    <div class="col-lg-3 col-md-5 col-12 page-search">
+        <label for="linkedCustomerSearchKeyword" class="text-nowrap">[[#{search}]]: </label>
+        <input type="search" class="form-control" th:placeholder="#{keyword}" id="linkedCustomerSearchKeyword"
+               onkeydown="ecommerce.onKeydownToSearchLinkedCustomer();">
+    </div>
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-body table-responsive p-0">
+                <table class="table table-bordered table-hover text-nowrap">
+                    <thead>
+                    <tr>
+                        <th class="text-center">[[#{id}]]</th>
+                        <th>[[#{username}]]</th>
+                        <th>[[#{display_name}]]</th>
+                        <th>[[#{phone_number}]]</th>
+                        <th>[[#{email}]]</th>
+                        <th class="text-center text-wrap">[[#{commission_percent}]]</th>
+                        <th class="text-center text-wrap">[[#{commission_of_this_month}]]</th>
+                        <th class="text-center">[[#{linked_date}]]</th>
+                        <th class="text-center">[[#{actions}]]</th>
+                    </tr>
+                    </thead>
+                    <tbody id="linkedCustomerListBody">
+                    </tbody>
+                </table>
+            </div>
+            <!-- /.card-body -->
+            <div class="card-footer clearfix">
+                <span><span id="linkedCustomerCountText">0</span>
+                    [[${#strings.toLowerCase(#messages.msg('of'))}]]
+                    <span id="totalLinkedCustomerText">0</span>
+                    [[${#strings.toLowerCase(#messages.msg('linked_customers'))}]]
+                </span>
+                <ul class="pagination pagination-sm m-0 float-right">
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="firstPageButtonLinkedCustomer">
+                            <i class="fas fa-arrow-circle-left pl-1 pr-1"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="prevPageButtonLinkedCustomer">[[#{prev}]]</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="nextPageButtonLinkedCustomer">[[#{next}]]</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="lastPageButtonLinkedCustomer">
+                            <i class="fas fa-arrow-circle-right pl-1 pr-1"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.card-footer -->
+        </div>
+    </div>
+</th:block>
+<script th:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.activated = /*[[#{activated}]]*/ '';
+ezyadmin.messages.discount = /*[[#{discount}]]*/ '';
+ezyadmin.messages.free_shipping = /*[[#{free_shipping}]]*/ '';
+ezyadmin.messages.inactivated = /*[[#{inactivated}]]*/ '';
+/*]]>*/
+
+// ========== linkedCustomer search =============
+ecommerce.onKeydownToSearchLinkedCustomer = function() {
+    if(event.key === 'Enter') {
+        ecommerce.linkedCustomerSearchKeyword = $('#linkedCustomerSearchKeyword').val();
+        ecommerce.fetchLinkedCustomerList();
+    }
+}
+
+// ========== linkedCustomer pagination =============
+$('#firstPageButtonLinkedCustomer').click(() => {
+    ecommerce.fetchLinkedCustomerList('first');
+});
+$('#lastPageButtonLinkedCustomer').click(() => {
+    ecommerce.fetchLinkedCustomerList('last');
+});
+$('#nextPageButtonLinkedCustomer').click(() => {
+    ecommerce.fetchLinkedCustomerList('next');
+});
+$('#prevPageButtonLinkedCustomer').click(() => {
+    ecommerce.fetchLinkedCustomerList('prev');
+});
+
+// ========== linkedCustomer list =============
+ecommerce.linkedCustomerById = {};
+ecommerce.fetchLinkedCustomerList = function(action) {
+    var queryString = '';
+    if (ecommerce.linkedCustomerSearchKeyword) {
+        queryString += '&keyword=' + ecommerce.linkedCustomerSearchKeyword;
+    }
+    if (action == 'current') {
+        if (ecommerce.lastLinkedCustomerQueryString) {
+            queryString = ecommerce.lastLinkedCustomerQueryString;
+        }
+    } else if (action == 'next') {
+        if (ecommerce.lastLinkedCustomerPageToken.next) {
+            queryString += '&nextPageToken=' + ecommerce.lastLinkedCustomerPageToken.next;
+        } else {
+            return;
+        }
+    } else if (action == 'prev') {
+        if (ecommerce.lastLinkedCustomerPageToken.prev) {
+            queryString += '&prevPageToken=' + ecommerce.lastLinkedCustomerPageToken.prev;
+        } else {
+            return;
+        }
+    } else if (action == 'last') {
+        queryString += '&lastPage=true';
+    }
+    $.ajax({
+        url: '/ecommerce/api/v1/shops/' + ecommerce.selectedShopId +
+             '/sellers/' + ecommerce.selectedSellerUserId + '/customers' +
+             '?limit=12' + queryString,
+        type: 'GET',
+        dataType: 'json'
+    })
+    .done(function(data) {
+        $('#linkedCustomerCountText').text(data.count);
+        $('#totalLinkedCustomerText').text(ezyadmin.formatNumberWithCommas(data.total));
+        ecommerce.lastLinkedCustomerQueryString = queryString;
+        ecommerce.lastLinkedCustomerPageToken = data.pageToken;
+        data.items.forEach((item) => {
+            ecommerce.linkedCustomerById[item.id] = item;
+        });
+        $('#linkedCustomerListBody').html(ecommerce.buildLinkedCustomerListBodyHtml(data.items));
+        if (data.continuation.hasNext) {
+            $('#nextPageButtonLinkedCustomer').removeClass('text-secondary');
+        } else {
+            $('#nextPageButtonLinkedCustomer').addClass('text-secondary');
+        }
+        if (data.continuation.hasPrevious) {
+            $('#prevPageButtonLinkedCustomer').removeClass('text-secondary');
+        } else {
+            $('#prevPageButtonLinkedCustomer').addClass('text-secondary');
+        }
+    })
+    .fail(function(e) {
+    	ezyadmin.processGetApiErrors(e);
+    });
+}
+
+ecommerce.buildLinkedCustomerListBodyHtml = function(linkedCustomers) {
+    var html = '';
+    linkedCustomers.forEach((linkedCustomer) => {
+        html += ecommerce.buildLinkedCustomerListItemHtml(linkedCustomer);
+    });
+    return html;
+}
+ecommerce.buildLinkedCustomerListItemHtml = function(linkedCustomer) {
+    var statusColor = ezyadmin.getTextColorByStatus(linkedCustomer.status);
+    var html = `
+        <tr id="linked-customer-row-${linkedCustomer.id}">
+            <td class="text-center">${linkedCustomer.id}</td>
+            <td>
+                <a href="/users/${linkedCustomer.username}${ezyadmin.lang ? `?lang=${ezyadmin.lang}` : ''}">
+                    ${linkedCustomer.username}
+                </a>
+            </td>
+            <td>
+                <a href="/users/${linkedCustomer.username}${ezyadmin.lang ? `?lang=${ezyadmin.lang}` : ''}">
+                    ${linkedCustomer.name}
+                </a>
+            </td>
+            <td><a href="tel:${linkedCustomer.phone}">${linkedCustomer.phone || ''}</a></td>
+            <td><a href="mailto:${linkedCustomer.email}">${linkedCustomer.email || ''}</a></td>
+            <td class="text-center" id="linked-customer-cell-commission-percent-${linkedCustomer.userId}">${linkedCustomer.commissionPercent}%</td>
+            <td class="text-center">${linkedCustomer.formattedThisMonthCommissionAmount} ${ecommerce.selectedCurrencyIsoCode}</td>
+            <td class="text-center">${ezyadmin.formatTimeStampDate(linkedCustomer.linkedAt)}</td>
+            <td class="text-center">
+                <a class="btn btn-link pr-1 cursor-pointer" onclick="ecommerce.showEditSellerCustomerModal(${linkedCustomer.id})">
+                    <i class="fas fa-edit text-primary"></i>
+                </a>
+                <button type="button" class="btn pl-1" onclick="ecommerce.onDeleteSellerCustomerClick(${linkedCustomer.id}, '${escape(linkedCustomer.name)}');">
+                    <i class="fas fa-trash text-danger"></i>
+                </button>
+            </td>
+        </tr>
+        `;
+	return html;
+}
+ecommerce.fetchLinkedCustomerList();
+</script>
+</body>
+</html>

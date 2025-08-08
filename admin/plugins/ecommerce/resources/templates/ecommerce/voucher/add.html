@@ -1,0 +1,359 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<head>
+    <script>
+        var ecommerce = {};
+    </script>
+</head>
+<body>
+<div layout:fragment="content" class="row">
+    <div class="col-md-10 col-sm-12">
+        <form id="addVoucherForm">
+            <div class="form-group row">
+                <label for="addVoucherShop" class="col-sm-3 col-form-label">
+                    [[#{shop}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="shopId" id="addVoucherShop"
+                           class="form-control" th:placeholder="#{shop}"
+                           th:value="${shop != null ? (shop.displayName + '&lt;' + shop.id + '&gt;') : ''}"
+                           autocomplete="off" inputmode="text">
+                </div>
+                <label id="addVoucherShopErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addVoucherShop">
+                    <i class="far fa-times-circle"></i> <span id="addVoucherShopError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addVoucherCode" class="col-sm-3 col-form-label">
+                    [[#{code}]] (<span class="text-danger">*</span>)
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="code" id="addVoucherCode"
+                           class="form-control" th:placeholder="#{code}">
+                </div>
+                <label id="addVoucherCodeErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addVoucherCode">
+                    <i class="far fa-times-circle"></i> <span id="addVoucherCodeError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addVoucherDisplayName" class="col-sm-3 col-form-label">
+                    [[#{display_name}]] (<span class="text-danger">*</span>)
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="displayName" id="addVoucherDisplayName"
+                           class="form-control" th:placeholder="#{display_name}">
+                </div>
+                <label id="addVoucherDisplayNameErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addVoucherDisplayName">
+                    <i class="far fa-times-circle"></i> <span id="addVoucherDisplayNameError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addVoucherDiscountAmount" class="col-sm-3 col-form-label">
+                    [[#{discount_amount}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="number" name="discountAmount" id="addVoucherDiscountAmount"
+                           class="form-control" th:placeholder="#{discount_amount}">
+                </div>
+                <label id="addVoucherDiscountAmountErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addVoucherDiscountAmount">
+                    <i class="far fa-times-circle"></i> <span id="addVoucherDiscountAmountError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addVoucherDiscountPercent" class="col-sm-3 col-form-label">
+                    [[#{discount_percent}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="number" name="discountPercent" id="addVoucherDiscountPercent"
+                           class="form-control" th:placeholder="#{example} + ': 30'">
+                </div>
+                <label id="addVoucherDiscountPercentErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addVoucherDiscountPercent">
+                    <i class="far fa-times-circle"></i> <span id="addVoucherDiscountPercentError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addVoucherMaxDiscountAmount" class="col-sm-3 col-form-label">
+                    [[#{max_discount_amount}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="number" name="maxDiscountAmount" id="addVoucherMaxDiscountAmount"
+                           class="form-control" th:placeholder="#{max_discount_amount}">
+                </div>
+                <label id="addVoucherMaxDiscountAmountErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addVoucherMaxDiscountAmount">
+                    <i class="far fa-times-circle"></i> <span id="addVoucherMaxDiscountAmountError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addVoucherMinAmountToDiscount" class="col-sm-3 col-form-label">
+                    [[#{min_amount_to_discount}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="number" name="minAmountToDiscount" id="addVoucherMinAmountToDiscount"
+                           class="form-control" th:placeholder="#{min_amount_to_discount}">
+                </div>
+                <label id="addVoucherMinAmountToDiscountErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addVoucherMinAmountToDiscount">
+                    <i class="far fa-times-circle"></i> <span id="addVoucherMinAmountToDiscountError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addVoucherForCurrency" class="col-md-3 col-form-label">
+                    [[#{for_currency}]]
+                </label>
+                <div class="col-lg-3 col-md-4">
+                    <select name="forCurrencyId" id="addVoucherForCurrency" class="form-control">
+                        <option th:each="currency : ${currencies}"
+                                th:value="${currency.id}"
+                                th:selected="${currency.id == defaultCurrency.id}">
+                            [[#{${currency.isoCode}}]]
+                            -
+                            [[#{${currency.displayName}}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="addVoucherForCurrencyErrorLabel" class="col-lg-7 col-md-6 col-form-label text-danger d-none" for="addVoucherForCurrency">
+                    <i class="far fa-times-circle"></i> <span id="addVoucherForCurrencyError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addVoucherQuantity" class="col-sm-3 col-form-label">
+                    [[#{quantity}]]
+                </label>
+                <div class="col-lg-3 col-md-4">
+                    <input type="number" name="quantity" id="addVoucherQuantity"
+                           class="form-control" th:placeholder="#{quantity}">
+                </div>
+                <label id="addVoucherQuantityErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addVoucherQuantity">
+                    <i class="far fa-times-circle"></i> <span id="addVoucherQuantityError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addVoucherQuantityPerUser" class="col-sm-3 col-form-label">
+                    [[#{quantity_per_user}]]
+                </label>
+                <div class="col-lg-3 col-md-4">
+                    <input type="number" name="quantityPerUser" id="addVoucherQuantityPerUser"
+                           class="form-control" th:placeholder="#{quantity_per_user}">
+                </div>
+                <label id="addVoucherQuantityPerUserErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addVoucherQuantityPerUser">
+                    <i class="far fa-times-circle"></i> <span id="addVoucherQuantityPerUserError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addVoucherType" class="col-md-3 col-form-label">
+                    [[#{type}]]
+                </label>
+                <div class="col-lg-3 col-md-4">
+                    <select name="voucherType" id="addVoucherType" class="form-control">
+                        <option th:each="voucherType : ${voucherTypes}"
+                                th:value="${voucherType.toString()}">
+                            [[#{${voucherType.toString().toLowerCase()}}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="addVoucherTypeErrorLabel" class="col-lg-7 col-md-6 col-form-label text-danger d-none" for="addVoucherType">
+                    <i class="far fa-times-circle"></i> <span id="addVoucherTypeError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label class="col-sm-3 col-form-label">
+                    [[#{commission_recipient}]]
+                </label>
+                <div class="col-sm-9">
+                    <div class="d-flex align-items-center">
+                        <div class="align-items-center gap-2 d-none"
+                             id="referenceUserNameArea">
+                            <a id="referenceUserNameLink"></a>
+                            <button type="button" class="btn btn-link text-danger"
+                                    onclick="ecommerce.onRemoveReferenceUserClick();">
+                                [[#{remove}]]
+                            </button>
+                        </div>
+                        <button type="button" class="btn btn-outline-primary"
+                                onclick="ezyadmin.showSearchUserModal();">
+                            [[#{select}]]
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="addVoucherCommissionPercent" class="col-sm-3 col-form-label">
+                    [[#{commission_percent}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="number" name="commissionPercent" id="addVoucherCommissionPercent"
+                           class="form-control" th:placeholder="#{example} + ': 30'">
+                </div>
+                <label id="addVoucherCommissionPercentErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addVoucherCommissionPercent">
+                    <i class="far fa-times-circle"></i> <span id="addVoucherCommissionPercentError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addVoucherCommissionAmount" class="col-sm-3 col-form-label">
+                    [[#{commission_amount}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="number" name="commissionAmount" id="addVoucherCommissionAmount"
+                           class="form-control" th:placeholder="#{commission_amount}">
+                </div>
+                <label id="addVoucherCommissionAmountErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addVoucherCommissionAmount">
+                    <i class="far fa-times-circle"></i> <span id="addVoucherCommissionAmountError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addVoucherValidFrom" class="col-sm-3 col-form-label">
+                    [[#{valid_from}]]
+                </label>
+                <div class="col-lg-3 col-md-4">
+                    <input type="text" name="validFrom" id="addVoucherValidFrom"
+                           class="form-control" th:placeholder="#{valid_from}"
+                           autocomplete="off" inputmode="text">
+                </div>
+                <label id="addVoucherValidFromErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addVoucherValidFrom">
+                    <i class="far fa-times-circle"></i> <span id="addVoucherValidFromError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addVoucherExpiredAt" class="col-sm-3 col-form-label">
+                    [[#{expired_at}]]
+                </label>
+                <div class="col-lg-3 col-md-4">
+                    <input type="text" name="expiredAt" id="addVoucherExpiredAt"
+                           class="form-control" th:placeholder="#{expired_at}"
+                           autocomplete="off" inputmode="text">
+                </div>
+                <label id="addVoucherExpiredAtErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addVoucherExpiredAt">
+                    <i class="far fa-times-circle"></i> <span id="addVoucherExpiredAtError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addVoucherStatus" class="col-md-3 col-form-label">
+                    [[#{status}]]
+                </label>
+                <div class="col-lg-3 col-md-3">
+                    <select name="status" id="addVoucherStatus" class="form-control">
+                        <option th:each="voucherStatus : ${voucherStatuses}"
+                                th:value="${voucherStatus.toString()}">
+                            [[#{${voucherStatus.toString().toLowerCase()}}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="addShopStatusErrorLabel" class="col-lg-3 col-md-6 col-form-label text-danger d-none" for="addVoucherStatus">
+                    <i class="far fa-times-circle"></i> <span id="addShopStatusError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="row">
+                <div class="col-md-3"></div>
+                <div class="col-lg-2 col-md-3">
+                    <button type="button" class="btn btn-primary btn-block" onclick="ecommerce.addNewVoucher();">[[#{submit}]]</button>
+                </div>
+                <div class="col-lg-7 col-md-6"></div>
+                <!-- /.col -->
+            </div>
+        </form>
+    </div>
+    <div class="col-md-2 col-sm-0"></div>
+    <div class="col-12 mb-3"></div>
+</div>
+<th:block layout:fragment="modals">
+    <th:block th:replace="~{modals/search-user :: content}" />
+</th:block>
+<script layout:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ecommerce.selectedShopId = /*[[${shop != null ? shop.id : 0}]]*/;
+/*]]>*/
+
+// ========== add voucher =============
+ecommerce.addNewVoucher = function() {
+    ecommerce.addOrEditVoucher('add');
+}
+</script>
+<th:block layout:fragment="post-scripts">
+    <script th:replace="~{fragments/date-range-picker :: scripts}" />
+    <script th:replace="~{ecommerce/voucher/scripts :: add-edit}" />
+    <script th:replace="~{modals/search-user :: scripts}" />
+    <script th:replace="~{scripts/suggestion :: input}" />
+    <script th:replace="~{ecommerce/scripts/suggestion :: shop}" />
+</th:block>
+<script layout:fragment="final-scripts">
+ecommerce.registerShopAutocomplete('addVoucherShop');
+
+$(document).ready(() => {
+    ezyadmin.createDateRangePicker(
+        '#addVoucherValidFrom',
+        {
+            autoUpdateInput: false,
+            singleDatePicker: true,
+            timePicker: true,
+            timePicker24Hour: true,
+            timePickerSeconds: true,
+            locale: {
+                format: ezyadmin.defaultDateTimeFormat
+            }
+        }
+    );
+    $('#addVoucherValidFrom').on('apply.daterangepicker', function(ev, picker) {
+        ecommerce.voucherValidFrom = picker.startDate.unix() * 1000;
+        $('#addVoucherValidFrom').val(
+            ezyadmin.formatTimeStamp(ecommerce.voucherValidFrom)
+        );
+    });
+    if (ecommerce.voucherValidFrom) {
+        $('#addVoucherValidFrom')
+            .data('daterangepicker')
+            .setStartDate(ezyadmin.formatTimeStamp(ecommerce.voucherValidFrom));
+        $('#addVoucherValidFrom').val(
+            ezyadmin.formatTimeStamp(ecommerce.voucherValidFrom)
+        );
+    }
+
+    ezyadmin.createDateRangePicker(
+        '#addVoucherExpiredAt',
+        {
+            autoUpdateInput: false,
+            singleDatePicker: true,
+            timePicker: true,
+            timePicker24Hour: true,
+            timePickerSeconds: true,
+            locale: {
+                format: ezyadmin.defaultDateTimeFormat
+            },
+        }
+    );
+    $('#addVoucherExpiredAt').on('apply.daterangepicker', function(ev, picker) {
+        ecommerce.voucherExpiredAt = picker.startDate.unix() * 1000;
+        $('#addVoucherExpiredAt').val(
+            ezyadmin.formatTimeStamp(ecommerce.voucherExpiredAt)
+        );
+    });
+    if (ecommerce.voucherExpiredAt) {
+        $('#addVoucherExpiredAt')
+            .data('daterangepicker')
+            .setStartDate(ezyadmin.formatTimeStamp(ecommerce.voucherExpiredAt));
+        $('#addVoucherExpiredAt').val(
+            ezyadmin.formatTimeStamp(ecommerce.voucherExpiredAt)
+        );
+    }
+});
+</script>
+</body>
+</html>

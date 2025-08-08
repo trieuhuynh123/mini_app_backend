@@ -1,0 +1,335 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~ 
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~ 
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~ 
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<head>
+    <style>
+        #totalCommissionYearlyList_wrapper .col-md-6 {
+            max-width: 100% !important;
+        }
+        #totalCommissionMonthlyList_wrapper .col-md-6 {
+            max-width: 100% !important;
+        }
+    </style>
+    <script>
+        var ecommerce = {};
+    </script>
+</head>
+<body>
+<div layout:fragment="content" class="row">
+    <div class="col-md-3 col-4"><label>[[#{shop}]]:</label></div>
+    <div class="col-md-9 col-8">
+        <a th:if="${shop != null}"
+           th:href="${'/ecommerce/shops/' + shop.id}">
+            [[${shop.displayName}]]
+        </a>
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{seller}]]:</label></div>
+    <div class="col-md-9 col-8">
+        <a th:href="${'/users/' + seller.username}">
+            [[${seller.displayName}]]
+        </a>
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{phone_number}]]:</label></div>
+    <div class="col-md-9 col-8">
+        <a th:href="${'tel:' + seller.phone}">
+            [[${seller.phone}]]
+        </a>
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{email}]]:</label></div>
+    <div class="col-md-9 col-8">
+        <a th:href="${'mailto:' + seller.email}">
+            [[${seller.email}]]
+        </a>
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{commission_percent}]]:</label></div>
+    <div class="col-md-9 col-8" th:id="${'seller-cell-commission-percent-' + seller.userId}">
+        [[${seller.commissionPercent}]]
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{total_balance}]]:</label></div>
+    <div class="col-md-9 col-8">
+        <div class="d-flex align-items-center gap-2">
+            <div id="sellerTotalBalance">
+                [[${seller.formattedTotalBalance}]]
+                [[${selectedCurrency.isoCode}]]
+            </div>
+            <div>
+                <select id="sellerDetailCurrency" class="form-control"
+                        onchange="ecommerce.onSellerDetailCurrencyChange(this);">
+                    <option th:each="currency, iterator : ${currencies}"
+                            th:value="${currency.id}"
+                            th:selected="${currency.id == selectedCurrency.id}">
+                        [[#{${currency.isoCode}}]]
+                        -
+                        [[#{${currency.displayName}}]]
+                    </option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{created_at}]]:</label></div>
+    <div class="col-md-9 col-8 date-time-string">[[${seller.createdAt}]]</div>
+    <div class="col-md-3 col-4"><label>[[#{updated_at}]]:</label></div>
+    <div class="col-md-9 col-8 date-time-string">[[${seller.updatedAt}]]</div>
+    <div class="col-md-3 col-4"></div>
+    <div class="col-md-9 col-8">
+        <button type="button" class="btn btn-danger mb-2"
+                th:attr="onclick=|ecommerce.onDeleteSellerClick(${seller.userId}, '${#strings.escapeJavaScript(seller.name)}')|">
+            [[#{delete}]] <i class="fas fa-trash"></i>
+        </button>
+    </div>
+    <div class="col-12">
+        <hr class="mb-4" />
+    </div>
+    <div class="col-12">
+        <div class="d-flex">
+            <h3>[[#{linked_customers}]]</h3>
+            <button type="button"
+                    class="btn btn-outline-primary button-next-to-title"
+                    onclick="ecommerce.showAddSellerCustomerModal();">
+                [[#{add_new}]] <i class="fas fa-plus-circle"></i>
+            </button>
+        </div>
+    </div>
+    <th:block th:replace="~{/ecommerce/shop/seller/linked-customer-list :: content}" />
+    <div class="col-12">
+        <hr class="mb-4" />
+    </div>
+    <div class="col-md-6">
+        <h3>[[#{total_commission_yearly}]]</h3>
+        <table id="totalCommissionYearlyList"
+               class="table table-bordered table-hover bg-white">
+            <thead>
+            <tr>
+                <th>[[#{year}]]</th>
+                <th>[[#{total_commission}]]</th>
+                <th>[[#{actions}]]</th>
+            </tr>
+            </thead>
+            <tbody id="totalCommissionYearlyListBody"></tbody>
+        </table>
+    </div>
+    <div class="col-md-6">
+        <div id="totalCommissionMonthlyWrapper" class="d-none">
+            <h3 id="totalCommissionMonthlyTitle">
+                [[${#messages.msg('commission_for_the_year_pvalue', selectedCommissionYear + '')}]]
+            </h3>
+            <table id="totalCommissionMonthlyList"
+                   class="table table-bordered table-hover bg-white">
+                <thead>
+                <tr>
+                    <th>[[#{month}]]</th>
+                    <th>[[#{total_commission}]]</th>
+                    <th>[[#{status}]]</th>
+                    <th>[[#{actions}]]</th>
+                </tr>
+                </thead>
+                <tbody id="totalCommissionMonthlyListBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<th:block layout:fragment="modals">
+    <th:block th:replace="~{/ecommerce/shop/seller/edit :: content}" />
+    <th:block th:replace="~{/ecommerce/shop/seller/update-monthly-commission-status :: content}" />
+    <th:block th:replace="~{/ecommerce/shop/seller/add-linked-customer :: content}" />
+    <th:block th:replace="~{/ecommerce/shop/seller/edit-linked-customer :: content}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='delete-seller-modal', title=confirm, confirmButton=delete, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='delete-linked-customer-modal', title=confirm, confirmButton=delete, closeButton=close)}" />
+</th:block>
+<script layout:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ecommerce.selectedShopId = /*[[${shop.id}]]*/ '';
+ecommerce.selectedSellerUserId = /*[[${seller.userId}]]*/ '';
+ecommerce.selectedSellerUsername = /*[[${seller.username}]]*/ '';
+ecommerce.selectedSellerDisplayName = /*[[${seller.name}]]*/ '';
+ecommerce.selectedSellerCommissionPercent = /*[[${seller.commissionPercent}]]*/ '';
+ecommerce.selectedCurrencyId = /*[[${selectedCurrency.id}]]*/ '';
+ecommerce.selectedCurrencyIsoCode = /*[[${selectedCurrency.isoCode}]]*/ '';
+ecommerce.selectedCommissionYear = /*[[${selectedCommissionYear}]]*/ '';
+ezyadmin.messages.commission_for_the_year_pvalue = /*[[#{commission_for_the_year_pvalue}]]*/ '';
+ezyadmin.messages.paid = /*[[#{paid}]]*/ '';
+ezyadmin.messages.payment_error = /*[[#{payment_error}]]*/ '';
+ezyadmin.messages.unpaid = /*[[#{unpaid}]]*/ '';
+ezyadmin.messages.update_status = /*[[#{update_status}]]*/ '';
+ezyadmin.messages.view = /*[[#{view}]]*/ '';
+/*]]>*/
+
+ezyadmin.onEditButtonClick = function() {
+    ecommerce.showEditSellerModal(
+        ecommerce.selectedSellerUserId,
+        ecommerce.selectedSellerDisplayName,
+        ecommerce.selectedSellerCommissionPercent
+    );
+}
+
+ecommerce.onSellerDetailCurrencyChange = function(e) {
+    var currencyId = $(e).val();
+    window.location = location.pathname
+        + '?currencyId=' + currencyId
+        + (ezyadmin.lang ? '&lang=' + ezyadmin.lang : '');
+}
+
+ecommerce.fetchSellerTotalBalance = function() {
+    ecommerce.fetchUserBalanceByUserId({
+        userId: ecommerce.selectedSellerUserId,
+        currencyId: ecommerce.selectedCurrencyId
+    },
+    (data) => {
+        $('#sellerTotalBalance').text(
+            data.formattedBalanceIncludeIsoCode
+        );
+    });
+}
+
+// ============ year ===============
+ecommerce.fetchCommissionYears = function() {
+    $.ajax({
+        type: 'GET',
+        url: '/ecommerce/api/v1/shops/' + ecommerce.selectedShopId +
+             '/sellers/' + ecommerce.selectedSellerUserId +
+             '/commissions/year-list',
+        success: function (data) {
+            var html = '';
+            data.forEach((item) => {
+                html += ecommerce.buildTotalCommissionYearItemHtml(item);
+            });
+            if (ecommerce.totalCommissionYearlyTable) {
+                ecommerce.totalCommissionYearlyTable.destroy();
+            }
+            $('#totalCommissionYearlyListBody').html(html);
+            ecommerce.totalCommissionYearlyTable =
+                ezyadmin.createDataTable('totalCommissionYearlyList', 12);
+            if (data.length) {
+                ecommerce.selectCommissionYear(data[0].year);
+            }
+        },
+        error: function (e) {
+            ezyadmin.processGetApiErrors(e);
+        }
+    });
+}
+
+ecommerce.buildTotalCommissionYearItemHtml = function(totalCommissionYearly) {
+    var html = `
+        <tr>
+            <td>${totalCommissionYearly.year}</td>
+            <td>
+                ${totalCommissionYearly.formattedTotalCommission}
+                ${ecommerce.selectedCurrencyIsoCode}
+            </td>
+            <td>
+                <a class="text-info cursor-pointer"
+                   onclick="ecommerce.selectCommissionYear(${totalCommissionYearly.year})">
+                    ${ezyadmin.messages.view}
+                </a>
+            </td>
+        </tr>
+    `;
+    return html;
+}
+
+// ============ month ===============
+ecommerce.selectCommissionYear = function(year) {
+    if (year) {
+        ecommerce.selectedCommissionYear = year;
+    }
+    $('#totalCommissionMonthlyTitle').text(
+        ezyadmin
+            .messages.commission_for_the_year_pvalue
+            .replace('{0}', year)
+    );
+    $.ajax({
+        type: 'GET',
+        url: '/ecommerce/api/v1/shops/' + ecommerce.selectedShopId +
+             '/sellers/' + ecommerce.selectedSellerUserId +
+             '/commissions/' + year,
+        success: function (data) {
+            var html = '';
+            data.forEach((item) => {
+                html += ecommerce.buildTotalCommissionMonthlyItemHtml(item);
+            });
+            if (ecommerce.totalCommissionMonthlyTable) {
+                ecommerce.totalCommissionMonthlyTable.destroy();
+            }
+            $('#totalCommissionMonthlyListBody').html(html);
+            ecommerce.totalCommissionMonthlyTable =
+                ezyadmin.createDataTable('totalCommissionMonthlyList', 12);
+            $('#totalCommissionMonthlyWrapper').removeClass('d-none');
+        },
+        error: function (e) {
+            ezyadmin.processGetApiErrors(e);
+        }
+    });
+}
+
+ecommerce.buildTotalCommissionMonthlyItemHtml = function(totalCommissionMonthly) {
+    var html = `
+        <tr>
+            <td>
+                ${totalCommissionMonthly.month}
+            </td>
+            <td>
+                ${totalCommissionMonthly.formattedTotalCommission}
+                ${ecommerce.selectedCurrencyIsoCode}
+            </td>
+            <td id="year-${ecommerce.selectedCommissionYear}-month-${totalCommissionMonthly.month}-status">
+                ${ezyadmin.getI18nMessage(totalCommissionMonthly.status.toLowerCase())}
+            </td>
+            <td>
+                <a class="text-info cursor-pointer"
+                   onclick="ecommerce.showUpdateMonthlyCommissionStatusModal(${totalCommissionMonthly.month}, '${totalCommissionMonthly.status}')">
+                    ${ezyadmin.messages.update_status}
+                </a>
+            </td>
+        </tr>
+    `;
+    return html;
+}
+
+$(document).ready(() => {
+    ecommerce.fetchCommissionYears();
+});
+</script>
+<th:block layout:fragment="post-scripts">
+    <script th:replace="~{fragments/date-range-picker :: scripts}" />
+    <script th:replace="~{scripts/suggestion :: input}" />
+    <script th:replace="~{scripts/suggestion :: user}" />
+    <script th:replace="~{ecommerce/scripts/user-balance :: balance}" />
+    <script th:replace="~{ecommerce/shop/seller/edit :: scripts}" />
+    <script th:replace="~{ecommerce/shop/seller/scripts :: delete}" />
+    <script th:replace="~{ecommerce/shop/seller/update-monthly-commission-status :: scripts}" />
+    <script th:replace="~{ecommerce/shop/seller/linked-customer-list :: scripts}" />
+    <script th:replace="~{ecommerce/shop/seller/add-linked-customer :: scripts}" />
+    <script th:replace="~{ecommerce/shop/seller/edit-linked-customer :: scripts}" />
+    <script th:replace="~{ecommerce/shop/seller/scripts :: delete-linked-customer}" />
+</th:block>
+<script layout:fragment="final-scripts">
+ezyadmin.onPromptConfirmed = function(modalId) {
+    if (modalId == 'delete-seller-modal') {
+        ecommerce.deleteSeller();
+    } else if (modalId == 'delete-linked-customer-modal') {
+        ecommerce.deleteSellerCustomer();
+    }
+}
+</script>
+</body>
+</html>

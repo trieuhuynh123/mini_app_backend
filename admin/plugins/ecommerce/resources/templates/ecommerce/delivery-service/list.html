@@ -1,0 +1,146 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<head>
+    <script>
+        const ecommerce = {};
+    </script>
+</head>
+<body>
+<div layout:fragment="content" class="row">
+    <div class="col-12">
+        <table id="deliveryServiceSettingList" class="table table-bordered table-hover">
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>[[#{logo}]]</th>
+                <th>[[#{code}]]</th>
+                <th>[[#{name}]]</th>
+                <th class="text-center">[[#{default}]]</th>
+                <th class="text-center">[[#{status}]]</th>
+                <th class="text-center">[[#{updated_at}]]</th>
+                <th class="text-center">[[#{actions}]]</th>
+            </tr>
+            </thead>
+            <tbody id="deliveryServiceSettingListBody">
+            <tr th:each="deliveryServiceSetting, iterator : ${deliveryServiceSettings}">
+                <td>[[${iterator.index + 1}]]</td>
+                <td th:if="${deliveryServiceSetting.logoImage != null}">
+                    <a th:href="${deliveryServiceSetting.serviceUrl}" target="_blank">
+                        <img th:src="${deliveryServiceSetting.logoImage != null ? deliveryServiceSetting.logoImage.getUrlOrDefault('') : ''}"
+                             class="object-fit-cover" width="48">
+                    </a>
+                </td>
+                <td th:if="${deliveryServiceSetting.logoImage == null}">
+                    <a th:href="${deliveryServiceSetting.serviceUrl}" target="_blank">
+                        ###
+                    </a>
+                </td>
+                <td>
+                    <a th:href="${'/ecommerce/delivery-services/' + deliveryServiceSetting.code}">
+                        [[${deliveryServiceSetting.code}]]
+                    </a>
+                </td>
+                <td>
+                    <a th:href="${'/ecommerce/delivery-services/' + deliveryServiceSetting.code}">
+                        [[${deliveryServiceSetting.name}]]
+                    </a>
+                </td>
+                <td class="text-center">
+                    <th:block th:if="${deliveryServiceSetting.code == defaultDeliveryServiceCode}">
+                        [[#{yes}]]
+                    </th:block>
+                    <a class="cursor-pointer"
+                       th:if="${deliveryServiceSetting.code != defaultDeliveryServiceCode}"
+                       th:attr="onclick=|ecommerce.onSetDeliveryServiceAsDefaultClick('${deliveryServiceSetting.code}')|">
+                        [[#{set_as}]]
+                    </a>
+                </td>
+                <td th:attr="status=|${deliveryServiceSetting.status}|" class="text-center status-text">
+                    [[#{${deliveryServiceSetting.status.toString().toLowerCase()}}]]
+                </td>
+                <td class="text-center date-time-string">[[${deliveryServiceSetting.updatedAt}]]</td>
+                <td class="text-center">
+                    <th:block th:if="${deliveryServiceSetting.id > 0}">
+                        <a th:if="${deliveryServiceSetting.status.equalsValue('INACTIVATED')}" class="pr-2 text-success"
+                           th:id="${'delivery-service-' + deliveryServiceSetting.code + '-activate-button'}"
+                           th:attr="onclick=|ecommerce.onActivateDeliveryServiceClick('${deliveryServiceSetting.code}')|">
+                            <i class="fas fa-paper-plane"></i>
+                        </a>
+                        <a th:if="${deliveryServiceSetting.status.equalsValue('ACTIVATED')}" class="pr-2 text-secondary"
+                           th:id="${'delivery-service-' + deliveryServiceSetting.code + '-deactivate-button'}"
+                           th:attr="onclick=|ecommerce.onDeactivateDeliveryServiceClick('${deliveryServiceSetting.code}')|">
+                            <i class="fas fa-unlink"></i>
+                        </a>
+                    </th:block>
+                    <a class="text-primary" th:href="${'/ecommerce/delivery-services/' + deliveryServiceSetting.code + '/edit'}">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="col-12 mb-3"></div>
+</div>
+<script layout:fragment="scripts">
+// ========== update delivery service setting status ===========
+ecommerce.onActivateDeliveryServiceClick = function(code) {
+    ecommerce.updateDeliveryServiceStatus(code, 'activate');
+}
+
+ecommerce.onDeactivateDeliveryServiceClick = function(code) {
+    ecommerce.updateDeliveryServiceStatus(code, 'deactivate');
+}
+
+ecommerce.updateDeliveryServiceStatus = function(code, action) {
+    $.ajax({
+        type: 'PUT',
+        url: `/ecommerce/api/v1/delivery-services/${code}/${action}`,
+        success: function (data) {
+            location.reload();
+        },
+        error: function (e) {
+            ezyadmin.processUpdateApiErrors({}, e);
+        }
+    });
+};
+
+ecommerce.onSetDeliveryServiceAsDefaultClick = function(code) {
+    $.ajax({
+        type: 'PUT',
+        url: `/ecommerce/api/v1/delivery-services/${code}/set-as-default`,
+        success: function (data) {
+            location.reload();
+        },
+        error: function (e) {
+            ezyadmin.processUpdateApiErrors({}, e);
+        }
+    });
+}
+
+$(document).ready(() => {
+    ezyadmin.createDataTable('deliveryServiceSettingList', 12);
+});
+</script>
+</body>
+</html>

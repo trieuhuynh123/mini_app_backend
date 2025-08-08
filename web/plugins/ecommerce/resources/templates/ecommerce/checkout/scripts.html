@@ -1,0 +1,122 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org">
+<body>
+<script th:fragment="common">
+var updateProductAmount = function(value) {
+    var productAmountInput = $('#productAmount');
+    var productAmount = productAmountInput.val();
+    productAmount = productAmount
+        ? +productAmount + value
+        : value;
+    if (productAmount < 1) {
+        productAmount = 1;
+    }
+    productAmountInput.val(productAmount);
+}
+
+var formatAmountIncludeSymbol = function(amount, symbol, symbolPosition) {
+    var currencySymbol = symbol || defaultCurrencySymbol;
+    var currencySymbolPosition = symbol || defaultCurrencySymbolPosition;
+    return currencySymbolPosition == 'BEFORE_PRICE'
+        ? currencySymbol + amount
+        : amount + currencySymbol;
+}
+</script>
+
+<script th:fragment="register-product">
+// =========== register product ===================
+var registerProductToShoppingCartRequest = {};
+var registerProductToShoppingCart = function(
+    productId,
+    amount,
+    productColorId,
+    productSizeId,
+    onSuccessCallback,
+    onErrorCallback
+) {
+    var request = registerProductToShoppingCartRequest;
+    var productIds = [productId || request.productId];
+    var amountByProductId = {};
+    amountByProductId[productId] = amount || request.amount || 1;
+    var productColorIdByProductId = {};
+    productColorIdByProductId[productId] = productColorId || request.productColorId || 0;
+    var productSizeIdByProductId = {};
+    productSizeIdByProductId[productId] = productSizeId || request.productSizeId || 0;
+    var productMaterialIdByProductId = {};
+    productMaterialIdByProductId[productId] = request.productMaterialId || 0;
+
+    var data = {
+      productIds: productIds,
+      amountByProductId: amountByProductId,
+      productColorIdByProductId: productColorIdByProductId,
+      productSizeIdByProductId: productSizeIdByProductId
+    };
+    $.ajax({
+        type: 'POST',
+        url: '/api/v1/checkout',
+        data: JSON.stringify(data),
+        contentType: 'application/json',
+        success: function (data) {
+            onSuccessCallback = onSuccessCallback || request.onSuccessCallback;
+            if (onSuccessCallback) {
+                onSuccessCallback();
+            } else  {
+                window.location = '/checkout/shopping-cart'
+                    + (ezyweb.lang ? '?lang=' + ezyweb.lang : '');
+            }
+        },
+        error: function (e) {
+            onErrorCallback = onErrorCallback || request.onErrorCallback;
+            if (onErrorCallback) {
+                onErrorCallback(e);
+            }
+            ezyweb.processUpdateApiErrors({}, e);
+        }
+    });
+}
+
+var anonymousRegisterProductToShoppingCart = function(
+  productId,
+  amount,
+  productColorId,
+  productSizeId,
+  onSuccessCallback,
+  onErrorCallback
+) {
+  var callback = () => {
+    registerProductToShoppingCart(
+      productId,
+      amount,
+      productColorId,
+      productSizeId,
+      onSuccessCallback,
+      onErrorCallback
+    );
+  };
+  if (loggedIn) {
+    callback();
+  } else {
+    anonymousUserLogin(callback);
+  }
+}
+</script>
+</body>
+</html>

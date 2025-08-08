@@ -1,0 +1,408 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        xmlns:ezy="http://www.ezyplatform.com/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<head>
+    <script>
+        var ecommerce = {};
+    </script>
+</head>
+<body>
+<div layout:fragment="content" class="row">
+    <div class="col-12 mb-2 selected-product-count d-none"></div>
+    <div class="col-lg-3 col-md-4 page-search d-block">
+        <div class="d-flex align-items-center">
+            <select class="form-control form-select" id="productBulkAction">
+                <option value="">[[#{bulk_action}]]</option>
+                <option value="IMPORT_PRODUCT_PRICES_FROM_FILE">[[#{import_product_prices_from_file}]]</option>
+                <option value="EXPORT_PRODUCTS_TO_FILE">[[#{export_products_to_file}]]</option>
+                <option value="ARCHIVE">[[#{archive_products}]]</option>
+                <option value="DELETE">[[#{delete_products}]]</option>
+                <option value="DISCOUNT">[[#{discount_on_products}]]</option>
+                <option value="CANCEL_DISCOUNT">[[#{cancel_discount_on_products}]]</option>
+                <option value="DRAFT">[[#{draft_products}]]</option>
+                <option value="PUBLISH">[[#{publish_products}]]</option>
+                <option value="UPCOMING_LAUNCHES">[[#{upcoming_product_launches}]]</option>
+                <option value="STOP_SELLING">[[#{stop_selling_products}]]</option>
+            </select>
+            <button type="button" class="btn btn-outline-primary text-nowrap ml-1"
+                    onclick="ecommerce.performProductBulkAction();">
+                [[#{perform}]]
+            </button>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-4 page-search">
+        <label for="productSearchKeyword" class="text-nowrap">[[#{search}]]: </label>
+        <input type="search" class="form-control" th:placeholder="#{keyword}" id="productSearchKeyword"
+               onkeydown="ecommerce.onKeydownToSearchProduct();">
+    </div>
+    <div class="col-lg-3 col-md-4 page-search">
+        <label for="productSearchStatus" class="text-nowrap">[[#{status}]]: </label>
+        <select class="form-control form-select" id="productSearchStatus"
+                onchange="ecommerce.onProductSearchStatusChanged();">
+            <option value="">[[#{all}]]</option>
+            <option th:each="productStatus : ${productStatuses}"
+                    th:value="${productStatus}"
+                    th:selected="${productStatus.toString() == productSearchStatus}">
+                [[#{${productStatus.toString().toLowerCase()}}]]
+            </option>
+        </select>
+    </div>
+    <div class="col-lg-3 col-md-4 page-search">
+        <label for="productSearchSortOrder" class="text-nowrap">[[#{sort_order}]]: </label>
+        <select class="form-control form-select" id="productSearchSortOrder"
+                onchange="ecommerce.onProductSearchSortOrderChanged();">
+            <option value="ID_DESC"
+                    th:selected="${productSearchSortOrder == 'ID_DESC'}">
+                [[#{id_descending}]]
+            </option>
+            <option value="PRICE_ASC_ID_ASC"
+                    th:selected="${productSearchSortOrder == 'PRICE_ASC_ID_ASC'}">
+                [[#{price_ascending}]]
+            </option>
+            <option value="PRICE_DESC_ID_DESC"
+                    th:selected="${productSearchSortOrder == 'PRICE_DESC_ID_DESC'}">
+                [[#{price_descending}]]
+            </option>
+            <option value="DISCOUNT_PERCENT_ASC_ID_ASC"
+                    th:selected="${productSearchSortOrder == 'DISCOUNT_PERCENT_ASC_ID_ASC'}">
+                [[#{discount_percent_ascending}]]
+            </option>
+            <option value="DISCOUNT_PERCENT_DESC_ID_DESC"
+                    th:selected="${productSearchSortOrder == 'DISCOUNT_PERCENT_DESC_ID_DESC'}">
+                [[#{discount_percent_descending}]]
+            </option>
+            <option value="PRICE_UPDATED_AT_ASC_ID_ASC"
+                    th:selected="${productSearchSortOrder == 'PRICE_UPDATED_AT_ASC_ID_ASC'}">
+                [[#{price_last_updated_ascending}]]
+            </option>
+            <option value="PRICE_UPDATED_AT_DESC_ID_DESC"
+                    th:selected="${productSearchSortOrder == 'PRICE_UPDATED_AT_DESC_ID_DESC'}">
+                [[#{price_last_updated_descending}]]
+            </option>
+            <option value="SOLD_AMOUNT_ASC_ID_ASC"
+                    th:selected="${productSearchSortOrder == 'SOLD_AMOUNT_ASC_ID_ASC'}">
+                [[#{slowest_selling}]]
+            </option>
+            <option value="SOLD_AMOUNT_DESC_ID_DESC"
+                    th:selected="${productSearchSortOrder == 'SOLD_AMOUNT_DESC_ID_DESC'}">
+                [[#{best_selling}]]
+            </option>
+        </select>
+    </div>
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-body table-responsive p-0">
+                <table class="table table-bordered table-hover text-nowrap align-middle-cells">
+                    <thead>
+                    <tr>
+                        <th class="text-center px-3">
+                            <input type="checkbox" id="checkAllProductsCheckBox" class="wh-1rem"
+                                   onclick="ecommerce.onMultiProductsClick(this)" />
+                        </th>
+                        <th>[[#{id}]]</th>
+                        <th>[[#{icon}]]</th>
+                        <th>[[#{code}]]</th>
+                        <th>[[#{display_name}]]</th>
+                        <th>[[#{price}]]</th>
+                        <th>[[#{original_price}]]</th>
+                        <th class="text-center">[[#{discount_percent}]]</th>
+                        <th class="text-center">[[#{remain}]]</th>
+                        <th>[[#{shop}]]</th>
+                        <th class="text-center">[[#{type}]]</th>
+                        <th class="text-center">[[#{display_order}]]</th>
+                        <th class="text-center">[[#{status}]]</th>
+                        <th class="text-center">[[#{created_at}]]</th>
+                        <th class="text-center">[[#{actions}]]</th>
+                    </tr>
+                    </thead>
+                    <tbody id="productListBody">
+                    </tbody>
+                </table>
+            </div>
+            <!-- /.card-body -->
+            <div class="card-footer clearfix">
+                <span>
+                    <span id="productCountText">0</span>
+                    [[${#strings.toLowerCase(#messages.msg('of'))}]]
+                    <span id="totalProductText">0</span>
+                    [[${#strings.toLowerCase(#messages.msg('products'))}]]
+                </span>
+                <ul class="pagination pagination-sm m-0 float-right">
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="firstPageButton">
+                            <i class="fas fa-arrow-circle-left pl-1 pr-1"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="prevPageButton">[[#{prev}]]</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="nextPageButton">[[#{next}]]</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="lastPageButton">
+                            <i class="fas fa-arrow-circle-right pl-1 pr-1"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.card-footer -->
+        </div>
+    </div>
+</div>
+<th:block layout:fragment="modals">
+    <th:block th:replace="~{/ecommerce/product/discount-products :: content}" />
+    <th:block th:replace="~{/ecommerce/product/import-product-prices :: content}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='archive-product-modal', title=confirm, confirmButton=archive, closeButton=close, type=delete)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='delete-product-modal', title=confirm, confirmButton=delete, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='draft-product-modal', title=confirm, confirmButton=draft, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='publish-product-modal', title=confirm, confirmButton=activate, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='cancel-discount-product-modal', title=confirm, confirmButton=confirm, closeButton=close, type=delete)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='upcoming-launches-product-modal', title=confirm, confirmButton=confirm, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='stop-selling-product-modal', title=confirm, confirmButton=confirm, closeButton=close)}" />
+</th:block>
+<th:block layout:fragment="import-scripts">
+    <script ezy:vsrc="/ecommerce/js/xlsx.full.min.js"></script>
+</th:block>
+<script layout:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ecommerce.productSearchStatus = /*[[${productSearchStatus}]]*/ '';
+ecommerce.productSearchSortOrder = /*[[${productSearchSortOrder}]]*/ '';
+ecommerce.defaultCurrencyIsoCode = /*[[${defaultCurrency.isoCode}]]*/ '';
+ecommerce.productUriPrefix = /*[[${productUriPrefix}]]*/ '';
+ezyadmin.messages.archive = /*[[#{archive}]]*/ '';
+ezyadmin.messages.archived = /*[[#{archived}]]*/ '';
+ezyadmin.messages.cancel_discount = /*[[#{cancel_discount}]]*/ '';
+ezyadmin.messages.coming_soon = /*[[#{coming_soon}]]*/ '';
+ezyadmin.messages.closed = /*[[#{closed}]]*/ '';
+ezyadmin.messages.draft = /*[[#{draft}]]*/ '';
+ezyadmin.messages.delete = /*[[#{delete}]]*/ '';
+ezyadmin.messages.deleted = /*[[#{deleted}]]*/ '';
+ezyadmin.messages.discount = /*[[#{discount}]]*/ '';
+ezyadmin.messages.opened = /*[[#{opened}]]*/ '';
+ezyadmin.messages.product_s = /*[[#{product_s}]]*/;
+ezyadmin.messages.publish = /*[[#{publish}]]*/ '';
+ezyadmin.messages.published = /*[[#{published}]]*/ '';
+ezyadmin.messages.register_opened = /*[[#{register_opened}]]*/ '';
+ezyadmin.messages.stop_selling = /*[[#{stop_selling}]]*/ '';
+ezyadmin.messages.upcoming_launches = /*[[#{upcoming_launches}]]*/ '';
+ezyadmin.messages.product_type_single = /*[[#{product_type_single}]]*/ '';
+ezyadmin.messages.product_type_combo = /*[[#{product_type_combo}]]*/ '';
+ezyadmin.messages.do_you_want_to_paction_products = /*[[#{do_you_want_to_paction_products}]]*/;
+/*]]>*/
+ecommerce.productIdChecks = {}
+
+ecommerce.changeBrowserUrl = function() {
+    var params = [];
+    if (ecommerce.productSearchStatus) {
+        params.push('status=' + ecommerce.productSearchStatus);
+    }
+    if (ecommerce.productSearchSortOrder) {
+        params.push('sortOrder=' + ecommerce.productSearchSortOrder);
+    }
+    if (ezyadmin.lang) {
+        params.push('lang=' + ezyadmin.lang);
+    }
+    var url = '/ecommerce/products';
+    if (params.length) {
+        url += '?' + params.join('&');
+    }
+    window.history.pushState({}, '', url);
+}
+
+// ========== products init =============
+ezyadmin.onNewButtonClick = function() {
+    window.location = '/ecommerce/products/add'
+        + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+}
+
+// ========== product search =============
+ecommerce.onKeydownToSearchProduct = function() {
+    if(event.key === 'Enter') {
+        ecommerce.productSearchKeyword = $('#productSearchKeyword').val();
+        ecommerce.fetchProductList();
+    }
+}
+ecommerce.onProductSearchStatusChanged = function() {
+    ecommerce.productSearchStatus = $('#productSearchStatus').val();
+    ecommerce.changeBrowserUrl();
+    ecommerce.fetchProductList();
+}
+ecommerce.onProductSearchSortOrderChanged = function() {
+    ecommerce.productSearchSortOrder = $('#productSearchSortOrder').val();
+    ecommerce.changeBrowserUrl();
+    ecommerce.fetchProductList();
+}
+
+// ========== product pagination =============
+$('#firstPageButton').click(() => {
+    ecommerce.fetchProductList('first');
+});
+$('#lastPageButton').click(() => {
+    ecommerce.fetchProductList('last');
+});
+$('#nextPageButton').click(() => {
+    ecommerce.fetchProductList('next');
+});
+$('#prevPageButton').click(() => {
+    ecommerce.fetchProductList('prev');
+});
+
+// ========== product list =============
+ecommerce.fetchProductList = function(action) {
+    var queryString = '';
+    if (ecommerce.productSearchStatus) {
+        queryString += '&status=' + ecommerce.productSearchStatus;
+    }
+    if (ecommerce.productSearchKeyword) {
+        queryString += '&keyword=' + ecommerce.productSearchKeyword;
+    }
+    if (ecommerce.productSearchSortOrder) {
+        queryString += '&sortOrder=' + ecommerce.productSearchSortOrder;
+    }
+    if (action == 'current') {
+        if (ecommerce.lastProductQueryString) {
+            queryString = ecommerce.lastProductQueryString;
+        }
+    } else if (action == 'next') {
+        if (ecommerce.lastProductPageToken.next) {
+            queryString += '&nextPageToken=' + ecommerce.lastProductPageToken.next;
+        } else {
+            return;
+        }
+    } else if (action == 'prev') {
+        if (ecommerce.lastProductPageToken.prev) {
+            queryString += '&prevPageToken=' + ecommerce.lastProductPageToken.prev;
+        } else {
+            return;
+        }
+    } else if (action == 'last') {
+        queryString += '&lastPage=true';
+    }
+    $.ajax({
+        url: '/ecommerce/api/v1/products?limit=30' + queryString,
+        type: 'GET',
+        dataType: 'json'
+    })
+    .done(function(data) {
+        $('#productCountText').text(data.count);
+        $('#totalProductText').text(ezyadmin.formatNumberWithCommas(data.total));
+        ecommerce.lastProductQueryString = queryString;
+        ecommerce.lastProductPageToken = data.pageToken;
+        $('#productListBody').html(ecommerce.buildProductListBodyHtml(data.items));
+        if (data.continuation.hasNext) {
+            $('#nextPageButton').removeClass('text-secondary');
+        } else {
+            $('#nextPageButton').addClass('text-secondary');
+        }
+        if (data.continuation.hasPrevious) {
+            $('#prevPageButton').removeClass('text-secondary');
+        } else {
+            $('#prevPageButton').addClass('text-secondary');
+        }
+    })
+    .fail(function(e) {
+    	ezyadmin.processGetApiErrors(e);
+    });
+}
+
+ecommerce.buildProductListBodyHtml = function(products) {
+    var html = '';
+    products.forEach((product) => {
+        html += ecommerce.buildProductListItemHtml(product);
+    });
+    return html;
+}
+ecommerce.buildProductListItemHtml = function(product) {
+    var statusColor = ezyadmin.getTextColorByStatus(product.status);
+    var productImage = product.iconImage || product.bannerImage;
+    var html = `
+        <tr id="product-row-${product.id}">
+            <td class="text-center px-3">
+                <input name="productIds" type="checkbox" value="${product.id}"
+                    onclick="ecommerce.onProductCheckChange(this)"
+                    ${ecommerce.productIdChecks[product.id] ? 'checked' : ''}
+                    class="wh-1rem">
+            </td>
+            <td>${product.id}</td>
+            <td>
+                ${productImage ? `<img src="${ezyadmin.extractMediaUrl(productImage)}" width="64" class="object-fit-cover">` : ''}
+            </td>
+            <td class="text-break">${product.productCode}</td>
+            <td>
+                <a href="/ecommerce/products/${product.id}${ezyadmin.lang ? `?lang=${ezyadmin.lang}` : ''}">
+                    ${product.productName}
+                </a>
+            </td>
+            <td>${product.formattedPrice ? `${product.formattedPrice} ${ecommerce.defaultCurrencyIsoCode}` : ''}</td>
+            <td>${product.formattedOriginalPrice ? `${product.formattedOriginalPrice} ${ecommerce.defaultCurrencyIsoCode}` : ''}</td>
+            <td class="text-center">${product.discountPercent || '0'}%</td>
+            <td class="text-center">${ezyadmin.formatNumberWithCommas(product.amount - product.soldAmount)}</td>
+            <td>
+                ${product.shop ? `<a href="/ecommerce/shops/${product.shop.id}">${product.shop.displayName}</a>` : ''}
+            </td>
+            <td class="text-center">${ezyadmin.getI18nMessage('product_type_' + product.productType.toLowerCase())}</td>
+            <td class="text-center">${ezyadmin.formatNumberWithCommas(product.displayOrder)}</td>
+            <td class="text-center ${statusColor}">${ezyadmin.getI18nMessage(product.status.toLowerCase())}</td>
+            <td class="text-center">${ezyadmin.formatTimeStamp(product.createdAt)}</td>
+            <td class="text-center">
+                ${ecommerce.productUriPrefix ? `
+                    <a class="btn btn-link pr-1" href="${ezyadmin.webUrl}${ecommerce.productUriPrefix}${product.productCode}" target="_blank">
+                        <i class="fas fa-external-link-alt text-info"></i>
+                    </a>` : ''
+                }
+                <a class="btn px-1" href="/ecommerce/products/${product.id}${ezyadmin.lang ? `?lang=${ezyadmin.lang}` : ''}">
+                    <i class="fas fa-eye text-info"></i>
+                </a>
+                <a class="btn px-1" href="/ecommerce/products/${product.id}/edit${ezyadmin.lang ? `?lang=${ezyadmin.lang}` : ''}">
+                    <i class="fas fa-edit text-primary"></i>
+                </a>
+                <button type="button" class="btn pl-1" onclick="ecommerce.onDeleteProductClick(${product.id}, '${escape(product.productName)}');">
+                    <i class="fas fa-trash text-danger"></i>
+                </button>
+            </td>
+        </tr>
+    `;
+	return html;
+}
+ecommerce.fetchProductList();
+</script>
+<th:block layout:fragment="post-scripts">
+    <script th:replace="~{ecommerce/product/scripts :: delete}" />
+    <script th:replace="~{ecommerce/product/scripts :: bulk-actions}" />
+    <script th:replace="~{ecommerce/product/scripts :: export-product-items-to-excel}" />
+    <script th:replace="~{ecommerce/product/discount-products :: scripts}" />
+    <script th:replace="~{ecommerce/product/import-product-prices :: scripts}" />
+</th:block>
+<script layout:fragment="final-scripts">
+ezyadmin.onPromptConfirmed = function(modalId) {
+    if (ecommerce.selectedProductId) {
+        ecommerce.onPromptProductActionConfirmed(modalId);
+        ecommerce.selectedProductId = 0;
+    } else {
+        ecommerce.onPromptProductBulkActionConfirmed(modalId);
+    }
+}
+</script>
+</body>
+</html>

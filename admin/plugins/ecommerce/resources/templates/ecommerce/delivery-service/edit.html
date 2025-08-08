@@ -1,0 +1,363 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<head>
+    <script>
+        var ecommerce = {};
+    </script>
+</head>
+<body>
+<div layout:fragment="content" class="row">
+    <div class="col-md-10 col-sm-12">
+        <form id="editDeliveryServiceSettingForm">
+            <div class="form-group row">
+                <label class="col-sm-3 col-form-label">
+                    [[#{code}]]
+                </label>
+                <div class="col-lg-9">
+                    [[${deliveryServiceSetting.code}]]
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="deliveryServiceSettingName" class="col-sm-3 col-form-label">
+                    [[#{name}]] (<span class="text-danger">*</span>)
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="name" id="deliveryServiceSettingName"
+                           class="form-control" th:placeholder="#{name}"
+                           th:value="${deliveryServiceSetting.name}">
+                </div>
+                <label id="deliveryServiceSettingNameErrorLabel"
+                       class="col-lg-2 col-md-3 col-form-label text-danger d-none"
+                       for="deliveryServiceSettingName">
+                    <i class="far fa-times-circle"></i> <span id="deliveryServiceSettingNameError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="deliveryServiceSettingVersion" class="col-sm-3 col-form-label">
+                    [[#{version}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="version" id="deliveryServiceSettingVersion"
+                           class="form-control" th:placeholder="#{version}"
+                           th:value="${deliveryServiceSetting.version}">
+                </div>
+                <label id="deliveryServiceSettingVersionErrorLabel"
+                       class="col-lg-2 col-md-3 col-form-label text-danger d-none"
+                       for="deliveryServiceSettingVersion">
+                    <i class="far fa-times-circle"></i> <span id="deliveryServiceSettingVersionError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="deliveryServiceSettingLogoImage" class="col-md-3 col-form-label">
+                    [[#{logo}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <div class="input-group cursor-pointer" onclick="ecommerce.selectLogoImage('add');">
+                        <input type="text" name="deliveryServiceSettingLogoImage"
+                               id="deliveryServiceSettingLogoImage"
+                               class="form-control" th:placeholder="#{select_an_image}"
+                               th:value="${deliveryServiceSetting.logoImage != null ? deliveryServiceSetting.logoImage.originalName : ''}">
+                        <div class="input-group-append">
+                            <div class="input-group-text">
+                                <span>[[#{browse}]]</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <label id="deliveryServiceSettingLogoImageErrorLabel"
+                       class="col-lg-2 col-md-3 col-form-label text-danger d-none"
+                       for="deliveryServiceSettingLogoImage">
+                    <i class="far fa-times-circle"></i> <span id="deliveryServiceSettingLogoImageError">[[#{invalid}]]</span>
+                </label>
+                <div class="col-md-3"></div>
+                <div class="col-md-4">
+                    <img id="deliveryServiceSettingLogoImageImage" class="object-fit-cover mt-1"
+                         th:classappend="${deliveryServiceSetting.logoImage != null ? '' : 'd-none'}"
+                         th:src="${deliveryServiceSetting.logoImage != null ? deliveryServiceSetting.logoImage.getUrlOrDefault('#') : '#'}"
+                         height="64">
+                </div>
+                <div class="col-md-5"></div>
+            </div>
+            <div class="form-group row">
+                <label for="deliveryServiceSettingBannerImage" class="col-md-3 col-form-label">
+                    [[#{banner_image}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <div class="input-group cursor-pointer" onclick="ecommerce.selectBannerImage('add');">
+                        <input type="text" name="deliveryServiceSettingBannerImage"
+                               id="deliveryServiceSettingBannerImage"
+                               class="form-control" th:placeholder="#{select_an_image}"
+                               th:value="${deliveryServiceSetting.bannerImage != null ? deliveryServiceSetting.bannerImage.originalName : ''}">
+                        <div class="input-group-append">
+                            <div class="input-group-text">
+                                <span>[[#{browse}]]</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <label id="deliveryServiceSettingBannerImageErrorLabel"
+                       class="col-lg-2 col-md-3 col-form-label text-danger d-none"
+                       for="deliveryServiceSettingBannerImage">
+                    <i class="far fa-times-circle"></i> <span id="deliveryServiceSettingBannerImageError">[[#{invalid}]]</span>
+                </label>
+                <div class="col-md-3"></div>
+                <div class="col-md-4">
+                    <img id="deliveryServiceSettingBannerImageImage" class="object-fit-cover mt-1"
+                         th:classappend="${deliveryServiceSetting.bannerImage != null ? '' : 'd-none'}"
+                         th:src="${deliveryServiceSetting.bannerImage != null ? deliveryServiceSetting.bannerImage.getUrlOrDefault('#') : '#'}"
+                         height="64">
+                </div>
+                <div class="col-md-5"></div>
+            </div>
+            <div class="form-group row">
+                <label for="deliveryServiceSettingCurrency" class="col-sm-3 col-form-label">
+                    [[#{delivery_fee_currency}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <select name="deliveryFeeCurrencyId" id="deliveryServiceSettingCurrency" class="form-control">
+                        <option th:each="currency : ${currencies}"
+                                th:value="${currency.id}"
+                                th:selected="${currency.id == deliveryServiceSetting.deliveryFeeCurrency.id
+                                                || currency.id == defaultCurrency.id}">
+                            [[#{${currency.isoCode}}]]
+                            -
+                            [[#{${currency.displayName}}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="deliveryServiceSettingCurrencyErrorLabel"
+                       class="col-lg-2 col-md-3 col-form-label text-danger d-none"
+                       for="deliveryServiceSettingCurrency">
+                    <i class="far fa-times-circle"></i> <span id="deliveryServiceSettingCurrencyError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="deliveryServiceSettingMinDeliveryFee" class="col-sm-3 col-form-label">
+                    [[#{minimum_delivery_fee}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="number" name="minDeliveryFee" id="deliveryServiceSettingMinDeliveryFee"
+                           class="form-control" th:placeholder="#{min_delivery_fee}"
+                           th:value="${deliveryServiceSetting.minDeliveryFeeText}">
+                </div>
+                <label id="deliveryServiceSettingMinDeliveryFeeErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="deliveryServiceSettingMinDeliveryFee">
+                    <i class="far fa-times-circle"></i> <span id="deliveryServiceSettingMinDeliveryFeeError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="deliveryServiceSettingDefaultGoodsValue" class="col-sm-3 col-form-label">
+                    [[#{default_goods_value}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="number" name="defaultGoodsValue" id="deliveryServiceSettingDefaultGoodsValue"
+                           class="form-control" th:placeholder="#{min_delivery_fee}"
+                           th:value="${deliveryServiceSetting.defaultGoodsValueText}">
+                </div>
+                <label id="deliveryServiceSettingDefaultGoodsValueErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="deliveryServiceSettingDefaultGoodsValue">
+                    <i class="far fa-times-circle"></i> <span id="deliveryServiceSettingDefaultGoodsValueError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="deliveryServiceSettingServiceUrl" class="col-sm-3 col-form-label">
+                    [[#{service_url}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="serviceUrl"
+                           id="deliveryServiceSettingServiceUrl"
+                           class="form-control" th:placeholder="#{service_url}"
+                           th:value="${deliveryServiceSetting.serviceUrl}">
+                </div>
+                <label id="deliveryServiceSettingServiceUrlErrorLabel"
+                       class="col-lg-2 col-md-3 col-form-label text-danger d-none"
+                       for="deliveryServiceSettingServiceUrl">
+                    <i class="far fa-times-circle"></i> <span id="deliveryServiceSettingServiceUrlError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="deliveryServiceSettingServiceApiUrl" class="col-sm-3 col-form-label">
+                    [[#{service_api_url}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="serviceApiUrl" id="deliveryServiceSettingServiceApiUrl"
+                           class="form-control" th:placeholder="#{service_api_url}"
+                           th:value="${deliveryServiceSetting.serviceApiUrl}">
+                </div>
+                <label id="deliveryServiceSettingServiceApiUrlErrorLabel"
+                       class="col-lg-2 col-md-3 col-form-label text-danger d-none"
+                       for="deliveryServiceSettingServiceApiUrl">
+                    <i class="far fa-times-circle"></i> <span id="deliveryServiceSettingServiceApiUrlError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="deliveryServiceSettingCallbackUrl" class="col-sm-3 col-form-label">
+                    [[#{callback_url}]] (<span class="text-danger">*</span>)
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="callbackUrl" id="deliveryServiceSettingCallbackUrl"
+                           class="form-control" th:placeholder="#{callback_url}"
+                           th:value="${deliveryServiceSetting.callbackUrl}">
+                </div>
+                <label id="deliveryServiceSettingCallbackUrlErrorLabel"
+                       class="col-lg-2 col-md-3 col-form-label text-danger d-none"
+                       for="deliveryServiceSettingCallbackUrl">
+                    <i class="far fa-times-circle"></i> <span id="deliveryServiceSettingCallbackUrlError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="deliveryServiceSettingClientKey" class="col-sm-3 col-form-label">
+                    [[#{client_key}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <div class="d-flex">
+                        <input type="text" name="clientKey" id="deliveryServiceSettingClientKey"
+                               class="form-control" th:placeholder="#{client_key}"
+                               th:value="${deliveryServiceSetting.clientKey}">
+                        <button type="button" class="btn btn-outline-primary text-nowrap"
+                                onclick="ecommerce.randomClientKey();">
+                            [[#{random}]]
+                        </button>
+                    </div>
+                </div>
+                <label id="deliveryServiceSettingClientKeyErrorLabel"
+                       class="col-lg-2 col-md-3 col-form-label text-danger d-none"
+                       for="deliveryServiceSettingClientKey">
+                    <i class="far fa-times-circle"></i> <span id="deliveryServiceSettingClientKeyError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="deliveryServiceSettingSecretKey" class="col-sm-3 col-form-label">
+                    [[#{secret_key}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <div class="d-flex">
+                        <input type="text" name="secretKey" id="deliveryServiceSettingSecretKey"
+                               class="form-control" th:placeholder="#{secret_key}"
+                               th:value="${deliveryServiceSetting.secretKey}">
+                        <button type="button" class="btn btn-outline-primary text-nowrap"
+                                onclick="ecommerce.randomSecretKey();">
+                            [[#{random}]]
+                        </button>
+                    </div>
+                </div>
+                <label id="deliveryServiceSettingSecretKeyErrorLabel"
+                       class="col-lg-2 col-md-3 col-form-label text-danger d-none"
+                       for="deliveryServiceSettingSecretKey">
+                    <i class="far fa-times-circle"></i> <span id="deliveryServiceSettingSecretKeyError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <th:block th:if="${deliveryServiceSetting.authenticatedByUsernamePassword}">
+                <div class="form-group row">
+                    <label for="deliveryServiceSettingUsername" class="col-md-3 col-form-label">
+                        [[#{username}]] (<span class="text-danger">*</span>)
+                    </label>
+                    <div class="col-lg-7 col-md-6">
+                        <input type="text" name="username" id="deliveryServiceSettingUsername"
+                               class="form-control" th:placeholder="#{username}"
+                               th:value="${deliveryServiceSetting.username}">
+                    </div>
+                    <label id="deliveryServiceSettingUsernameErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="deliveryServiceSettingUsername">
+                        <i class="far fa-times-circle"></i> <span id="deliveryServiceSettingUsernameError">[[#{invalid}]]</span>
+                    </label>
+                </div>
+                <div class="form-group row">
+                    <label for="deliveryServiceSettingPassword" class="col-md-3 col-form-label">
+                        [[#{password}]] (<span class="text-danger">*</span>)
+                    </label>
+                    <div class="col-lg-7 col-md-6">
+                        <input type="password" name="password" id="deliveryServiceSettingPassword"
+                               class="form-control" th:placeholder="#{password}"
+                               th:value="${deliveryServiceSetting.password}">
+                    </div>
+                    <label id="deliveryServiceSettingPasswordErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="deliveryServiceSettingPassword">
+                        <i class="far fa-times-circle"></i> <span id="deliveryServiceSettingPasswordError">[[#{invalid}]]</span>
+                    </label>
+                </div>
+            </th:block>
+            <div class="form-group row">
+                <label for="deliveryServiceSettingStatus" class="col-sm-3 col-form-label">
+                    [[#{status}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <select name="status" id="deliveryServiceSettingStatus" class="form-control">
+                        <option th:each="status : ${statuses}"
+                                th:value="${status}"
+                                th:selected="${deliveryServiceSetting.status == status}">
+                        [[#{${status.toString().toLowerCase()}}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="deliveryServiceSettingStatusErrorLabel"
+                       class="col-lg-2 col-md-3 col-form-label text-danger d-none"
+                       for="deliveryServiceSettingStatus">
+                    <i class="far fa-times-circle"></i> <span id="deliveryServiceSettingStatusError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="row">
+                <div class="col-md-3"></div>
+                <div class="col-lg-2 col-md-3">
+                    <button type="button" class="btn btn-primary btn-block" onclick="ecommerce.saveDeliveryServiceSetting();">
+                        [[#{save}]]
+                    </button>
+                </div>
+                <div class="col-lg-7 col-md-6"></div>
+                <!-- /.col -->
+            </div>
+        </form>
+    </div>
+    <div class="col-md-2 col-sm-0"></div>
+    <div class="col-12 mb-3"></div>
+</div>
+<script layout:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ecommerce.deliveryServiceSettingCode = /*[[${deliveryServiceSetting.code}]]*/;
+ecommerce.deliveryServiceSettingBannerId = /*[[${deliveryServiceSetting.bannerImage != null ? deliveryServiceSetting.bannerImage.id : 0}]]*/ '';
+ecommerce.deliveryServiceSettingLogoId = /*[[${deliveryServiceSetting.logoImage != null ? deliveryServiceSetting.logoImage.id : 0}]]*/ '';
+/*]]>*/
+ecommerce.deliveryServiceSettingLogoImage = {
+  id: ecommerce.deliveryServiceSettingLogoId
+};
+
+ecommerce.deliveryServiceSettingBannerImage = {
+  id: ecommerce.deliveryServiceSettingBannerId
+};
+
+// ========== random keys ===============
+ecommerce.randomClientKey = function() {
+    $('#deliveryServiceSettingClientKey').val(ezyadmin.randomString(32));
+}
+
+ecommerce.randomSecretKey = function() {
+    $('#deliveryServiceSettingSecretKey').val(ezyadmin.randomString(32));
+}
+
+// ========== edit deliveryServiceSetting =============
+ecommerce.deliveryServiceSetting = function() {
+    ecommerce.addOrEditDeliveryServiceSetting('edit')
+        + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+}
+</script>
+<th:block layout:fragment="post-scripts">
+    <script th:replace="~{ecommerce/delivery-service/scripts :: edit}" />
+</th:block>
+</body>
+</html>

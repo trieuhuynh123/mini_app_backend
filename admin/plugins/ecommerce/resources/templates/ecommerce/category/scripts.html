@@ -1,0 +1,346 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~ 
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~ 
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~ 
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org">
+<body>
+<script th:fragment="add-edit">
+// =========== icon ===================
+ecommerce.selectIconImage = function(action) {
+    ezyadmin.showMediaModal('categoryIconImage')
+        .onMediaSelected(media => {
+            $('#categoryIconImage').attr(
+                'src',
+                ezyadmin.extractMediaUrl(media)
+            )
+            .removeClass('d-none')
+            .show();
+            ecommerce.categoryIconImage = media;
+            $('#' + action + 'CategoryIconImage').val(media.originalName);
+            ezyadmin.closeMediaModal();
+        });
+}
+
+// =========== banner ===================
+ecommerce.selectBannerImage = function(action) {
+    ezyadmin.showMediaModal('categoryBannerImage')
+        .onMediaSelected(media => {
+            $('#categoryBannerImage').attr(
+                'src',
+                ezyadmin.extractMediaUrl(media)
+            )
+            .removeClass('d-none')
+            .show();
+            ecommerce.categoryBannerImage = media;
+            $('#' + action + 'CategoryBannerImage').val(media.originalName);
+            ezyadmin.closeMediaModal();
+        });
+}
+// ========== add or edit category ===========
+ecommerce.addOrEditCategory = function(action) {
+    var data = ezyadmin.formDataToObject(action + 'CategoryForm');
+    ezyadmin.setActualFormFieldData(data, 'openCategoryId', it => it.id);
+    data.openCategoryId = data.openCategoryId || ecommerce.selectedOpenCategoryId;
+    data.description = ezyarticle.editor.getHtml();
+    if (ecommerce.categoryIconImage) {
+        data['iconImageId'] = ecommerce.categoryIconImage.id;
+    }
+    if (ecommerce.categoryBannerImage) {
+        data['bannerImageId'] = ecommerce.categoryBannerImage.id;
+    }
+    delete data.ecommerceEditor;
+    $.ajax({
+        type: action == 'add' ? 'POST' : 'PUT',
+        url: '/ecommerce/api/v1/product-categories/' + (action == 'add' ? 'add' : ecommerce.selectedCategoryId),
+        data: JSON.stringify(data),
+        contentType: 'application/json',
+        success: function (responseData) {
+            var categoryId = action == 'add'
+                ? responseData.createdId
+                : ecommerce.selectedCategoryId;
+            window.location = '/ecommerce/product-categories/' + categoryId
+                + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+        },
+        error: function (e) {
+            var formView = {};
+            formView[action + 'CategoryName'] = true;
+            formView[action + 'CategoryDisplayName'] = true;
+            ezyadmin.processUpdateApiErrors(formView, e);
+        }
+    });
+}
+</script>
+<script th:fragment="delete" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.do_you_want_to_delete_category_pname = /*[[#{do_you_want_to_delete_category_pname}]]*/;
+/*]]>*/
+
+ecommerce.onDeleteCategoryClick = function(categoryId, categoryDisplayName) {
+    ecommerce.selectedCategoryId = categoryId || ecommerce.selectedCategoryId;
+    $('#delete-category-modal-body-content')
+        .text(
+            ezyadmin
+                .messages
+                .do_you_want_to_delete_category_pname
+                .replace('{0}', unescape(categoryDisplayName || ecommerce.selectedCategoryDisplayName))
+        );
+    $('#delete-category-modal').modal('show');
+}
+
+ezyadmin.onPromptConfirmed = function(modalId) {
+    if (modalId == 'delete-category-modal') {
+        ecommerce.deleteCategory();
+    }
+}
+
+ecommerce.deleteCategory = function() {
+    $.ajax({
+        type: 'DELETE',
+        url: '/ecommerce/api/v1/product-categories/' + ecommerce.selectedCategoryId,
+        success: function (data) {
+            $('#delete-category-modal').modal('hide');
+            if (ecommerce.fetchCategoryList) {
+                ecommerce.fetchCategoryList('current');
+            } else {
+                window.location = '/ecommerce/product-categories'
+                    + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+            }
+        },
+        error: function (e) {
+            ezyadmin.processGetApiErrors(e);
+        }
+    });
+}
+</script>
+
+<script th:fragment="delete-parent" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.do_you_want_to_delete_parent_category_pname = /*[[#{do_you_want_to_delete_parent_category_pname}]]*/;
+/*]]>*/
+
+ecommerce.onDeleteCategoryParentClick = function(categoryParentId, categoryParentDisplayName) {
+    ecommerce.selectedCategoryParentId = categoryParentId;
+    $('#delete-category-parent-modal-body-content')
+        .text(
+            ezyadmin
+                .messages
+                .do_you_want_to_delete_parent_category_pname
+                .replace('{0}', unescape(categoryParentDisplayName))
+        );
+    $('#delete-category-parent-modal').modal('show');
+}
+
+ezyadmin.onPromptConfirmed = function(modalId) {
+    if (modalId == 'delete-category-parent-modal') {
+        ecommerce.deleteCategoryParent();
+    }
+}
+
+ecommerce.deleteCategoryParent = function() {
+    $.ajax({
+        type: 'DELETE',
+        url: '/ecommerce/api/v1/product-categories/' + ecommerce.selectedCategoryId +
+             '/parents/' + ecommerce.selectedCategoryParentId,
+        success: function (data) {
+            ecommerce.fetchCategoryParentNames();
+            $('#delete-category-parent-modal').modal('hide');
+        },
+        error: function (e) {
+            ezyadmin.processGetApiErrors(e);
+        }
+    });
+}
+</script>
+
+<script th:fragment="delete-child" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.do_you_want_to_delete_child_category_pname = /*[[#{do_you_want_to_delete_child_category_pname}]]*/;
+/*]]>*/
+
+ecommerce.onDeleteCategoryChildClick = function(categoryChildId, categoryChildDisplayName) {
+    ecommerce.selectedCategoryChildId = categoryChildId;
+    $('#delete-category-child-modal-body-content')
+        .text(
+            ezyadmin
+                .messages
+                .do_you_want_to_delete_child_category_pname
+                .replace('{0}', unescape(categoryChildDisplayName))
+        );
+    $('#delete-category-child-modal').modal('show');
+}
+
+ezyadmin.onPromptConfirmed = function(modalId) {
+    if (modalId == 'delete-category-child-modal') {
+        ecommerce.deleteCategoryChild();
+    }
+}
+
+ecommerce.deleteCategoryChild = function() {
+    $.ajax({
+        type: 'DELETE',
+        url: '/ecommerce/api/v1/product-categories/' + ecommerce.selectedCategoryId +
+             '/children/' + ecommerce.selectedCategoryChildId,
+        success: function (data) {
+            ecommerce.fetchCategoryChildNames();
+            $('#delete-category-child-modal').modal('hide');
+        },
+        error: function (e) {
+            ezyadmin.processGetApiErrors(e);
+        }
+    });
+}
+</script>
+
+<script th:fragment="add-product" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.do_you_want_to_add_product_pproduct_to_category_pname = /*[[#{do_you_want_to_add_product_pproduct_to_category_pname}]]*/;
+/*]]>*/
+
+ecommerce.onAddCategoryProductClick = function(categoryId, categoryDisplayName, productId, productName) {
+    if (categoryId) {
+        ecommerce.selectedCategoryId = categoryId;
+    }
+    if (categoryDisplayName) {
+        ecommerce.selectedCategoryDisplayName = unescape(categoryDisplayName);
+    }
+    if (productId) {
+        ecommerce.selectedProductId = productId;
+    }
+    if (productName) {
+        ecommerce.selectedProductName = unescape(productName);
+    }
+    $('#add-category-product-modal-body-content')
+        .text(
+            ezyadmin
+                .messages
+                .do_you_want_to_add_product_pproduct_to_category_pname
+                .replace('{0}', ecommerce.selectedProductName)
+                .replace('{1}', ecommerce.selectedCategoryDisplayName)
+        );
+    $('#add-category-product-modal').modal('show');
+}
+
+ezyadmin.onPromptConfirmed = function(modalId) {
+    if (modalId == 'add-category-product-modal') {
+        ecommerce.addCategoryProduct();
+    }
+}
+
+ecommerce.addCategoryProduct = function() {
+    $.ajax({
+        type: 'POST',
+        url: '/ecommerce/api/v1/product-categories/' + ecommerce.selectedCategoryId +
+             '/products/' + ecommerce.selectedProductId + '/add',
+        success: function (data) {
+            $('#add-category-product-modal').modal('hide');
+            if (ecommerce.fetchProductList) {
+                ecommerce.fetchProductList('current');
+            } else {
+                location.reload();
+            }
+        },
+        error: function (e) {
+            ezyadmin.processGetApiErrors(e);
+        }
+    });
+}
+</script>
+
+<script th:fragment="delete-product" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.do_you_want_to_delete_product_pproduct_from_category_pname = /*[[#{do_you_want_to_delete_product_pproduct_from_category_pname}]]*/;
+/*]]>*/
+
+ecommerce.onDeleteCategoryProductClick = function(categoryId, categoryDisplayName, productId, productName) {
+    if (categoryId) {
+        ecommerce.selectedCategoryId = categoryId;
+    }
+    if (categoryDisplayName) {
+        ecommerce.selectedCategoryDisplayName = unescape(categoryDisplayName);
+    }
+    if (productId) {
+        ecommerce.selectedProductId = productId;
+    }
+    if (productName) {
+        ecommerce.selectedProductName = unescape(productName);
+    }
+    $('#delete-category-product-modal-body-content')
+        .text(
+            ezyadmin
+                .messages
+                .do_you_want_to_delete_product_pproduct_from_category_pname
+                .replace('{0}', ecommerce.selectedProductName)
+                .replace('{1}', ecommerce.selectedCategoryDisplayName)
+        );
+    $('#delete-category-product-modal').modal('show');
+}
+
+ezyadmin.onPromptConfirmed = function(modalId) {
+    if (modalId == 'delete-category-product-modal') {
+        ecommerce.deleteCategoryProduct();
+    }
+}
+
+ecommerce.deleteCategoryProduct = function() {
+    $.ajax({
+        type: 'DELETE',
+        url: '/ecommerce/api/v1/product-categories/' + ecommerce.selectedCategoryId +
+             '/products/' + ecommerce.selectedProductId,
+        success: function (data) {
+            $('#delete-category-product-modal').modal('hide');
+            if (ecommerce.fetchProductList) {
+                ecommerce.fetchProductList('current');
+            } else if (ecommerce.fetchProductCategoryNames) {
+                ecommerce.fetchProductCategoryNames();
+            } else {
+                location.reload();
+            }
+        },
+        error: function (e) {
+            ezyadmin.processGetApiErrors(e);
+        }
+    });
+}
+</script>
+<script th:fragment="i18n">
+ecommerce.onCategoryWebLanguageChange = function(e) {
+    ecommerce.selectedCategoryLanguage = $(e).val();
+    ecommerce.fetchCategoryI18n();
+    ecommerce.fetchCategoryParentNames();
+    ecommerce.fetchCategoryChildNames();
+}
+
+ecommerce.fetchCategoryI18n = function() {
+    var i18nLanguage = ecommerce.selectedCategoryLanguage;
+    $.ajax({
+        type: 'GET',
+        url: '/ecommerce/api/v1/product-categories/' +
+             ecommerce.selectedCategoryId + '/i18n' +
+             (i18nLanguage ? ('?i18n_lang=' + i18nLanguage) : ''),
+        dataType: 'json',
+        success: function (data) {
+            ecommerce.fetchCategoryI18nCallback(data);
+        },
+        error: function (e) {
+            ezyadmin.processUpdateApiErrors({}, e);
+        }
+    });
+}
+</script>
+</body>
+</html>

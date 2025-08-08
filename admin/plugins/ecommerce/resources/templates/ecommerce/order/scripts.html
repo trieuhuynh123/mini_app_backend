@@ -1,0 +1,125 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~ 
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~ 
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~ 
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org">
+<body>
+<script th:fragment="actions" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.do_you_want_to_approve_paid_order_pid = /*[[#{do_you_want_to_approve_paid_order_pid}]]*/;
+ezyadmin.messages.do_you_want_to_approve_unpaid_order_pid = /*[[#{do_you_want_to_approve_unpaid_order_pid}]]*/;
+ezyadmin.messages.do_you_want_to_reject_order_pid = /*[[#{do_you_want_to_reject_order_pid}]]*/;
+/*]]>*/
+// ========== order actions =============
+ecommerce.onApproveOrderClick = function(orderId, status) {
+    ecommerce.selectedOrderId = orderId;
+    ecommerce.selectedOrderApprovalStatus = status;
+    $('#approve-order-modal-body-content')
+        .text(
+            ezyadmin
+                .messages[`do_you_want_to_approve_${status.toLowerCase()}_order_pid`]
+                .replace('{0}', orderId)
+        );
+    $('#approve-order-modal').modal('show');
+}
+
+ecommerce.onRejectOrderClick = function(orderId) {
+    ecommerce.selectedOrderId = orderId;
+    $('#reject-order-modal-body-content')
+        .text(
+            ezyadmin
+                .messages
+                .do_you_want_to_reject_order_pid
+                .replace('{0}', orderId)
+        );
+    $('#reject-order-modal').modal('show');
+}
+
+ezyadmin.onPromptConfirmed = function(modalId) {
+    if (modalId == 'approve-order-modal') {
+        ecommerce.approveOrder();
+    } else if (modalId == 'reject-order-modal') {
+        ecommerce.rejectOrder();
+    }
+}
+
+ecommerce.approveOrder = function() {
+    ecommerce.doOrderAction('approve');
+}
+
+ecommerce.rejectOrder = function() {
+    ecommerce.doOrderAction('reject');
+}
+
+ecommerce.doOrderAction = function(action) {
+    var url = '/ecommerce/api/v1/orders/' +
+        ecommerce.selectedOrderId + '/' + action;
+    if (ecommerce.selectedOrderApprovalStatus) {
+        url += '?status=' + ecommerce.selectedOrderApprovalStatus;
+    }
+    $.ajax({
+        type: 'PUT',
+        url: url,
+        success: function () {
+            $('#approve-order-modal').modal('hide');
+            $('#reject-order-modal').modal('hide');
+            if (ecommerce.fetchOrderList) {
+                ecommerce.fetchOrderList('current');
+            } else if (ecommerce.onOrderActionFinished) {
+                ecommerce.onOrderActionFinished();
+            } else {
+                location.reload();
+            }
+        },
+        error: function (data, e) {
+            ezyadmin.processUpdateApiErrors({}, data);
+        }
+    });
+}
+</script>
+<script th:fragment="invoice" th:inline="javascript">
+ecommerce.downloadInvoice = function(orderId) {
+    ezyadmin.showLoadingScreen();
+    $.ajax({
+        type: 'GET',
+        url: '/ecommerce/api/v1/invoice-xmls/?orderIds=' + orderId,
+        success: function (data) {
+            data.forEach((item, index) => {
+                var formattedDate = moment(item.orderApprovedAt).format('YYYY-MM-DD-HH-mm-ss');
+                var filename = `order_${item.shopId}_${item.orderId}_${formattedDate}_${index + 1}.xml`;
+                var blob = new Blob([item.xml], { type: "application/xml" });
+                var link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = filename;
+                link.style.display = "none";
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(link.href);
+            });
+            ezyadmin.hideLoadingScreen();
+        },
+        error: function (e) {
+            ezyadmin.hideLoadingScreen();
+            ezyadmin.processGetApiErrors(e);
+        }
+    });
+}
+</script>
+</body>
+</html>

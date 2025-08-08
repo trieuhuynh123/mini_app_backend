@@ -1,0 +1,408 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<body>
+<th:block th:fragment="content">
+    <div class="col-12 mt-3"></div>
+    <div class="col-lg-3 col-md-4 col-12">
+        <div class="d-flex align-items-center">
+            <select class="form-control form-select" id="productBulkActionUpsell">
+                <option value="">[[#{bulk_action}]]</option>
+                <option value="ARCHIVE">[[#{archive_products}]]</option>
+                <option value="DELETE">[[#{delete_products}]]</option>
+                <option value="DISCOUNT">[[#{discount_on_products}]]</option>
+                <option value="CANCEL_DISCOUNT">[[#{cancel_discount_on_products}]]</option>
+                <option value="DRAFT">[[#{draft_products}]]</option>
+                <option value="PUBLISH">[[#{publish_products}]]</option>
+                <option value="UPCOMING_LAUNCHES">[[#{upcoming_product_launches}]]</option>
+                <option value="STOP_SELLING">[[#{stop_selling_products}]]</option>
+            </select>
+            <button type="button" class="btn btn-outline-primary text-nowrap ml-1"
+                    onclick="ecommerce.performProductBulkAction('Upsell');">
+                [[#{perform}]]
+            </button>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-0 col-0 d-lg-block d-md-none"></div>
+    <div class="col-lg-3 col-md-5 col-12 page-search">
+        <label for="upsellProductsSearchKeyword" class="text-nowrap">[[#{search}]]: </label>
+        <input type="search" class="form-control" th:placeholder="#{keyword}" id="upsellProductsSearchKeyword"
+               onkeydown="ecommerce.onKeydownToSearchUpsellProducts();">
+    </div>
+    <div class="col-lg-3 col-md-3 col-12 page-search">
+        <label for="upsellProductsSearchStatus" class="text-nowrap">[[#{status}]]: </label>
+        <select class="form-control form-select" id="upsellProductsSearchStatus"
+                onchange="ecommerce.onUpsellProductsSearchStatusChanged();">
+            <option value="">[[#{all}]]</option>
+            <option th:each="productStatus : ${productStatuses}"
+                    th:value="${productStatus}"
+                    th:selected="${productStatus.toString() == upsellProductsSearchStatus}">
+                [[#{${productStatus.toString().toLowerCase()}}]]
+            </option>
+        </select>
+    </div>
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-body table-responsive p-0">
+                <table class="table table-bordered table-hover text-nowrap align-middle-cells">
+                    <thead>
+                    <tr>
+                        <th class="text-center px-3">
+                            <input type="checkbox" onclick="ecommerce.onMultiProductsClick(this, 'Upsell')" class="wh-1rem" />
+                        </th>
+                        <th>[[#{id}]]</th>
+                        <th class="text-center">[[#{icon}]]</th>
+                        <th>[[#{code}]]</th>
+                        <th>[[#{display_name}]]</th>
+                        <th>[[#{price}]]</th>
+                        <th class="text-center">[[#{remain}]]</th>
+                        <th class="text-center upsell-product-field">[[#{upsell_product_type}]]</th>
+                        <th class="text-center upsell-product-field">[[#{bonus_type}]]</th>
+                        <th class="text-center upsell-product-field">[[#{bonus_product}]]</th>
+                        <th class="text-center upsell-product-field">[[#{bonus_quantity}]]</th>
+                        <th class="text-center">[[#{status}]]</th>
+                        <th class="text-center" id="upsellProductCreatedAtOrDisplayOrderTitle">[[#{display_order}]]</th>
+                        <th class="text-center">[[#{actions}]]</th>
+                    </tr>
+                    </thead>
+                    <tbody id="upsellProductListBody">
+                    </tbody>
+                </table>
+            </div>
+            <!-- /.card-body -->
+            <div class="card-footer clearfix">
+                <span><span id="upsellProductCountText">0</span>
+                    [[${#strings.toLowerCase(#messages.msg('of'))}]]
+                    <span id="totalUpsellProductText">0</span>
+                    [[${#strings.toLowerCase(#messages.msg('product'))}]]
+                </span>
+                <ul class="pagination pagination-sm m-0 float-right">
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="firstPageButtonUpsellProducts">
+                            <i class="fas fa-arrow-circle-left pl-1 pr-1"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="prevPageButtonUpsellProducts">[[#{prev}]]</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="nextPageButtonUpsellProducts">[[#{next}]]</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="lastPageButtonUpsellProducts">
+                            <i class="fas fa-arrow-circle-right pl-1 pr-1"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.card-footer -->
+        </div>
+    </div>
+</th:block>
+<script th:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ecommerce.defaultCurrencyIsoCode = /*[[${defaultCurrency.isoCode}]]*/ '';
+ecommerce.productUriPrefix = /*[[${productUriPrefix}]]*/ '';
+ezyadmin.messages.add_to_product_upsell = /*[[#{add_to_product_upsell}]]*/ '';
+ezyadmin.messages.add_upsell_products = /*[[#{add_upsell_products}]]*/ '';
+ezyadmin.messages.archive = /*[[#{archive}]]*/ '';
+ezyadmin.messages.archived = /*[[#{archived}]]*/ '';
+ezyadmin.messages.cancel_discount = /*[[#{cancel_discount}]]*/ '';
+ezyadmin.messages.closed = /*[[#{closed}]]*/ '';
+ezyadmin.messages.coming_soon = /*[[#{coming_soon}]]*/ '';
+ezyadmin.messages.created_at = /*[[#{created_at}]]*/ '';
+ezyadmin.messages.delete = /*[[#{delete}]]*/ '';
+ezyadmin.messages.deleted = /*[[#{deleted}]]*/ '';
+ezyadmin.messages.display_order = /*[[#{display_order}]]*/ '';
+ezyadmin.messages.discount = /*[[#{discount}]]*/ '';
+ezyadmin.messages.draft = /*[[#{draft}]]*/ '';
+ezyadmin.messages.free_shipping = /*[[#{free_shipping}]]*/ '';
+ezyadmin.messages.most_popular = /*[[#{most_popular}]]*/ '';
+ezyadmin.messages.normal = /*[[#{normal}]]*/ '';
+ezyadmin.messages.nothing = /*[[#{nothing}]]*/ '';
+ezyadmin.messages.opened = /*[[#{opened}]]*/ '';
+ezyadmin.messages.publish = /*[[#{publish}]]*/ '';
+ezyadmin.messages.published = /*[[#{published}]]*/ '';
+ezyadmin.messages.register_opened = /*[[#{register_opened}]]*/ '';
+ezyadmin.messages.stop_selling = /*[[#{stop_selling}]]*/ '';
+ezyadmin.messages.remove_from_product_upsell = /*[[#{remove_from_product_upsell}]]*/ '';
+ezyadmin.messages.remove_upsell_products = /*[[#{remove_upsell_products}]]*/ '';
+ezyadmin.messages.upcoming_launches = /*[[#{upcoming_launches}]]*/ '';
+ezyadmin.messages.updated_at = /*[[#{updated_at}]]*/ '';
+ezyadmin.messages.do_you_want_to_paction_products = /*[[#{do_you_want_to_paction_products}]]*/;
+ezyadmin.messages.do_you_want_to_delete_upsell_product_pproduct_from_product_pname = /*[[#{do_you_want_to_delete_upsell_product_pproduct_from_product_pname}]]*/;
+/*]]>*/
+ecommerce.productIdChecksByListName['Upsell'] = {}
+ecommerce.upsellProductsType = 'IN_PRODUCT_UPSELL';
+
+// ========== add products buttons =======
+ecommerce.onAddUpsellProductsButtonClick = function() {
+    ecommerce.upsellProductsType = 'ALL';
+    ecommerce.doSearchUpsellProducts();
+    $('#addUpsellProductsButton').addClass('d-none');
+    $('#addUpsellProductsDoneButton').removeClass('d-none');
+    ecommerce.addUpsellProductsBulkActionOption();
+}
+ecommerce.onAddUpsellProductsDoneButtonClick = function() {
+    ecommerce.upsellProductsType = 'IN_PRODUCT_UPSELL';
+    ecommerce.doSearchUpsellProducts();
+    $('#addUpsellProductsButton').removeClass('d-none');
+    $('#addUpsellProductsDoneButton').addClass('d-none');
+    ecommerce.addUpsellProductsBulkActionOption();
+}
+
+ecommerce.addUpsellProductsBulkActionOption = function() {
+    var html = '<option value="';
+    if (ecommerce.upsellProductsType == 'ALL') {
+        $('option[value="REMOVE_FROM_PRODUCT_UPSELL"]').remove();
+        html += 'ADD_TO_PRODUCT_UPSELL">' + ezyadmin.messages.add_upsell_products;
+    } else {
+        $('option[value="ADD_TO_PRODUCT_UPSELL"]').remove();
+        html += 'REMOVE_FROM_PRODUCT_UPSELL">' + ezyadmin.messages.remove_upsell_products;
+    }
+    html += '</option>';
+    $('#productBulkActionUpsell').append(html);
+}
+
+ecommerce.onUpsellProductDisplayOrderChanged = function(e, upsellProductId) {
+    var displayOrder = $(e).val();
+    $.ajax({
+        type: 'POST',
+        url: '/ecommerce/api/v1/products/' + ecommerce.selectedProductId + '/upsell-product/save',
+        data: JSON.stringify({
+            upsellProductId: upsellProductId,
+            displayOrder: displayOrder
+        }),
+        contentType: 'application/json',
+        success: function (data) {
+            // do nothing
+        },
+        error: function (e) {
+            ezyadmin.processUpdateApiErrors({}, e);
+        }
+    });
+}
+
+ecommerce.onDeleteUpsellProductClick = function(productId, productName) {
+    ecommerce.selectedUpsellProductId = productId;
+    $('#delete-upsell-product-modal-body-content')
+        .text(
+            ezyadmin
+                .messages
+                .do_you_want_to_delete_upsell_product_pproduct_from_product_pname
+                .replace('{0}', unescape(productName))
+                .replace('{1}', ecommerce.selectedProductName)
+        );
+    $('#delete-upsell-product-modal').modal('show');
+}
+
+ecommerce.deleteUpsellProduct = function() {
+    $.ajax({
+        type: 'DELETE',
+        url: '/ecommerce/api/v1/products/' + ecommerce.selectedProductId +
+             '/upsell-products/' + ecommerce.selectedUpsellProductId,
+        success: function (data) {
+            $('#delete-upsell-product-modal').modal('hide');
+            ecommerce.fetchUpsellProductList('current');
+        },
+        error: function (e) {
+            ezyadmin.processUpdateApiErrors({}, e);
+        }
+    });
+}
+// ========== product search =============
+ecommerce.onKeydownToSearchUpsellProducts = function() {
+    if(event.key === 'Enter') {
+        ecommerce.doSearchUpsellProducts();
+    }
+}
+ecommerce.onUpsellProductsSearchStatusChanged = function() {
+    ecommerce.upsellProductsSearchStatus = $('#upsellProductsSearchStatus').val();
+    ecommerce.fetchUpsellProductList();
+}
+ecommerce.doSearchUpsellProducts = function() {
+    ecommerce.upsellProductsSearchKeyword = $('#upsellProductsSearchKeyword').val();
+    ecommerce.fetchUpsellProductList();
+}
+
+// ========== product pagination =============
+$('#firstPageButtonUpsellProducts').click(() => {
+    ecommerce.fetchUpsellProductList('first');
+});
+$('#lastPageButtonUpsellProducts').click(() => {
+    ecommerce.fetchUpsellProductList('last');
+});
+$('#nextPageButtonUpsellProducts').click(() => {
+    ecommerce.fetchUpsellProductList('next');
+});
+$('#prevPageButtonUpsellProducts').click(() => {
+    ecommerce.fetchUpsellProductList('prev');
+});
+
+// ========== product list =============
+ecommerce.fetchUpsellProductList = function(action) {
+    var queryString = '';
+    if (ecommerce.upsellProductsSearchStatus) {
+        queryString += '&status=' + ecommerce.upsellProductsSearchStatus;
+    }
+    if (ecommerce.upsellProductsSearchKeyword) {
+        queryString += '&keyword=' + ecommerce.upsellProductsSearchKeyword +
+            '&inclusiveTagNamePriority=' + ecommerce.upsellProductsSearchKeyword;
+    }
+    var uriSuffix = '';
+    if (ecommerce.upsellProductsType == 'IN_PRODUCT_UPSELL') {
+        uriSuffix = '/' + ecommerce.selectedProductId + '/upsell-products'
+    } else {
+        queryString += '&notInUpsellOfProductId=' + ecommerce.selectedProductId;
+    }
+    if (action == 'current') {
+        if (ecommerce.lastUpsellProductQueryString) {
+            queryString = ecommerce.lastUpsellProductQueryString;
+        }
+    } else if (action == 'next') {
+        if (ecommerce.lastUpsellProductPageToken.next) {
+            queryString += '&nextPageToken=' + ecommerce.lastUpsellProductPageToken.next;
+        } else {
+            return;
+        }
+    } else if (action == 'prev') {
+        if (ecommerce.lastUpsellProductPageToken.prev) {
+            queryString += '&prevPageToken=' + ecommerce.lastUpsellProductPageToken.prev;
+        } else {
+            return;
+        }
+    } else if (action == 'last') {
+        queryString += '&lastPage=true';
+    }
+    $.ajax({
+        url: '/ecommerce/api/v1/products' + uriSuffix + '?limit=12' + queryString,
+        type: 'GET',
+        dataType: 'json'
+    })
+    .done(function(data) {
+        $('#upsellProductCountText').text(data.count);
+        $('#totalUpsellProductText').text(ezyadmin.formatNumberWithCommas(data.total));
+        ecommerce.lastUpsellProductQueryString = queryString;
+        ecommerce.lastUpsellProductPageToken = data.pageToken;
+        $('#upsellProductListBody').html(ecommerce.buildUpsellProductListBodyHtml(data.items));
+        var displayOrderTitle;
+        if (ecommerce.upsellProductsType == 'IN_PRODUCT_UPSELL') {
+            displayOrderTitle = ezyadmin.messages.display_order;
+            $('.upsell-product-field').removeClass('d-none');
+        } else {
+            displayOrderTitle = ezyadmin.messages.created_at;
+            $('.upsell-product-field').addClass('d-none');
+        }
+        $('#upsellProductCreatedAtOrDisplayOrderTitle').text(
+            displayOrderTitle
+        );
+        if (data.continuation.hasNext) {
+            $('#nextPageButtonUpsellProducts').removeClass('text-secondary');
+        } else {
+            $('#nextPageButtonUpsellProducts').addClass('text-secondary');
+        }
+        if (data.continuation.hasPrevious) {
+            $('#prevPageButtonUpsellProducts').removeClass('text-secondary');
+        } else {
+            $('#prevPageButtonUpsellProducts').addClass('text-secondary');
+        }
+    })
+    .fail(function(e) {
+    	ezyadmin.processGetApiErrors(e);
+    });
+}
+
+ecommerce.buildUpsellProductListBodyHtml = function(products) {
+    var html = '';
+    products.forEach((product) => {
+        html += ecommerce.buildUpsellProductListItemHtml(product);
+    });
+    return html;
+}
+ecommerce.buildUpsellProductListItemHtml = function(product) {
+    var statusColor = ezyadmin.getTextColorByStatus(product.status);
+    var productImage = product.iconImage || product.bannerImage;
+    var html = `
+        <tr id="upsell-product-row-${product.id}">
+            <td class="text-center px-3">
+                <input name="productIdsUpsell"
+                       type="checkbox"
+                       value="${product.id}"
+                       onclick="ecommerce.onProductCheckChange(this, 'Upsell')"
+                       ${ecommerce.productIdChecksByListName['Upsell'][product.id] ? 'checked' : ''}
+                       class="wh-1rem">
+            </td>
+            <td>${product.id}</td>
+            <td class="text-center">
+                ${productImage ? `<img src="${ezyadmin.extractMediaUrl(productImage)}" width="64" class="object-fit-cover">` : ''}
+            </td>
+            <td class="text-break">${product.productCode}</td>
+            <td>
+                <a href="/ecommerce/products/${product.id}${ezyadmin.lang ? `?lang=${ezyadmin.lang}` : ''}">${product.productName}</a>
+            </td>
+            <td>${product.formattedPrice ? `${product.formattedPrice} ${ecommerce.defaultCurrencyIsoCode}` : ''}</td>
+            <td class="text-center" id="product-row-${product.id}-amount">
+                ${ezyadmin.formatNumberWithCommas(product.amount - product.soldAmount)}
+            </td>
+            <td class="text-center upsell-product-field">${ezyadmin.getI18nMessage(product.upsellProductType?.toLowerCase() || '')}</td>
+            <td class="text-center upsell-product-field">${ezyadmin.getI18nMessage(product.bonusType?.toLowerCase() || '')}</td>
+            <td class="text-center upsell-product-field">
+        `;
+        if (product.bonusItemId) {
+            html += `
+                <a href="/ecommerce/products/${product.bonusItemId}${ezyadmin.lang ? `?lang=${ezyadmin.lang}` : ''}">${product.bonusItemId}</a>
+            `;
+        }
+        html += `
+            </td>
+            <td class="text-center upsell-product-field">${ezyadmin.formatNumberWithCommas(product.bonusItemQuantity)}</td>
+            <td class="text-center ${statusColor}">${ezyadmin.getI18nMessage(product.status.toLowerCase())}</td>
+            <td class="text-center">
+                ${ecommerce.upsellProductsType === 'IN_PRODUCT_UPSELL' ?
+                    `<input type="number" class="form-control" value="${product.displayOrder}" onchange="ecommerce.onUpsellProductDisplayOrderChanged(this, ${product.id})">` :
+                    ezyadmin.formatTimeStamp(product.createdAt)
+                }
+            </td>
+            <td class="text-center">
+                ${ecommerce.upsellProductsType === 'IN_PRODUCT_UPSELL' ? `
+                    ${ecommerce.productUriPrefix ?
+                        `<a class="btn bt-link pr-1" href="${ezyadmin.webUrl}${ecommerce.productUriPrefix}${product.productCode}" target="_blank">
+                            <i class="fas fa-external-link-alt text-info"></i>
+                        </a>` : ''
+                    }
+                    <button type="button" class="btn pl-1" onclick="ecommerce.onDeleteUpsellProductClick(${product.id}, '${escape(product.productName)}');">
+                        <i class="fas fa-trash text-danger"></i>
+                    </button>
+                ` : `
+                    <button type="button" class="btn pr-1" onclick="ecommerce.showAddUpsellProductModal(${product.id});">
+                        <i class="fas fa-plus-circle text-primary"></i>
+                    </button>
+                `}
+            </td>
+        </tr>
+    `;
+	return html;
+}
+ecommerce.fetchUpsellProductList();
+</script>
+</body>
+</html>

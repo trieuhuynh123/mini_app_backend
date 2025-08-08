@@ -1,0 +1,89 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~ 
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~ 
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~ 
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org">
+<body>
+<script th:fragment="edit">
+// =========== icon ===================
+ecommerce.selectLogoImage = function(action) {
+    ezyadmin.showMediaModal('paymentServiceSettingLogoImage')
+        .onMediaSelected(media => {
+            $('#paymentServiceSettingLogoImageImage').attr(
+                'src',
+                ezyadmin.extractMediaUrl(media)
+            )
+            .removeClass('d-none')
+            .show();
+            ecommerce.paymentServiceSettingLogoImage = media;
+            $('#' + action + 'PaymentServiceSettingLogoImage').val(media.originalName);
+            ezyadmin.closeMediaModal();
+        });
+}
+
+// =========== banner ===================
+ecommerce.selectBannerImage = function(action) {
+    ezyadmin.showMediaModal('paymentServiceSettingBannerImage')
+        .onMediaSelected(media => {
+            $('#paymentServiceSettingBannerImageImage').attr(
+                'src',
+                ezyadmin.extractMediaUrl(media)
+            )
+            .removeClass('d-none')
+            .show();
+            ecommerce.paymentServiceSettingBannerImage = media;
+            $('#' + action + 'PaymentServiceSettingBannerImage').val(media.originalName);
+            ezyadmin.closeMediaModal();
+        });
+}
+
+// ========== edit payment service setting ===========
+ecommerce.savePaymentServiceSetting = function() {
+    var formData = ezyadmin.formDataToObject('editPaymentServiceSettingForm');
+    if (ecommerce.paymentServiceSettingLogoImage) {
+        formData['logoImageId'] =
+            ecommerce.paymentServiceSettingLogoImage.id;
+    }
+    if (ecommerce.paymentServiceSettingBannerImage) {
+        formData['bannerImageId'] =
+            ecommerce.paymentServiceSettingBannerImage.id;
+    }
+    delete formData.paymentServiceSettingLogoImage;
+    delete formData.paymentServiceSettingBannerImage;
+    $.ajax({
+        type: 'PUT',
+        url: `/ecommerce/api/v1/payment-services/${ecommerce.paymentServiceSettingCode}`,
+        data: JSON.stringify(formData),
+        contentType: 'application/json',
+        success: function (data) {
+            window.location = '/ecommerce/payment-services'
+                + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+        },
+        error: function (e) {
+            var formView = {
+                paymentServiceSettingName: true,
+            };
+            var errors = e.responseJSON || {};
+        	errors.paymentServiceSettingName = errors.name;
+            ezyadmin.processUpdateApiErrors(formView, e);
+        }
+    });
+};
+</script>
+</body>
+</html>

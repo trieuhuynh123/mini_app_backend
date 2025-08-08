@@ -1,0 +1,173 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~ 
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~ 
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~ 
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<head>
+    <script>
+        var ecommerce = {};
+    </script>
+</head>
+<body>
+<div layout:fragment="content" class="row">
+    <div class="col-md-3 col-4"><label>[[#{shop}]]:</label></div>
+    <div class="col-md-9 col-8">
+        <a th:href="${'/ecommerce/shops/' + shop.id}">[[${shop.displayName}]]</a>
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{branch_name}]]:</label></div>
+    <div class="col-md-9 col-8">
+        [[${shopBranch.branchName}]]
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{manager_admin}]]:</label></div>
+    <div class="col-md-9 col-8">
+        <a th:if="${managerAdmin != null}"
+           th:href="${'/admins/' + managerAdmin.username}">
+            [[${managerAdmin.name}]]
+        </a>
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{manager_user}]]:</label></div>
+    <div class="col-md-9 col-8">
+        <a th:if="${managerUser != null}"
+           th:href="${'/users/' + managerUser.username}">
+            [[${managerUser.name}]]
+        </a>
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{country}]]:</label></div>
+    <div class="col-md-9 col-8">
+        [[${shopBranchCountry != null ? shopBranchCountry.internationalName : ''}]]
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{area}]]:</label></div>
+    <div class="col-md-9 col-8">
+        [[${shopBranch.areaName}]]
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{province}]]:</label></div>
+    <div class="col-md-9 col-8">
+        [[${shopBranchProvince != null ? shopBranchProvince.displayName : ''}]]
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{district}]]:</label></div>
+    <div class="col-md-9 col-8">
+        [[${shopBranchDistrict != null ? shopBranchDistrict.displayName : ''}]]
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{ward}]]:</label></div>
+    <div class="col-md-9 col-8">
+        [[${shopBranchWard != null ? shopBranchWard.displayName : ''}]]
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{address}]]:</label></div>
+    <div class="col-md-9 col-8 status-text">
+        <th:block th:if="${shopBranch.mapLocation != null}">
+            <a th:if="${shopBranch.mapLocation.startsWith('http')}"
+               th:href="${shopBranch.mapLocation}" target="_blank">
+                [[${shopBranch.branchAddress}]]
+            </a>
+            <a th:if="${!shopBranch.mapLocation.startsWith('http')
+                        && !shopBranch.mapLocation.startsWith('<iframe')}"
+               th:href="${'https://www.google.com/maps/search/?api=1&query=' + shopBranch.branchAddress}"
+               target="_blank">
+                [[${shopBranch.branchAddress}]]
+            </a>
+            <th:block th:if="${shopBranch.mapLocation.startsWith('<iframe')}">
+                [[${shopBranch.branchAddress}]]
+            </th:block>
+        </th:block>
+        <th:block th:if="${shopBranch.mapLocation == null}">
+            <a th:href="${'https://www.google.com/maps/search/?api=1&query=' + shopBranch.branchAddress}"
+               target="_blank">
+                [[${shopBranch.branchAddress}]]
+            </a>
+        </th:block>
+    </div>
+    <th:block th:if="${shopBranch.mapLocation != null
+                && shopBranch.mapLocation.startsWith('<iframe')}">
+        <div class="col-md-3 col-4 d-flex align-items-center">
+            <label>[[#{map_location}]]:</label>
+        </div>
+        <div class="col-md-9 col-8">
+            <div class="row">
+                <div class="col-lg-6 col-md-6 embed-responsive embed-responsive-16by9" th:utext="${shopBranch.mapLocation}">
+                </div>
+                <div class="col-lg-6 col-md-6"></div>
+            </div>
+        </div>
+        <div class="col-12 mb-2"></div>
+    </th:block>
+    <div class="col-md-3 col-4"><label>[[#{email}]]:</label></div>
+    <div class="col-md-9 col-8">
+        [[${shopBranchDetails != null ? shopBranchDetails.email : ''}]]
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{phone_number}]]:</label></div>
+    <div class="col-md-9 col-8">
+        <a th:href="${'tel:' + shopBranch.phoneNumber}">[[${shopBranch.phoneNumber}]]</a>
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{working_time}]]:</label></div>
+    <div class="col-md-9 col-8">
+        <th:block th:if="${shopBranchDetails != null}">
+            [[#{from}]]: [[${shopBranchDetails.dailyWorkingTimeFrom}]]
+            [[#{to}]]: [[${shopBranchDetails.dailyWorkingTimeTo}]]
+            [[#{${shopBranchDetails.weeklyWorkingDayFrom.toString().toLowerCase()}}]]
+            -
+            [[#{${shopBranchDetails.weeklyWorkingDayTo.toString().toLowerCase()}}]]
+        </th:block>
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{headquarters}]]:</label></div>
+    <div class="col-md-9 col-8">
+        [[#{${shop.headquartersId == shopBranch.id ? 'yes' : 'no'}}]]
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{allow_user_received_stock}]]:</label></div>
+    <div class="col-md-9 col-8">
+        [[#{${(shopBranchDetails != null && shopBranchDetails.allowUserReceivedStock > 0) ? 'yes' : 'no'}}]]
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{it_is_also_a_warehouse}]]:</label></div>
+    <div class="col-md-9 col-8">
+        [[#{${(shopBranchDetails != null && shopBranchDetails.warehouseId > 0) ? 'yes' : 'no'}}]]
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{status}]]:</label></div>
+    <div class="col-md-9 col-8 status-text" th:attr="status=|${shopBranch.status}|">
+        [[#{${shopBranch.status.toString().toLowerCase()}}]]
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{created_at}]]:</label></div>
+    <div class="col-md-9 col-8 date-time-string">[[${shopBranch.createdAt}]]</div>
+    <div class="col-md-3 col-4"><label>[[#{updated_at}]]:</label></div>
+    <div class="col-md-9 col-8 date-time-string">[[${shopBranch.updatedAt}]]</div>
+    <div class="col-md-3 col-4"></div>
+    <div class="col-md-9 col-8">
+        <button type="button" class="btn btn-danger mb-2"
+                th:attr="onclick=|ecommerce.onDeleteShopBranchClick(${shopBranch.id}, '${shopBranch.branchName}', '${shop.displayName}')|">
+            [[#{delete}]] <i class="fas fa-trash"></i>
+        </button>
+    </div>
+</div>
+<th:block layout:fragment="modals">
+    <th:block th:replace="~{fragments/prompt :: content(id='delete-shop-branch-modal', title=confirm, confirmButton=delete, closeButton=close)}" />
+</th:block>
+<script layout:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ecommerce.selectedShopId = /*[[${shop.id}]]*/ '';
+ecommerce.selectedBankAccountId = /*[[${shopBranch.id}]]*/ '';
+/*]]>*/
+
+ezyadmin.onEditButtonClick = function() {
+    window.location = '/ecommerce/shops/' + ecommerce.selectedShopId + '/branches/' + ecommerce.selectedBankAccountId + '/edit';
+}
+</script>
+<th:block layout:fragment="post-scripts">
+    <script th:replace="~{ecommerce/shop/branch/scripts :: delete}" />
+</th:block>
+</body>
+</html>

@@ -1,0 +1,214 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<body>
+<th:block th:fragment="content">
+    <div class="col-lg-9 col-md-7 col-0"></div>
+    <div class="col-lg-3 col-md-5 col-12 page-search">
+        <label for="voucherSearchKeyword" class="text-nowrap">[[#{search}]]: </label>
+        <input type="search" class="form-control" th:placeholder="#{keyword}" id="voucherSearchKeyword"
+               onkeydown="ecommerce.onKeydownToSearchVoucher();">
+    </div>
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-body table-responsive p-0">
+                <table class="table table-bordered table-hover text-nowrap">
+                    <thead>
+                    <tr>
+                        <th>[[#{id}]]</th>
+                        <th>[[#{code}]]</th>
+                        <th>[[#{display_name}]]</th>
+                        <th class="text-center text-wrap">[[#{discount_amount}]]</th>
+                        <th class="text-center text-wrap">[[#{discount_percent}]]</th>
+                        <th class="text-center">[[#{type}]]</th>
+                        <th class="text-center">[[#{status}]]</th>
+                        <th class="text-center">[[#{created_at}]]</th>
+                        <th class="text-center">[[#{actions}]]</th>
+                    </tr>
+                    </thead>
+                    <tbody id="voucherListBody">
+                    </tbody>
+                </table>
+            </div>
+            <!-- /.card-body -->
+            <div class="card-footer clearfix">
+                <span><span id="voucherCountText">0</span>
+                    [[${#strings.toLowerCase(#messages.msg('of'))}]]
+                    <span id="totalVoucherText">0</span>
+                    [[${#strings.toLowerCase(#messages.msg('vouchers'))}]]
+                </span>
+                <ul class="pagination pagination-sm m-0 float-right">
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="firstPageButtonVoucher">
+                            <i class="fas fa-arrow-circle-left pl-1 pr-1"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="prevPageButtonVoucher">[[#{prev}]]</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="nextPageButtonVoucher">[[#{next}]]</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="lastPageButtonVoucher">
+                            <i class="fas fa-arrow-circle-right pl-1 pr-1"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.card-footer -->
+        </div>
+    </div>
+</th:block>
+<script th:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.activated = /*[[#{activated}]]*/ '';
+ezyadmin.messages.discount = /*[[#{discount}]]*/ '';
+ezyadmin.messages.free_shipping = /*[[#{free_shipping}]]*/ '';
+ezyadmin.messages.inactivated = /*[[#{inactivated}]]*/ '';
+/*]]>*/
+
+// ========== voucher search =============
+ecommerce.onKeydownToSearchVoucher = function() {
+    if(event.key === 'Enter') {
+        ecommerce.voucherSearchKeyword = $('#voucherSearchKeyword').val();
+        ecommerce.fetchVoucherList();
+    }
+}
+
+// ========== voucher pagination =============
+$('#firstPageButtonVoucher').click(() => {
+    ecommerce.fetchVoucherList('first');
+});
+$('#lastPageButtonVoucher').click(() => {
+    ecommerce.fetchVoucherList('last');
+});
+$('#nextPageButtonVoucher').click(() => {
+    ecommerce.fetchVoucherList('next');
+});
+$('#prevPageButtonVoucher').click(() => {
+    ecommerce.fetchVoucherList('prev');
+});
+
+// ========== voucher list =============
+ecommerce.fetchVoucherList = function(action) {
+    var queryString = '';
+    if (ecommerce.voucherSearchKeyword) {
+        queryString += '&keyword=' + ecommerce.voucherSearchKeyword;
+    }
+    queryString += '&shopId=' + ecommerce.selectedShopId;
+    if (action == 'current') {
+        if (ecommerce.lastVoucherQueryString) {
+            queryString = ecommerce.lastVoucherQueryString;
+        }
+    } else if (action == 'next') {
+        if (ecommerce.lastVoucherPageToken.next) {
+            queryString += '&nextPageToken=' + ecommerce.lastVoucherPageToken.next;
+        } else {
+            return;
+        }
+    } else if (action == 'prev') {
+        if (ecommerce.lastVoucherPageToken.prev) {
+            queryString += '&prevPageToken=' + ecommerce.lastVoucherPageToken.prev;
+        } else {
+            return;
+        }
+    } else if (action == 'last') {
+        queryString += '&lastPage=true';
+    }
+    $.ajax({
+        url: '/ecommerce/api/v1/vouchers?limit=12' + queryString,
+        type: 'GET',
+        dataType: 'json'
+    })
+    .done(function(data) {
+        $('#voucherCountText').text(data.count);
+        $('#totalVoucherText').text(ezyadmin.formatNumberWithCommas(data.total));
+        ecommerce.lastVoucherQueryString = queryString;
+        ecommerce.lastVoucherPageToken = data.pageToken;
+        $('#voucherListBody').html(ecommerce.buildVoucherListBodyHtml(data.items));
+        if (data.continuation.hasNext) {
+            $('#nextPageButtonVoucher').removeClass('text-secondary');
+        } else {
+            $('#nextPageButtonVoucher').addClass('text-secondary');
+        }
+        if (data.continuation.hasPrevious) {
+            $('#prevPageButtonVoucher').removeClass('text-secondary');
+        } else {
+            $('#prevPageButtonVoucher').addClass('text-secondary');
+        }
+    })
+    .fail(function(e) {
+    	ezyadmin.processGetApiErrors(e);
+    });
+}
+
+ecommerce.buildVoucherListBodyHtml = function(vouchers) {
+    var html = '';
+    vouchers.forEach((voucher) => {
+        html += ecommerce.buildVoucherListItemHtml(voucher);
+    });
+    return html;
+}
+ecommerce.buildVoucherListItemHtml = function(voucher) {
+    var statusColor = ezyadmin.getTextColorByStatus(voucher.status);
+    var html = `
+        <tr id="voucher-row-${voucher.id}">
+            <td>${voucher.id}</td>
+            <td>${voucher.code}</td>
+            <td>
+                <a href="/ecommerce/vouchers/${voucher.id}${ezyadmin.lang ? `?lang=${ezyadmin.lang}` : ''}">
+                    ${voucher.displayName}
+                </a>
+            </td>
+            <td class="text-center">
+                ${voucher.formattedDiscountAmount ? `${voucher.formattedDiscountAmount} ${voucher.forCurrency.isoCode}` : ''}
+            </td>
+            <td class="text-center">${voucher.discountPercent ? (voucher.discountPercent + '%') : ''}</td>
+            <td class="text-center">${ezyadmin.getI18nMessage(voucher.voucherType.toLowerCase())}</td>
+            <td class="text-center ${statusColor}">${ezyadmin.getI18nMessage(voucher.status.toLowerCase())}</td>
+            <td class="text-center">${ezyadmin.formatTimeStamp(voucher.createdAt)}</td>
+            <td class="text-center">
+                <a class="btn btn-link pr-1" href="/ecommerce/vouchers/${voucher.id}${ezyadmin.lang ? `?lang=${ezyadmin.lang}` : ''}">
+                    <i class="fas fa-eye text-info"></i>
+                </a>
+                <a class="btn btn-link pr-1" href="/ecommerce/vouchers/${voucher.id}/edit${ezyadmin.lang ? `?lang=${ezyadmin.lang}` : ''}">
+                    <i class="fas fa-edit text-primary"></i>
+                </a>
+                <button type="button" class="btn pl-1" onclick="ecommerce.onDeleteVoucherClick(${voucher.id}, '${voucher.displayName}')">
+                    <i class="fas fa-trash text-danger"></i>
+                </button>
+            </td>
+        </tr>
+    `;
+	return html;
+}
+ecommerce.fetchVoucherList();
+
+// ============== voucher actions =============
+ecommerce.editVoucher = function(id) {
+    window.location = '/ecommerce/vouchers/' + id + '/edit'
+        + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+}
+</script>
+</body>
+</html>

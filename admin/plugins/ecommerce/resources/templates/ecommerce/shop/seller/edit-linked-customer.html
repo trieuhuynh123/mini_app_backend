@@ -1,0 +1,158 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="content">
+    <div class="modal fade pt-4rem" id="edit-linked-customer">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="edit-linked-customer-modal-title">
+                        [[#{edit_linked_customer}]]
+                    </h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="editSellerCustomerForm">
+                        <div class="form-group row">
+                            <label for="editSellerCustomerDisplayName" class="col-4 col-form-label">
+                                [[#{customer}]]
+                            </label>
+                            <div class="col-8 d-flex flex-column justify-content-center">
+                                <span id="editSellerCustomerDisplayName"></span>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="editSellerCustomerCommissionPercent" class="col-4 col-form-label">
+                                [[#{commission_percent}]]
+                            </label>
+                            <div class="col-8">
+                                <label class="col-form-label text-danger d-none" id="editSellerCustomerCommissionPercentErrorLabel" for="editSellerCustomerCommissionPercent">
+                                    <i class="far fa-times-circle"></i> <span id="editSellerCustomerCommissionPercentError"></span>
+                                </label>
+                                <input type="number" name="commissionPercent" id="editSellerCustomerCommissionPercent"
+                                       class="form-control" th:placeholder="#{from_0_to_100}">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="editSellerCustomerLinkedAt" class="col-4 col-form-label">
+                                [[#{linked_date}]]
+                            </label>
+                            <div class="col-8">
+                                <label class="col-form-label text-danger d-none" id="editSellerCustomerLinkedAtErrorLabel" for="editSellerCustomerLinkedAt">
+                                    <i class="far fa-times-circle"></i> <span id="editSellerCustomerLinkedAtError"></span>
+                                </label>
+                                <input type="text" name="linkedAt" id="editSellerCustomerLinkedAt"
+                                       class="form-control" th:placeholder="#{linked_date}"
+                                       onkeydown="ecommerce.onKeyDownToEditSellerCustomer();">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <div>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">[[#{cancel}]]</button>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="ecommerce.editSellerCustomer();">
+                        [[#{edit}]]
+                    </button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+</th:block>
+<script th:fragment="scripts">
+// ========== show edit seller modal =============
+ecommerce.editSellerCustomerFormView = {
+    editSellerCustomerCommissionPercent: true,
+    editSellerCustomerLinkedAt: true
+};
+
+ecommerce.showEditSellerCustomerModal = function(customerId) {
+    ezyadmin.resetFormData(ecommerce.editSellerCustomerFormView);
+    var customer = ecommerce.linkedCustomerById[customerId];
+    ecommerce.selectedSellerCustomerUserId = customerId;
+    $('#editSellerCustomerDisplayName').text(customer.name);
+    $('#editSellerCustomerCommissionPercent').val(customer.commissionPercent);
+    $('#editSellerCustomerLinkedAt')
+        .data("daterangepicker")
+        .setStartDate(ezyadmin.formatTimeStampDate(customer.linkedAt));
+    $('#edit-linked-customer').modal('show');
+}
+
+// ========== edit seller =============
+ecommerce.onKeyDownToEditSellerCustomer = function() {
+    if(event.key === 'Enter') {
+    	ecommerce.editSellerCustomer();
+    }
+}
+
+ecommerce.editSellerCustomer = function() {
+    ezyadmin.showLoadingScreen();
+    var formData = ezyadmin.formDataToObject('editSellerCustomerForm');
+    ezyadmin.setActualFormData(formData);
+    formData.linkedAt = ecommerce.editSellerCustomerLinkedAt;
+    $.ajax({
+        type: 'PUT',
+        url: '/ecommerce/api/v1/shops/' + ecommerce.selectedShopId +
+             '/sellers/' + ecommerce.selectedSellerUserId +
+             '/customers/' + ecommerce.selectedSellerCustomerUserId,
+        data: formData,
+        success: function (data) {
+            $('#edit-linked-customer').modal('hide');
+            ecommerce.fetchLinkedCustomerList('current');
+            if (ecommerce.fetchSellerTotalBalance) {
+                ecommerce.fetchSellerTotalBalance();
+            }
+            if (ecommerce.fetchCommissionYears) {
+                ecommerce.fetchCommissionYears();
+            }
+            ezyadmin.hideLoadingScreen();
+        },
+        error: function (e) {
+            ezyadmin.hideLoadingScreen();
+            var errors = e.responseJSON || {};
+        	errors.editSellerCustomerUsername = errors.username;
+        	errors.editSellerCustomerCommissionPercent = errors.commissionPercent;
+            ezyadmin.processUpdateApiErrors(ecommerce.editSellerCustomerFormView, e);
+        }
+    });
+}
+
+ezyadmin.registerUserAutocomplete('editSellerCustomerUsername');
+
+$(document).ready(() => {
+    ezyadmin.createDateRangePicker(
+        '#editSellerCustomerLinkedAt',
+        {
+            singleDatePicker: true,
+            format: ezyadmin.defaultDateFormat
+        },
+        function(start, end, label) {
+            ecommerce.editSellerCustomerLinkedAt = start.unix() * 1000;
+        }
+    );
+});
+</script>
+</body>
+</html>

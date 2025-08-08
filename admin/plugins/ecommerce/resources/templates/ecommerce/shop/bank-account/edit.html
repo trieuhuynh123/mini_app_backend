@@ -1,0 +1,188 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<head>
+    <script>
+        var ecommerce = {};
+    </script>
+</head>
+<body>
+<div layout:fragment="content" class="row">
+    <div class="col-md-10 col-sm-12">
+        <form id="editShopBankAccountForm">
+            <div class="form-group row">
+                <label class="col-sm-3 col-form-label">[[#{shop}]]</label>
+                <div class="col-9">
+                    <a th:href="${'/ecommerce/shops/' + shop.id}">[[${shop.displayName}]]</a>
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="editShopBankId" class="col-sm-3 col-form-label">
+                    [[#{bank}]]
+                </label>
+                <div class="col-lg-5 col-md-6">
+                    <select name="bankId" id="editShopBankId" class="form-control">
+                        <option th:each="bank : ${banks}"
+                                th:value="${bank.id}"
+                                th:selected="${bank.id == bankAccount.bankId}">
+                            <th:block th:if="${bank.name != null}">
+                                [[#{${bank.name}}]]
+                            </th:block>
+                            ([[${bank.code}]])
+                        </option>
+                    </select>
+                </div>
+                <label id="editShopBankIdErrorLabel" class="col-lg-4 col-md-3 col-form-label text-danger d-none" for="editShopBankId">
+                    <i class="far fa-times-circle"></i> <span id="editShopBankIdError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editShopBankAccountAccountNumber" class="col-sm-3 col-form-label">
+                    [[#{account_number}]] (<span class="text-danger">*</span>)
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="accountNumber" id="editShopBankAccountAccountNumber" class="form-control" th:placeholder="#{account_number}"
+                           th:value="${bankAccount.accountNumber}">
+                </div>
+                <label id="editShopBankAccountAccountNumberErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editShopBankAccountAccountNumber">
+                    <i class="far fa-times-circle"></i> <span id="editShopBankAccountAccountNumberError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editShopBankAccountAccountOwnerName" class="col-sm-3 col-form-label">
+                    [[#{account_owner_name}]] (<span class="text-danger">*</span>)
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="accountOwnerName" id="editShopBankAccountAccountOwnerName"
+                           class="form-control" th:placeholder="#{account_owner_name}"
+                           th:value="${bankAccount.accountOwnerName}">
+                </div>
+                <label id="editShopBankAccountAccountOwnerNameErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editShopBankAccountAccountOwnerName">
+                    <i class="far fa-times-circle"></i> <span id="editShopBankAccountAccountOwnerNameError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editShopBankAccountBankBranchOfAccount" class="col-sm-3 col-form-label">
+                    [[#{bank_branch_of_account}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="bankBranchOfAccount" id="editShopBankAccountBankBranchOfAccount"
+                           class="form-control" th:placeholder="#{bank_branch_of_account}"
+                           th:value="${bankAccount.bankBranchOfAccount}">
+                </div>
+                <label id="editShopBankAccountBankBranchOfAccountErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editShopBankAccountBankBranchOfAccount">
+                    <i class="far fa-times-circle"></i> <span id="editShopBankAccountBankBranchOfAccountError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editShopBankAccountAccountQrCodeImage" class="col-md-3 col-form-label">
+                    [[#{account_qr_code_image}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <div class="input-group cursor-pointer" onclick="ecommerce.selectShopBankAccountAccountQrCodeImage('edit');">
+                        <input type="text" name="accountQrCodeImageId"
+                               id="editShopBankAccountAccountQrCodeImage"
+                               class="form-control" th:placeholder="#{select_an_image}"
+                               th:value="${bankAccount.accountQrCodeImage != null ? bankAccount.accountQrCodeImage.originalName : ''}">
+                        <div class="input-group-append">
+                            <div class="input-group-text">
+                                <span>[[#{browse}]]</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <label id="editShopBankAccountAccountQrCodeImageErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editShopBankAccountAccountQrCodeImage">
+                    <i class="far fa-times-circle"></i> <span id="editShopBankAccountAccountQrCodeImageError">[[#{invalid}]]</span>
+                </label>
+                <div class="col-md-3"></div>
+                <div class="col-md-4">
+                    <img id="shopBankAccountAccountQrCodeImage" class="object-fit-cover mt-1" height="64"
+                         th:src="${bankAccount.accountQrCodeImage != null ? bankAccount.accountQrCodeImage.getUrlOrDefault('') : ''}"
+                         th:classappend="${bankAccount.accountQrCodeImage == null ? 'd-none' : ''}">
+                </div>
+                <div class="col-md-5"></div>
+            </div>
+            <div class="form-group row">
+                <label for="editShopBankAccountDisplayOrder" class="col-sm-3 col-form-label">
+                    [[#{display_order}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="displayOrder" id="editShopBankAccountDisplayOrder"
+                           class="form-control" th:placeholder="#{display_order}"
+                           th:value="${bankAccount.displayOrder}">
+                </div>
+                <label id="editShopBankAccountDisplayOrderErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editShopBankAccountDisplayOrder">
+                    <i class="far fa-times-circle"></i> <span id="editShopBankAccountDisplayOrderError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editShopBankAccountStatus" class="col-md-3 col-form-label">
+                    [[#{status}]]
+                </label>
+                <div class="col-lg-3 col-md-3">
+                    <select name="status" id="editShopBankAccountStatus" class="form-control">
+                        <option th:each="shopBankAccountStatus : ${shopBankAccountStatuses}"
+                                th:value="${shopBankAccountStatus.toString()}"
+                                th:selected="${bankAccount.status == shopBankAccountStatus}">
+                            [[#{${shopBankAccountStatus.toString().toLowerCase()}}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="addShopStatusErrorLabel" class="col-lg-6 col-md-6 col-form-label text-danger d-none" for="editShopBankAccountStatus">
+                    <i class="far fa-times-circle"></i> <span id="addShopStatusError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="row">
+                <div class="col-md-3"></div>
+                <div class="col-lg-2 col-md-3">
+                    <button type="button" class="btn btn-primary btn-block" onclick="ecommerce.editShopBankAccount();">[[#{submit}]]</button>
+                </div>
+                <div class="col-lg-7 col-md-6"></div>
+                <!-- /.col -->
+            </div>
+        </form>
+    </div>
+    <div class="col-md-2 col-sm-0"></div>
+    <div class="col-12 mb-3"></div>
+</div>
+<script layout:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ecommerce.selectedShopId = /*[[${shop.id}]]*/;
+ecommerce.editShopBankAccountId = /*[[${bankAccount.id}]]*/;
+ecommerce.accountQrCodeImageId = /*[[${bankAccount.accountQrCodeImage != null ? bankAccount.accountQrCodeImage.id : 0}]]*/ '';
+/*]]>*/
+
+ecommerce.shopBankAccountAccountQrCodeImage = {
+    id: ecommerce.accountQrCodeImageId
+};
+
+// ========== edit shopBankAccount =============
+ecommerce.editShopBankAccount = function() {
+    ecommerce.addOrEditShopBankAccount('edit');
+}
+</script>
+<th:block layout:fragment="post-scripts">
+    <script th:replace="~{ecommerce/shop/bank-account/scripts :: add-edit}" />
+</th:block>
+</body>
+
+</html>

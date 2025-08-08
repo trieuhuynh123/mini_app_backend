@@ -1,0 +1,312 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~ 
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~ 
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~ 
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org">
+<body>
+<script th:fragment="add-edit">
+// ========== add or edit tag ===========
+ecommerce.addOrEditTag = function(action) {
+    var data = ezyadmin.formDataToObject(action + 'TagForm');
+    $.ajax({
+        type: action == 'add' ? 'POST' : 'PUT',
+        url: '/ecommerce/api/v1/product-tags/' + (action == 'add' ? 'add' : ecommerce.selectedTagId),
+        data: JSON.stringify(data),
+        contentType: 'application/json',
+        success: function (responseData) {
+            $('#add-tag-modal').modal('hide');
+            $('#edit-tag-modal').modal('hide');
+            if (ecommerce.fetchTagList) {
+                ecommerce.fetchTagList('current');
+            } else {
+                window.location = '/ecommerce/product-tags'
+                    + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+            }
+        },
+        error: function (e) {
+            ezyadmin.processUpdateApiErrors(data, e);
+        }
+    });
+}
+</script>
+<script th:fragment="delete" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.do_you_want_to_delete_tag_pname = /*[[#{do_you_want_to_delete_tag_pname}]]*/;
+/*]]>*/
+
+ecommerce.onDeleteTagClick = function(tagId, tagName) {
+    ecommerce.selectedTagId = tagId || ecommerce.selectedTagId;
+    $('#delete-tag-modal-body-content')
+        .text(
+            ezyadmin
+                .messages
+                .do_you_want_to_delete_tag_pname
+                .replace('{0}', unescape(tagName || ecommerce.selectedTagName))
+        );
+    $('#delete-tag-modal').modal('show');
+}
+
+ezyadmin.onPromptConfirmed = function(modalId) {
+    if (modalId == 'delete-tag-modal') {
+        ecommerce.deleteTag();
+    }
+}
+
+ecommerce.deleteTag = function() {
+    var tagId = ecommerce.selectedTagId;
+    $.ajax({
+        type: 'DELETE',
+        url: '/ecommerce/api/v1/product-tags/' + tagId,
+        success: function (data) {
+            $('#delete-tag-modal').modal('hide');
+            if (ecommerce.fetchTagList) {
+                ecommerce.fetchTagList('current');
+            } else {
+                window.location = '/ecommerce/product-tags'
+                    + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+            }
+        },
+        error: function (e) {
+            ezyadmin.processGetApiErrors(e);
+        }
+    });
+}
+</script>
+
+<script th:fragment="add-product" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.do_you_want_to_add_product_pproduct_to_tag_pname = /*[[#{do_you_want_to_add_product_pproduct_to_tag_pname}]]*/;
+/*]]>*/
+
+ecommerce.onAddTagProductClick = function(tagId, tagName, productId, productName) {
+    if (tagId) {
+        ecommerce.selectedTagId = tagId;
+    }
+    if (tagName) {
+        ecommerce.selectedTagName = unescape(tagName);
+    }
+    if (productId) {
+        ecommerce.selectedTagId = productId;
+    }
+    if (productName) {
+        ecommerce.selectedTagName = unescape(productName);
+    }
+    $('#add-tag-product-modal-body-content')
+        .text(
+            ezyadmin
+                .messages
+                .do_you_want_to_add_product_pproduct_to_tag_pname
+                .replace('{0}', ecommerce.selectedTagName)
+                .replace('{1}', ecommerce.selectedTagName)
+        );
+    $('#add-tag-product-modal').modal('show');
+}
+
+ezyadmin.onPromptConfirmed = function(modalId) {
+    if (modalId == 'add-tag-product-modal') {
+        ecommerce.addTagProduct();
+    }
+}
+
+ecommerce.addTagProduct = function() {
+    $.ajax({
+        type: 'POST',
+        url: '/ecommerce/api/v1/product-tags/' + ecommerce.selectedTagId +
+             '/products/' + ecommerce.selectedTagId + '/add',
+        success: function (data) {
+            $('#add-tag-product-modal').modal('hide');
+            if (ecommerce.fetchTagList) {
+                ecommerce.fetchTagList('current');
+            } else {
+                location.reload();
+            }
+        },
+        error: function (e) {
+            ezyadmin.processGetApiErrors(e);
+        }
+    });
+}
+</script>
+
+<script th:fragment="delete-product" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.do_you_want_to_delete_product_pproduct_from_tag_pname = /*[[#{do_you_want_to_delete_product_pproduct_from_tag_pname}]]*/;
+/*]]>*/
+
+ecommerce.onDeleteTagProductClick = function(tagId, tagName, productId, productName) {
+    if (tagId) {
+        ecommerce.selectedTagId = tagId;
+    }
+    if (tagName) {
+        ecommerce.selectedTagName = unescape(tagName);
+    }
+    if (productId) {
+        ecommerce.selectedProductId = productId;
+    }
+    if (productName) {
+        ecommerce.selectedTagName = unescape(productName);
+    }
+    $('#delete-tag-product-modal-body-content')
+        .text(
+            ezyadmin
+                .messages
+                .do_you_want_to_delete_product_pproduct_from_tag_pname
+                .replace('{0}', ecommerce.selectedTagName)
+                .replace('{1}', ecommerce.selectedTagName)
+        );
+    $('#delete-tag-product-modal').modal('show');
+}
+
+ezyadmin.onPromptConfirmed = function(modalId) {
+    if (modalId == 'delete-tag-product-modal') {
+        ecommerce.deleteTagProduct();
+    }
+}
+
+ecommerce.deleteTagProduct = function() {
+    $.ajax({
+        type: 'DELETE',
+        url: '/ecommerce/api/v1/product-tags/' + ecommerce.selectedTagId +
+             '/products/' + ecommerce.selectedProductId,
+        success: function (data) {
+            $('#delete-tag-product-modal').modal('hide');
+            if (ecommerce.fetchProductList) {
+                ecommerce.fetchProductList('current');
+            } else if (ecommerce.fetchTagProductNames) {
+                ecommerce.fetchTagProductNames();
+            } else {
+                location.reload();
+            }
+        },
+        error: function (e) {
+            ezyadmin.processGetApiErrors(e);
+        }
+    });
+}
+</script>
+<script th:fragment="bulk-actions" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.tag_s = /*[[#{tag_s}]]*/;
+ezyadmin.messages.selected_pcount_tags = /*[[#{selected_pcount_tags}]]*/;
+/*]]>*/
+// =============== do tags actions ========
+ecommerce.onMultiTagsClick = function(e) {
+    var checked = $(e).prop('checked');
+    $('input[name="tagIds"]').each(function() {
+        var checkbox = $(this);
+        var tagId = parseInt(checkbox.val());
+        ecommerce.tagIdChecks[tagId] = checked;
+        checkbox.prop('checked', checked);
+    });
+    ecommerce.showOrHideSelectedTagsCount();
+}
+
+ecommerce.onTagCheckChange = function(checkbox) {
+    var tagId = parseInt(checkbox.value);
+    ecommerce.tagIdChecks[tagId] = checkbox.checked;
+    ecommerce.showOrHideSelectedTagsCount();
+}
+
+ecommerce.showOrHideSelectedTagsCount = function() {
+    var count = 0;
+    Object.values(ecommerce.tagIdChecks).forEach((checked) => {
+        if (checked) {
+            ++count;
+        }
+    });
+    if (count) {
+        $('.selected-tag-count')
+            .text(ezyadmin.messages.selected_pcount_tags.replace('{0}', count))
+            .removeClass('d-none');
+    } else {
+        $('.selected-tag-count').addClass('d-none');
+    }
+}
+
+ecommerce.performTagBulkAction = function() {
+    var action = $('#tagBulkAction').val();
+    if (!action) {
+        return;
+    }
+    var actionLowerCase = action.toLowerCase();
+    var actionText = ezyadmin.messages[actionLowerCase].toLowerCase();
+    var modalIdPrefix = actionLowerCase.replaceAll('_', '-');
+    $('#' + modalIdPrefix + '-tag-modal-body-content').text(
+        ezyadmin.messages.do_you_want_to_paction_tags.replace('{0}', actionText)
+    );
+    ecommerce.openedTagBulkActionModel = $('#' + modalIdPrefix + '-tag-modal');
+    ecommerce.openedTagBulkActionModel.modal('show');
+}
+
+ecommerce.onPromptTagBulkActionConfirmed = function(modalId) {
+    if (modalId == 'delete-tag-modal') {
+        ecommerce.doTagBulkAction('delete');
+    }
+}
+
+ecommerce.doTagBulkAction = function(action) {
+    var tagIds = [];
+    Object.entries(ecommerce.tagIdChecks).forEach(([key, value]) => {
+        if (value) {
+            tagIds.push(key);
+        }
+    });
+    if (tagIds.length == 0) {
+        return;
+    }
+    var type = 'PUT';
+    var formData = null;
+    var url = '/ecommerce/api/v1/product-tags/' + action;
+    var paramName = 'ids';
+    if (action == 'delete') {
+        type = 'DELETE';
+        url = '/ecommerce/api/v1/product-tags';
+    }
+    url += '?' + paramName + '=' + tagIds.join(',');
+    $.ajax({
+        type: type,
+        url: url,
+        data: formData ? JSON.stringify(formData) : null,
+        contentType: 'application/json'
+    }).done(function () {
+        if (ecommerce.openedTagBulkActionModel) {
+            ecommerce.openedTagBulkActionModel.modal('hide');
+        }
+        if (ecommerce.fetchTagList) {
+            ecommerce.fetchTagList('current');
+        } else {
+            location.reload();
+        }
+    }).fail(function (msg) {
+        var errorBody;
+        if (msg.responseJSON && msg.responseJSON.permission == 'denied') {
+            errorBody = ezyadmin.messages.permission_denied;
+        }
+        var actionMessageKey = action.toLowerCase().replaceAll('-', '_');
+        ezyadmin.shortToast(
+            'bg-danger',
+            (ezyadmin.messages[actionMessageKey] || ezyadmin.toDisplayString(actionMessageKey)) +
+                ' ' + ezyadmin.messages.tag_s.toLowerCase() + ' ' +
+                ezyadmin.messages.failed.toLowerCase(),
+            errorBody
+        );
+    });
+}
+</script>
+</body>
+</html>

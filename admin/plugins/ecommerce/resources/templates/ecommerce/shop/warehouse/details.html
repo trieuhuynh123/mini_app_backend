@@ -1,0 +1,165 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~ 
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~ 
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~ 
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<head>
+    <script>
+        var ecommerce = {};
+    </script>
+</head>
+<body>
+<div layout:fragment="content" class="row">
+    <div class="col-md-3 col-4"><label>[[#{id}]]:</label></div>
+    <div class="col-md-9 col-8">
+        [[${shopWarehouse.id}]]
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{shop}]]:</label></div>
+    <div class="col-md-9 col-8">
+        <a th:href="${'/ecommerce/shops/' + shop.id}">
+            [[${shop.displayName}]]
+        </a>
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{name}]]:</label></div>
+    <div class="col-md-9 col-8">
+        [[${shopWarehouse.displayName}]]
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{address}]]:</label></div>
+    <div class="col-md-9 col-8">
+        <th:block th:if="${shopWarehouse.detailedAddress != null && shopWarehouse.detailedAddress.length() > 0}">
+            [[${shopWarehouse.detailedAddress}]],
+        </th:block>
+        <th:block th:if="${shopWarehouseWard != null}">
+            [[${shopWarehouseWard.displayName}]],
+        </th:block>
+        <th:block th:if="${shopWarehouseDistrict != null}">
+            [[${shopWarehouseDistrict.displayName}]],
+        </th:block>
+        <th:block th:if="${shopWarehouseProvince != null}">
+            [[${shopWarehouseProvince.displayName}]],
+        </th:block>
+        <th:block th:if="${shopWarehouseCountry != null}">
+            [[${shopWarehouseCountry.internationalName}]]
+        </th:block>
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{email}]]:</label></div>
+    <div class="col-md-9 col-8">
+        [[${shopWarehouse.email}]]
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{phone_number}]]:</label></div>
+    <div class="col-md-9 col-8">
+        <a th:href="${'tel:' + shopWarehouse.phoneNumber}">[[${shopWarehouse.phoneNumber}]]</a>
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{status}]]:</label></div>
+    <div class="col-md-9 col-8 status-text" th:attr="status=|${shopWarehouse.status}|">
+        [[#{${shopWarehouse.status.toString().toLowerCase()}}]]
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{created_at}]]:</label></div>
+    <div class="col-md-9 col-8 date-time-string">[[${shopWarehouse.createdAt}]]</div>
+    <div class="col-md-3 col-4"><label>[[#{updated_at}]]:</label></div>
+    <div class="col-md-9 col-8 date-time-string">[[${shopWarehouse.updatedAt}]]</div>
+    <div class="col-md-3 col-4"></div>
+    <div class="col-md-9 col-8">
+        <button type="button" class="btn btn-danger mb-2"
+                th:attr="onclick=|ecommerce.onDeleteShopWarehouseClick(${shopWarehouse.id}, '${shopWarehouse.displayName}', '${shop.displayName}')|">
+            [[#{delete}]] <i class="fas fa-trash"></i>
+        </button>
+    </div>
+    <div class="col-12">
+        <hr class="mb-4" />
+    </div>
+    <div class="col-12">
+        <div class="d-flex">
+            <h3>[[#{products}]]</h3>
+            <button type="button" id="addNewProductsButton"
+                    class="btn btn-outline-primary button-next-to-title"
+                    onclick="ecommerce.onAddNewProductsButtonClick();">
+                [[#{add_new}]] <i class="fas fa-plus-circle"></i>
+            </button>
+            <button type="button" id="addProductsDoneButton"
+                    class="btn btn-outline-success button-next-to-title d-none"
+                    onclick="ecommerce.onAddNewProductsDoneButtonClick();">
+                [[#{done}]] <i class="fas fa-check-circle"></i>
+            </button>
+        </div>
+    </div>
+    <th:block th:replace="~{/ecommerce/shop/warehouse/product-list :: content}" />
+</div>
+<th:block layout:fragment="modals">
+    <th:block th:replace="~{ecommerce/shop/warehouse/add-warehouse-product :: content}" />
+    <th:block th:replace="~{ecommerce/shop/warehouse/edit-warehouse-product :: content}" />
+    <th:block th:replace="~{/ecommerce/product/discount-products :: content}" />
+    <th:block th:replace="~{/ecommerce/product/import-product-prices :: content}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='delete-shop-warehouse-modal', title=confirm, confirmButton=delete, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='delete-warehouse-product-modal', title=confirm, confirmButton=delete, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='archive-product-modal', title=confirm, confirmButton=archive, closeButton=close, type=delete)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='delete-product-modal', title=confirm, confirmButton=delete, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='draft-product-modal', title=confirm, confirmButton=draft, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='publish-product-modal', title=confirm, confirmButton=activate, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='cancel-discount-product-modal', title=confirm, confirmButton=confirm, closeButton=close, type=delete)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='add-to-warehouse-product-modal', title=confirm, confirmButton=add, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='remove-from-warehouse-product-modal', title=confirm, confirmButton=confirm, closeButton=close, type=delete)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='upcoming-launches-product-modal', title=confirm, confirmButton=confirm, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='stop-selling-product-modal', title=confirm, confirmButton=confirm, closeButton=close)}" />
+</th:block>
+<th:block layout:fragment="import-scripts">
+    <script ezy:vsrc="/ecommerce/js/xlsx.full.min.js"></script>
+</th:block>
+<script layout:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ecommerce.selectedShopId = /*[[${shop.id}]]*/ '';
+ecommerce.selectedWarehouseId = /*[[${shopWarehouse.id}]]*/ '';
+ecommerce.selectedWarehouseDisplayName = /*[[${shopWarehouse.displayName}]]*/ '';
+/*]]>*/
+
+ezyadmin.onEditButtonClick = function() {
+    window.location = '/ecommerce/shops/' + ecommerce.selectedShopId
+        + '/warehouses/' + ecommerce.selectedWarehouseId
+        + '/edit' + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+}
+</script>
+<th:block layout:fragment="post-scripts">
+<script th:replace="~{ecommerce/shop/warehouse/scripts :: delete}" />
+<script th:replace="~{ecommerce/shop/warehouse/add-warehouse-product :: scripts}" />
+<script th:replace="~{ecommerce/shop/warehouse/edit-warehouse-product :: scripts}" />
+<script th:replace="~{ecommerce/shop/warehouse/delete-warehouse-product :: scripts}" />
+<script th:replace="~{ecommerce/shop/warehouse/product-list :: scripts}" />
+<script th:replace="~{ecommerce/product/scripts :: bulk-actions}" />
+<script th:replace="~{ecommerce/product/scripts :: export-product-items-to-excel}" />
+<script th:replace="~{ecommerce/product/discount-products :: scripts}" />
+<script th:replace="~{ecommerce/product/import-product-prices :: scripts}" />
+<script>
+ezyadmin.onPromptConfirmed = function(modalId) {
+    if (modalId == 'delete-shop-warehouse-modal') {
+        ecommerce.deleteShopWarehouse();
+    } else if (modalId == 'delete-warehouse-product-modal') {
+        ecommerce.deleteWarehouseProduct();
+    } else {
+        ecommerce.onPromptProductBulkActionConfirmed(modalId);
+    }
+}
+
+$(document).ready(() => {
+    ecommerce.addWarehouseProductsBulkActionOption();
+});
+</script>
+</th:block>
+</body>
+</html>

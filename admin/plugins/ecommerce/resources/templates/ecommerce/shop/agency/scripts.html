@@ -1,0 +1,190 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~ 
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~ 
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~ 
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org">
+<body>
+<script th:fragment="add-edit">
+// ========== add or edit shopAgency ===========
+ecommerce.addOrEditShopAgency = function(action) {
+    var formData = ezyadmin.formDataToObject(action + 'ShopAgencyForm');
+    var url = (action == 'add')
+        ? '/ecommerce/api/v1/shops/' + ecommerce.selectedShopId + '/agencies/add'
+        : '/ecommerce/api/v1/shops/' + ecommerce.selectedShopId + '/agencies/' + ecommerce.editShopAgencyId;
+    $.ajax({
+        type: action == 'add' ? 'POST' : 'PUT',
+        url: url,
+        data: JSON.stringify(formData),
+        contentType: 'application/json',
+        success: function (data) {
+            var agencyId = action == 'add'
+                ? data.addedId
+                : ecommerce.editShopAgencyId;
+            window.location = '/ecommerce/shops/' + ecommerce.selectedShopId
+                + '/agencies/' + agencyId
+                + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+        },
+        error: function (data, e) {
+            ezyadmin.processUpdateApiErrors(formData, data);
+        }
+    });
+};
+</script>
+<script th:fragment="delete" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.do_you_want_to_delete_agency_pagency_of_shop_pname = /*[[#{do_you_want_to_delete_agency_pagency_of_shop_pname}]]*/;
+/*]]>*/
+// ========== shopAgency delete =============
+ecommerce.onDeleteShopAgencyClick = function(
+    shopAgencyId,
+    shopAgencyDisplayName,
+    shopName
+) {
+    ecommerce.selectedShopAgencyId = shopAgencyId;
+    $('#delete-shop-agency-modal-body-content')
+        .text(
+            ezyadmin
+                .messages
+                .do_you_want_to_delete_agency_pagency_of_shop_pname
+                .replace('{0}', shopAgencyDisplayName)
+                .replace('{1}', shopName ? unescape(shopName) : ecommerce.selectedShopDisplayName)
+        );
+    $('#delete-shop-agency-modal').modal('show');
+}
+
+ecommerce.deleteShopAgency = function() {
+    $.ajax({
+        type: 'delete',
+        url: '/ecommerce/api/v1/shop-agencies/' + ecommerce.selectedShopAgencyId,
+        timeout: 60000,
+        success: function () {
+            $('#delete-shop-agency-modal').modal('hide');
+            if (ecommerce.fetchAgencyList) {
+                ecommerce.fetchAgencyList('current');
+            } else {
+                window.location = '/ecommerce/shops/' + ecommerce.selectedShopId
+                    + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+            }
+        },
+        error: function (data, e) {
+            ezyadmin.processUpdateApiErrors({}, data);
+        }
+    });
+}
+
+ezyadmin.onPromptConfirmed = function(modalId) {
+    if (modalId == 'delete-shop-agency-modal') {
+        ecommerce.deleteShopAgency();
+    }
+}
+</script>
+<script th:fragment="delete-product" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.do_you_want_to_delete_product_pproduct_from_agency_pname = /*[[#{do_you_want_to_delete_product_pproduct_from_agency_pname}]]*/;
+/*]]>*/
+
+ecommerce.onDeleteAgencyProductClick = function(agencyId, agencyType, agencyDisplayName, productId, productName) {
+    if (agencyId) {
+        ecommerce.selectedAgencyId = agencyId;
+    }
+    if (agencyType) {
+        ecommerce.selectedAgencyType = agencyType;
+    }
+    if (agencyDisplayName) {
+        ecommerce.selectedAgencyDisplayName = unescape(agencyDisplayName);
+    }
+    if (productId) {
+        ecommerce.selectedProductId = productId;
+    }
+    if (productName) {
+        ecommerce.selectedProductName = unescape(productName);
+    }
+    $('#delete-agency-product-modal-body-content')
+        .text(
+            ezyadmin
+                .messages
+                .do_you_want_to_delete_product_pproduct_from_agency_pname
+                .replace('{0}', ecommerce.selectedProductName)
+                .replace('{1}', ecommerce.selectedAgencyDisplayName)
+        );
+    $('#delete-agency-product-modal').modal('show');
+}
+
+ezyadmin.onPromptConfirmed = function(modalId) {
+    if (modalId == 'delete-agency-product-modal') {
+        ecommerce.deleteAgencyProduct();
+    }
+}
+
+ecommerce.deleteAgencyProduct = function() {
+    $.ajax({
+        type: 'DELETE',
+        url: '/ecommerce/api/v1/shop-agencies/' + ecommerce.selectedAgencyId +
+             '/products/' + ecommerce.selectedProductId,
+        success: function (data) {
+            $('#delete-agency-product-modal').modal('hide');
+            if (ecommerce.fetchProductList) {
+                ecommerce.fetchProductList('current');
+            } else if (ecommerce.fetchProductAgencyNames) {
+                ecommerce.fetchProductAgencyNames(ecommerce.selectedAgencyType);
+            } else {
+                location.reload();
+            }
+        },
+        error: function (e) {
+            ezyadmin.processGetApiErrors(e);
+        }
+    });
+}
+</script>
+<script th:fragment="change">
+ecommerce.onShopChange = function(e) {
+    var shopId = $(e).val();
+    ecommerce.changeAgenciesByShop(shopId);
+}
+
+ecommerce.changeAgenciesByShop = function(shopId) {
+    $.ajax({
+        type: "GET",
+        url: '/ecommerce/api/v1/shops/' +
+            shopId +
+            '/agencies',
+        success: function(agencies) {
+            var html = '';
+            agencies.forEach((agency) => {
+                html += `<option value="${agency.id}">${agency.displayName}</option>`;
+            });
+            $(`#${ecommerce.agenciesSelectId}`).html(html);
+            if (agencies.length <= 1) {
+                $(`#${ecommerce.agenciesSelectId}`)
+                    .prop('multiple', false)
+                    .removeClass('multiple-select-height');
+            } else {
+                $(`#${ecommerce.agenciesSelectId}`)
+                    .prop('multiple', true)
+                    .addClass('multiple-select-height');
+            }
+        },
+        error: function(data, e) {
+            ezyadmin.processGetApiErrors(data);
+        }
+    });
+}
+</script>
+</body>
+</html>

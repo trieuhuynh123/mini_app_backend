@@ -1,0 +1,405 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~ 
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~ 
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~ 
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<head>
+    <style>
+        .max-height-64  {
+            max-height: 64px !important;
+        }
+    </style>
+    <script>
+        var ecommerce = {};
+    </script>
+</head>
+<body>
+<div layout:fragment="content" class="row">
+    <div class="col-md-3 col-4"><label>[[#{order_id}]]:</label></div>
+    <div class="col-md-9 col-8">[[${order.id}]]</div>
+    <div class="col-md-3 col-4"><label>[[#{creator}]]:</label></div>
+    <div class="col-md-9 col-8" th:if="${order.creatorUser != null}">
+        <a th:href="${'/users/' + order.creatorUser.username}">
+            [[${order.creatorUser.name}]]
+        </a>
+    </div>
+    <div class="col-md-9 col-8" th:if="${order.creatorAdmin != null}">
+        <a th:href="${'/admins/' + order.creatorAdmin.username}">
+            [[${order.creatorAdmin.name}]]
+        </a>
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{approver}]]:</label></div>
+    <div class="col-md-9 col-8">
+        <a th:if="${order.approverAdmin != null}"
+           th:href="${'/admins/' + order.approverAdmin.username}">
+            [[${order.approverAdmin.name}]]
+        </a>
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{shopping_cart_id}]]:</label></div>
+    <div class="col-md-9 col-8 commas-number-string">[[${order.fromShoppingCartId}]]</div>
+    <div class="col-md-3 col-4"><label>[[#{total_products}]]:</label></div>
+    <div class="col-md-9 col-8 commas-number-string">[[${order.totalProducts}]]</div>
+    <div class="col-md-3 col-4"><label>[[#{total_product_amount}]]:</label></div>
+    <div class="col-md-9 col-8 commas-number-string">[[${order.totalProductAmount}]]</div>
+    <div class="col-md-3 col-4"><label>[[#{total_money}]]:</label></div>
+    <div class="col-md-9 col-8">
+        <div class="d-flex align-items-center gap-2">
+            <span>
+                [[${order.formattedTotalAmountMoney}]] [[${order.currency.isoCode}]]
+            </span>
+            <button type="button" class="btn btn-link text-dark" onclick="ecommerce.showOrderPaymentQrModal();">
+                <i class="fas fa-qrcode"></i>
+            </button>
+        </div>
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{payment_service}]]:</label></div>
+    <div class="col-md-9 col-8"
+         th:if="${order.paymentServiceCode == 'UNKNOWN'}">
+        [[${order.paymentServiceCode}]]
+    </div>
+    <div class="col-md-9 col-8"
+         th:if="${order.paymentServiceCode != 'UNKNOWN'}">
+        <a th:href="${'/ecommerce/payment-services/' + order.paymentServiceCode}">
+            [[${order.paymentServiceCode}]]
+        </a>
+    </div>
+    <div class="col-md-3 col-4 d-flex flex-column justify-content-center">
+        <label>[[#{invoice_image}]]:</label>
+    </div>
+    <div class="col-md-9 col-8 pt-2 pb-2">
+        <div class="d-flex align-items-center">
+            <span id="invoiceImageName">
+                [[${order.invoiceImage != null ? order.invoiceImage.originalName : ''}]]
+            </span>
+            <button type="button" th:if="${order.invoiceImage == null}"
+                    class="btn btn-outline-primary pt-1 pb-1"
+                    id="uploadInvoiceImageButton" onclick="ecommerce.selectInvoiceImage();">
+                [[#{upload}]]
+            </button>
+            <button type="button" class="btn btn-link"
+                    th:classappend="${order.invoiceImage == null ? 'd-none' : ''}"
+                    id="changeInvoiceImageButton" onclick="ecommerce.selectInvoiceImage();">
+                [[#{change}]]
+            </button>
+        </div>
+        <img id="invoiceImage" height="120"
+             th:classappend="${order.invoiceImage == null ? 'd-none' : ''}"
+             th:src="${order.invoiceImage != null ? order.invoiceImage.getUrlOrDefault('') : ''}">
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{status}]]:</label></div>
+    <div class="col-md-9 col-8 status-text">[[#{${order.status.toString().toLowerCase()}}]]</div>
+    <div class="col-md-3 col-4"><label>[[#{created_at}]]:</label></div>
+    <div class="col-md-9 col-8 date-time-string">[[${order.createdAt}]]</div>
+    <div class="col-md-3 col-4"><label>[[#{updated_at}]]:</label></div>
+    <div class="col-md-9 col-8 date-time-string">[[${order.updatedAt}]]</div>
+    <div class="col-md-3 col-4"><label>[[#{approved_at}]]:</label></div>
+    <div class="col-md-9 col-8 date-time-string">[[${order.approvedAt}]]</div>
+    <div class="col-md-3 col-4"><label>[[#{metadata}]]:</label></div>
+    <div class="col-md-9 col-8 date-time-string">
+        <div th:if="${order.metadata.size() > 0}" class="mb-2">
+            <div th:each="entry : ${order.metadata.entrySet()}">
+                <small><b>[[${entry.key}]]</b></small>: <small>[[${entry.value}]]</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-4"></div>
+    <div class="col-md-9 col-8">
+        <button type="button" class="btn btn-info mb-2"
+                th:if="${order.status.toString() != 'UNPAID'}"
+                th:attr="onclick=|ecommerce.onApproveOrderClick(${order.id}, 'UNPAID')|">
+            [[#{approve_unpaid}]] <i class="fas fa-check"></i>
+        </button>
+        <button type="button" class="btn btn-success mb-2"
+                th:if="${order.status.toString() != 'PAID'}"
+                th:attr="onclick=|ecommerce.onApproveOrderClick(${order.id}, 'PAID')|">
+            [[#{approve_paid}]] <i class="fas fa-check-circle"></i>
+        </button>
+        <button type="button" class="btn btn-danger mb-2"
+                th:if="${order.status.toString() != 'REJECTED'}"
+                th:attr="onclick=|ecommerce.onRejectOrderClick(${order.id})|">
+            [[#{reject}]] <i class="fas fa-times-circle"></i>
+        </button>
+    </div>
+    <div class="col-md-3 col-4"></div>
+    <div class="col-md-9 col-8">
+        <button type="button" class="btn btn-primary mb-2"
+                th:attr="onclick=|ecommerce.downloadInvoice(${order.id})|">
+            [[#{download_invoice}]] <i class="fas fa-file-invoice"></i>
+        </button>
+    </div>
+    <div class="col-12">
+        <hr class="mb-4" />
+    </div>
+    <div class="col-12">
+        <div class="d-flex">
+            <h3>[[#{products}]]</h3>
+        </div>
+    </div>
+    <div class="col-12 mt-3">
+        <table id="productList" class="table table-bordered table-hover bg-white align-middle-cells">
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>[[#{icon}]]</th>
+                <th>[[#{code}]]</th>
+                <th>[[#{display_name}]]</th>
+                <th>[[#{color}]]</th>
+                <th>[[#{size}]]</th>
+                <th>[[#{material}]]</th>
+                <th>[[#{amount}]]</th>
+                <th>[[#{price}]]</th>
+                <th>[[#{shop}]]</th>
+            </tr>
+            </thead>
+            <tbody id="productListBody">
+            <tr th:each="product, iterator : ${order.products}">
+                <td>[[${iterator.index + 1}]]</td>
+                <td>
+                    <a th:if="${product.product.iconImage != null || product.product.bannerImage != null}"
+                        th:href="${'/ecommerce/products/' + product.product.id}">
+                        <img th:if="${product.product.iconImage != null}"
+                             th:src="${product.product.iconImage != null ? product.product.iconImage.getUrlOrDefault('') : ''}"
+                             class="max-height-64 object-fit-cover" width="64">
+                        <img th:if="${product.product.iconImage == null && product.product.bannerImage != null}"
+                             th:src="${product.product.bannerImage != null ? product.product.bannerImage.getUrlOrDefault('') : ''}"
+                             class="max-height-64 object-fit-cover" width="64">
+                    </a>
+                </td>
+                <td class="text-break">
+                    [[${product.product.productCode}]]
+                </td>
+                <td>
+                    <a th:href="${'/ecommerce/products/' + product.product.id}" class="text-primary pr-1">
+                        [[${product.product.productName}]]
+                    </a>
+                </td>
+                <td>
+                    [[${product.color != null ? product.color.colorDisplayName : ''}]]
+                </td>
+                <td>
+                    [[${product.size != null ? product.size.sizeDisplayName : ''}]]
+                </td>
+                <td>
+                    [[${product.material != null ? product.material.materialDisplayName : ''}]]
+                </td>
+                <td class="commas-number-string">
+                    [[${product.amount}]]
+                </td>
+                <td>
+                    [[${product.formattedPrice}]] [[${order.currency.isoCode}]]
+                </td>
+                <td>
+                    <a th:if="${product.product.shop != null}"
+                       th:href="${'/ecommerce/shops/' + product.product.shop.id}" class="text-primary pr-1">
+                        [[${product.product.shop.displayName}]]
+                    </a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <th:block th:if="${orderRecipient != null}">
+        <div class="col-12">
+            <hr class="mb-4" />
+        </div>
+        <div class="col-12 mb-3">
+            <div class="d-flex">
+                <h3>[[#{delivery_information}]]</h3>
+            </div>
+        </div>
+        <div class="col-md-3 col-4"><label>[[#{recipient}]]:</label></div>
+        <div class="col-md-9 col-8">[[${orderRecipient.recipient}]]</div>
+        <th:block th:if="${orderRecipient.email != null}">
+            <div class="col-md-3 col-4"><label>[[#{email}]]:</label></div>
+            <div class="col-md-9 col-8">
+                <a th:href="${'mailto:' + orderRecipient.email}">[[${orderRecipient.email}]]</a>
+            </div>
+        </th:block>
+        <div class="col-md-3 col-4"><label>[[#{phone_number}]]:</label></div>
+        <div class="col-md-9 col-8">[[${orderRecipient.phoneNumber}]]</div>
+        <div class="col-md-3 col-4"><label>[[#{address}]]:</label></div>
+        <div class="col-md-9 col-8">
+            <a th:href="${'https://www.google.com/maps/search/?api=1&query=' + orderRecipient.address}" target="_blank">
+                [[${orderRecipient.address}]]
+            </a>
+        </div>
+        <div class="col-md-3 col-4"><label>[[#{cash_on_delivery}]]:</label></div>
+        <div class="col-md-9 col-8">[[#{${orderRecipient.type.toString() == 'COD' ? 'yes' : 'no'}}]]</div>
+        <div class="col-md-3 col-4"><label>[[#{status}]]:</label></div>
+        <div class="col-md-9 col-8 status-text">[[#{${orderRecipient.status.toString().toLowerCase()}}]]</div>
+    </th:block>
+    <th:block th:if="${deliveryOrders != null}">
+        <div class="col-12">
+            <hr class="mb-4" />
+        </div>
+        <div class="col-12 mb-3">
+            <div class="d-flex">
+                <h3>[[#{delivery_orders}]]</h3>
+            </div>
+        </div>
+        <div class="col-12 mt-3">
+            <table id="deliveryOrderList" class="table table-bordered table-hover bg-white">
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>[[#{id}]]</th>
+                    <th>[[#{tracking_id}]]</th>
+                    <th>[[#{products}]]</th>
+                    <th>[[#{from_warehouse}]]</th>
+                    <th>[[#{delivery_service}]]</th>
+                    <th>[[#{status}]]</th>
+                    <th>[[#{updated_at}]]</th>
+                    <th>[[#{delivered_at}]]</th>
+                </tr>
+                </thead>
+                <tbody id="deliveryOrderListBody">
+                <tr th:each="deliveryOrder, iterator : ${deliveryOrders}">
+                    <td>
+                        <a th:href="${'/ecommerce/delivery-orders/' + deliveryOrder.id}">
+                            [[${iterator.index + 1}]]
+                        </a>
+                    </td>
+                    <td>
+                        <a th:href="${'/ecommerce/delivery-orders/' + deliveryOrder.id}">
+                            [[${deliveryOrder.id}]]
+                        </a>
+                    </td>
+                    <td>
+                        <a th:if="${deliveryOrder.trackingUrl != null}"
+                           th:href="${deliveryOrder.trackingUrl}" target="_blank">
+                            [[${deliveryOrder.trackingId}]]
+                        </a>
+                        <th:block th:if="${deliveryOrder.trackingUrl == null}">
+                            [[${deliveryOrder.trackingUrl}]]
+                        </th:block>
+                    </td>
+                    <td>
+                        <ol class="pl-3 m-0">
+                            <li th:each="product : ${deliveryOrder.products}">
+                                <a th:href="${'/ecommerce/products/' + product.id}" class="text-primary pr-1">
+                                    [[${product.productName}]]
+                                </a>
+                            </li>
+                        </ol>
+                    </td>
+                    <td>
+                        <a th:href="${'/ecommerce/shops/' + deliveryOrder.fromWarehouse.shopId + '/warehouses/' + deliveryOrder.fromWarehouse.id}">
+                            [[${deliveryOrder.fromWarehouse.displayName}]]
+                        </a>
+                    </td>
+                    <td>
+                        <a th:href="${'/ecommerce/delivery-services/' + deliveryOrder.deliveryService.code}">
+                            [[${deliveryOrder.deliveryService.name}]]
+                        </a>
+                    </td>
+                    <td th:attr="status=|${deliveryOrder.status}|" class="status-text">
+                        [[#{${deliveryOrder.status.toString().toLowerCase()}}]]
+                    </td>
+                    <td class="date-time-string">
+                        [[${deliveryOrder.updatedAt}]]
+                    </td>
+                    <td class="date-time-string">
+                        [[${deliveryOrder.deliveredAt}]]
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </th:block>
+    <div class="col-12 mb-3"></div>
+</div>
+<th:block layout:fragment="modals">
+    <th:block th:replace="~{ecommerce/modal/payment-qr :: content}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='approve-order-modal', title=confirm, confirmButton=approve, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='reject-order-modal', title=confirm, confirmButton=reject, closeButton=close, type=delete)}" />
+</th:block>
+<script layout:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ecommerce.selectedOrderId = /*[[${order.id}]]*/ '';
+/*]]>*/
+
+// =========== qr code ===================
+ecommerce.showOrderPaymentQrModal = function() {
+    $.ajax({
+        type: 'POST',
+        url: `/ecommerce/api/v1/orders/${ecommerce.selectedOrderId}/generate-payment-qr-code`,
+        success: function (data) {
+            ecommerce.showPaymentQrModal(data);
+        },
+        error: function (e) {
+            ezyadmin.processGetApiErrors(e);
+        }
+    });
+}
+
+// =========== invoice image ===================
+ecommerce.selectInvoiceImage = function() {
+    ezyadmin.showMediaModal('invoiceImage')
+        .onMediaShow(media => {
+            if (media.type != 'IMAGE') {
+                $('#selectMediaButton').attr('disabled', true);
+            }
+        })
+        .onMediaSelected(media => {
+            ecommerce.updateInvoiceImage(
+                media.id,
+                () => {
+                    $('#invoiceImage').attr(
+                        'src',
+                        ezyadmin.extractMediaUrl(media)
+                    )
+                    .removeClass('d-none')
+                    .show();
+                    $('#invoiceImageName').text(media.originalName);
+                    $('#uploadInvoiceImageButton').addClass('d-none');
+                    $('#changeInvoiceImageButton').removeClass('d-none');
+                    ezyadmin.closeMediaModal();
+                }
+            );
+        });
+}
+
+ecommerce.updateInvoiceImage = function(invoiceImageId, callback) {
+    var formData = {
+        invoiceImageId: invoiceImageId
+    };
+    $.ajax({
+        type: 'PUT',
+        url: '/ecommerce/api/v1/orders/' + ecommerce.selectedOrderId + '/invoice-image',
+        contentType: 'application/json',
+        data: JSON.stringify(formData)
+    }).done(function() {
+        callback();
+    }).fail(function(data) {
+        ezyadmin.processUpdateApiErrors(formData, data);
+    });
+}
+
+// =========== product list ===================
+ezyadmin.createDataTable('productList', 12);
+ezyadmin.createDataTable('deliveryOrderList', 12);
+</script>
+<th:block layout:fragment="post-scripts">
+    <script th:replace="~{ecommerce/order/scripts :: actions}" />
+    <script th:replace="~{ecommerce/order/scripts :: invoice}" />
+    <script th:replace="~{ecommerce/modal/payment-qr :: scripts}" />
+</th:block>
+</body>
+</html>

@@ -1,0 +1,791 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:th="http://www.thymeleaf.org">
+<body>
+<script th:fragment="checkout" th:inline="javascript">
+/*<![CDATA[*/
+var discountCode = /*[[${discountCode}]]*/;
+var allowUserReceivedStockBranchIds = /*[[${allowUserReceivedStockBranchIds}]]*/;
+var defaultCurrencyId = /*[[${defaultCurrency.id}]]*/;
+var defaultCurrencySymbol = /*[[${defaultCurrency.symbol}]]*/;
+var defaultCurrencySymbolPosition = /*[[${defaultCurrency.symbolPosition}]]*/;
+var deliveryCountryId = /*[[${deliveryRecentlyCountryId}]]*/;
+var products = /*[[${shoppingCart.products}]]*/;
+var qrCodeByBankAccountId = /*[[${qrCodeByBankAccountId}]]*/;
+var shoppingCartId = /*[[${shoppingCart.id}]]*/;
+var shoppingCartTotalAmountMoney = /*[[${shoppingCart.totalAmountMoney}]]*/;
+var totalAmountMoney = /*[[${shoppingCart.totalAmountMoney}]]*/;
+var paymentConfirmationPeriodInMinutes = /*[[${paymentConfirmationPeriodInMinutes}]]*/;
+ezyweb.messages.download_qr_code = /*[[#{download_qr_code}]]*/;
+ezyweb.messages.expired = /*[[#{expired}]]*/;
+ezyweb.messages.free = /*[[#{free}]]*/;
+ezyweb.messages.not_found = /*[[#{not_found}]]*/;
+ezyweb.messages.pay_order = /*[[#{pay_order}]]*/;
+ezyweb.messages.vouchers_exhausted = /*[[#{vouchers_exhausted}]]*/;
+/*]]>*/
+ezyweb.errorMessageByCode.expired = ezyweb.messages.expired;
+ezyweb.errorMessageByCode.notFound = ezyweb.messages.not_found;
+ezyweb.errorMessageByCode.vouchersExhausted = ezyweb.messages.vouchers_exhausted;
+
+var provincesSelectId = 'recipientProvince';
+var districtsSelectId = 'recipientDistrict';
+var wardsSelectId = 'recipientWard';
+var shopBranchAddresses = allowUserReceivedStockBranchIds?.length
+    ? null
+    : [];
+var deliveryFee = null;
+var fetchedDeliveryFee = null;
+var fetchedDeliveryFeeFormatted = null;
+var deliveryInformationFormData = null;
+var createdOrderId;
+var discountAmount = null;
+var discountFreeShipping = false;
+var productById = {};
+products.forEach((product) => {
+    productById[product.id] = product;
+});
+
+// ================ qrcode ===========
+var paymentQrCodeColorDark = "#27004B";
+var paymentQrCodeColorLight = "#ffffff";
+var displayPaymentQrCodes = function() {
+    Object.entries(qrCodeByBankAccountId).forEach(([key, value]) => {
+        var container = document.getElementById(`bankAccountQrCode${key}`);
+        if (container) {
+            appendQrCodeToContainer(container, key, value);
+        }
+    });
+}
+
+var decorateDownloadQrCodeButton;
+var appendQrCodeToContainer = function(container, key, value) {
+    container.innerHTML = '';
+    var qrCodeContainer = document.createElement('div');
+    qrCodeContainer.id = `qrCodeCanvas${key}`;
+    container.appendChild(qrCodeContainer);
+    new QRCode(qrCodeContainer, {
+        text: value,
+        width: 150,
+        height: 150,
+        colorDark: paymentQrCodeColorDark,
+        colorLight: paymentQrCodeColorLight,
+        correctLevel: QRCode.CorrectLevel.L
+    });
+    var downloadButton = document.createElement('a');
+    downloadButton.href = 'javascript:void(0)';
+    downloadButton.className = 'text-center text-dark text-decoration-none download-qr-code-button';
+    downloadButton.innerHTML = `${ezyweb.messages.download_qr_code} &#x2193;`;
+    downloadButton.style.display = 'block';
+    downloadButton.style.marginTop = '8px';
+    downloadButton.onclick = function () {
+        ezyweb.showLoadingScreen();
+        var canvas = qrCodeContainer.querySelector('canvas');
+        if (canvas) {
+            var padding = 10;
+            var paddedCanvas = document.createElement('canvas');
+            var context = paddedCanvas.getContext('2d');
+            paddedCanvas.width = canvas.width + padding * 2;
+            paddedCanvas.height = canvas.height + padding * 2;
+            context.fillStyle = paymentQrCodeColorLight;
+            context.fillRect(0, 0, paddedCanvas.width, paddedCanvas.height);
+            context.drawImage(canvas, padding, padding);
+            var link = document.createElement('a');
+            link.href = paddedCanvas.toDataURL('image/png');
+            link.download = `qr-code-${key}.png`;
+            link.click();
+            ezyweb.hideLoadingScreen();
+        }
+    };
+    if (decorateDownloadQrCodeButton) {
+        decorateDownloadQrCodeButton(downloadButton, key);
+    }
+    container.appendChild(downloadButton);
+}
+
+var fetchPaymentQrCodes = function(scrollToQrCodes, fromOrderId) {
+    ezyweb.showLoadingScreen();
+    var totalDiscount = discountAmount || 0;
+    var totalFee = deliveryFee || 0;
+    var url = fromOrderId
+        ? ('/api/v1/checkout/orders/' +
+             createdOrderId + '/qr-codes')
+        : ('/api/v1/checkout/shopping-cart/qr-codes' +
+            '?totalFee=' + totalFee +
+            '&discountAmount=' + totalDiscount)
+    $.ajax({
+        url: url,
+        type: 'GET'
+    })
+    .done(function(data) {
+        ezyweb.hideLoadingScreen();
+        qrCodeByBankAccountId = data;
+        displayPaymentQrCodes();
+        if (scrollToQrCodes) {
+            ezyweb.scrollToElement('bankAccountsArea');
+        }
+    })
+    .fail(function(e) {
+        ezyweb.hideLoadingScreen();
+        ezyweb.processGetApiErrors(e);
+        if (scrollToQrCodes) {
+            ezyweb.scrollToElement('bankAccountsArea');
+        }
+    });
+}
+
+// ================ product click ==========
+var onShoppingCartProductClick = onShoppingCartProductClick || function() {}
+
+// ================ login ==========
+var onLoginWhenCheckoutClick = onLoginWhenCheckoutClick || function() {
+    if (showLoginModal) {
+        showLoginModal();
+    }
+}
+
+// ================ delivery ========
+var onDeliveryOptionHomeClick = function() {
+    $('#deliveryOptionHome').prop('checked', true);
+    $('#deliveryOptionStore').prop('checked', false);
+    $('#deliveryOptionHomeBody').removeClass('d-none');
+    $('#deliveryOptionStoreBody').addClass('d-none');
+    $('#deliveryOptionHomeBody input').attr('required', true);
+    $('#deliveryOptionHomeBody select').attr('required', true);
+}
+
+var onDeliveryOptionStoreClick = function() {
+    if (shopBranchAddresses) {
+        processDeliveryOptionStoreClick();
+        return;
+    }
+    ezyweb.showLoadingScreen();
+    $.ajax({
+        url: '/api/v1/shop-branch-addresses' +
+             '?shopBranchIds=' + allowUserReceivedStockBranchIds.join(),
+        type: 'GET'
+    })
+    .done(function(data) {
+        ezyweb.hideLoadingScreen();
+        shopBranchAddresses = data;
+        var html = '';
+        shopBranchAddresses.forEach((shopBranchAddress, index) => {
+            html += `
+                <div class="d-flex gap-2 cursor-pointer" onclick="onShopBranchAddressClick(this);">
+                    <input type="radio" name="receiveAtShopBranchId" value="${shopBranchAddress.id}"
+                           ${index == 0 ? 'checked' : ''}>
+                    <span>${shopBranchAddress.address}</span>
+                </div>
+            `;
+        });
+        $('#deliveryOptionStoreBody').html(html);
+        processDeliveryOptionStoreClick();
+    })
+    .fail(function(e) {
+        ezyweb.hideLoadingScreen();
+        ezyweb.processGetApiErrors(e);
+    });
+}
+
+var processDeliveryOptionStoreClick = function() {
+    $('#deliveryOptionHome').prop('checked', false);
+    $('#deliveryOptionStore').prop('checked', true);
+    $('#deliveryOptionHomeBody').addClass('d-none');
+    $('#deliveryOptionHomeBody input').removeAttr('required');
+    $('#deliveryOptionHomeBody select').removeAttr('required');
+    $('#deliveryOptionStoreBody').removeClass('d-none');
+}
+
+var onShopBranchAddressClick = function(e) {
+    $(e)
+        .find("input[type='radio']")
+        .prop('checked', true);
+}
+
+var onProcessToPaymentMethodButtonClick = function() {
+    var form = document.getElementById('orderRecipientInformationForm');
+    if (form.checkValidity()) {
+        deliveryInformationFormData = ezyweb.formDataToObject(
+            'orderRecipientInformationForm'
+        );
+        if (!deliveryInformationFormData.deliveryCountryId) {
+            deliveryInformationFormData.deliveryCountryId = deliveryCountryId;
+        }
+        fetchDeliveryFee((data) => {
+            fetchedDeliveryFee = data.value;
+            fetchedDeliveryFeeFormatted = data.formattedValue;
+            setDeliveryFee(data.value, data.formattedValue, true);
+        });
+        hideCheckoutPlusMinusProductAmountButtons();
+    }
+    form.classList.add('was-validated');
+}
+
+var noDeliveryFeeText = '-';
+var setDeliveryFee = function(
+    value,
+    formattedValue,
+    updateRecipientInformationView
+) {
+    deliveryFee = value;
+    var deliveryFeeText = formattedValue
+        ? formatAmountIncludeSymbol(formattedValue)
+        : (discountFreeShipping ? ezyweb.messages.free : noDeliveryFeeText);
+    $('#deliveryFeeValue').text(deliveryFeeText);
+    calculateTotalAmount();
+    if (updateRecipientInformationView) {
+        $('#orderRecipientInformationForm :input').prop('disabled', true);
+        $('#paymentButtons').removeClass('d-none');
+        $('#processToPaymentMethodButton').addClass('d-none');
+        $('#changeDeliveryInformationButton').removeClass('d-none');
+        ezyweb.scrollToElement('paymentButtons');
+    }
+}
+
+var fetchDeliveryFee = function(callback) {
+    if (discountFreeShipping) {
+        setDeliveryFee(fetchedDeliveryFee, fetchedDeliveryFeeFormatted, true);
+        return;
+    }
+    ezyweb.showLoadingScreen();
+    $.ajax({
+        url: '/api/v1/delivery/min-fee' + '?currencyId=' + defaultCurrencyId,
+        type: 'GET'
+    })
+    .done(function(data) {
+        ezyweb.hideLoadingScreen();
+        callback(data);
+    })
+    .fail(function(e) {
+        ezyweb.hideLoadingScreen();
+        ezyweb.processGetApiErrors(e);
+    });
+}
+
+var calculateTotalAmount = function() {
+    var totalMoney = shoppingCartTotalAmountMoney;
+    if (discountAmount) {
+        totalMoney -= discountAmount;
+    }
+    if (!discountFreeShipping && deliveryFee) {
+        totalMoney += deliveryFee;
+    }
+    if (totalMoney < 0) {
+        totalMoney = 0;
+    }
+    formatTotalAmountMoney(totalMoney);
+    if (totalMoney) {
+        $('.pay-shopping-cart-button').removeClass('d-none');
+        $('.place-order-button').addClass('d-none');
+    } else {
+        $('.pay-shopping-cart-button').addClass('d-none');
+        $('.place-order-button').removeClass('d-none');
+    }
+}
+
+var formatAmountMoney = function(amount, callback) {
+    $.ajax({
+        url: '/api/v1/currencies/' +
+             defaultCurrencyId + '/format-amount' +
+             '?amount=' + amount,
+        type: 'GET'
+    })
+    .done(function(data) {
+       callback(data);
+    })
+    .fail(function(e) {
+        ezyweb.processGetApiErrors(e);
+    });
+}
+
+var formatSubtotalAmountMoney = function(amount) {
+    var actualAmount = amount || shoppingCartTotalAmountMoney;
+    formatAmountMoney(actualAmount, (data) => {
+        $('#deliverySubtotalValue').text(data.formattedWithSymbol);
+    });
+}
+
+var formatTotalAmountMoney = function(amount) {
+    formatAmountMoney(amount, (data) => {
+        $('#totalMoneyValue').text(data.formattedWithSymbol);
+    });
+}
+
+var onChangeDeliveryInformationButtonClick = function(e) {
+    fetchedDeliveryFee = null;
+    fetchedDeliveryFeeFormatted = null;
+    $('#orderRecipientInformationForm :input').prop('disabled', false);
+    var form = document.getElementById('orderRecipientInformationForm');
+    form.classList.remove('was-validated');
+    $('#processToPaymentMethodButton').removeClass('d-none');
+    $('#changeDeliveryInformationButton').addClass('d-none');
+    $('#paymentButtons').addClass('d-none');
+    showCheckoutPlusMinusProductAmountButtons();
+    $('.delete-shopping-cart-product-button').removeClass('d-none');
+    ezyweb.scrollToElement('checkOutOrderDeliveryInformationArea');
+}
+
+// ================ discount ==========
+var onKeydownToSubmitDiscountCount = function() {
+    if(event.key === 'Enter') {
+        submitDiscountCount();
+    }
+}
+
+var submitDiscountCount = function() {
+    var form = document.getElementById('discountCodeForm');
+    form.classList.remove('was-validated');
+    if (form.checkValidity()) {
+        discountCode = $('#discountCodeInput').val().trim();
+        ezyweb.showLoadingScreen();
+        $.ajax({
+        url: '/api/v1/vouchers/' + discountCode + '/discount-amount' +
+             '?shoppingCartId=' + shoppingCartId +
+             '&currencyId=' + defaultCurrencyId,
+            type: 'GET'
+        })
+        .done(function(data) {
+            ezyweb.hideLoadingScreen();
+            discountAmount = data.value;
+            discountFreeShipping = data.freeShipping;
+            calculateTotalAmount();
+            if (discountAmount > 0) {
+                $('#discountValue').text(
+                    formatAmountIncludeSymbol(data.formattedValue)
+                );
+                $('#discountValueArea').removeClass('d-none');
+            } else {
+                $('#discountValueArea').addClass('d-none');
+            }
+            if (discountFreeShipping) {
+                setDeliveryFee(null, null, false);
+            }
+            $('#discountCodeInput')
+                .removeClass('is-invalid')
+                .prop('disabled', true);
+            $('#validateDiscountCodeFeedback').removeClass('d-block');
+            $('#discountCodeButton').addClass('d-none');
+            $('#cancelDiscountCodeButton').removeClass('d-none');
+            form.classList.add('was-validated');
+            fetchPaymentQrCodes(false);
+            hideCheckoutPlusMinusProductAmountButtons();
+        })
+        .fail(function(e) {
+            ezyweb.hideLoadingScreen();
+            resetDiscountAmount();
+            var errorMessage = ezyweb.messages.invalid;
+            if (e.status == 404) {
+                errorMessage = ezyweb.messages.not_found;
+            } else if (e.status == 400) {
+                var errorCode = (e.responseJSON || {}).code;
+                if (errorCode) {
+                    errorMessage = ezyweb.errorMessageByCode[errorCode];
+                }
+            }
+            $('#discountCodeInput').addClass('is-invalid');
+            $('#validateDiscountCodeFeedback')
+                .text(errorMessage)
+                .addClass('d-block');
+        });
+    } else {
+        resetDiscountAmount();
+        form.classList.add('was-validated');
+    }
+}
+
+var onCancelDiscountCodeButton = function() {
+    resetDiscountAmount();
+    fetchPaymentQrCodes(false)
+    showCheckoutPlusMinusProductAmountButtons();
+}
+
+var resetDiscountAmount = function() {
+    discountCode = null;
+    discountAmount = null;
+    discountFreeShipping = false;
+    calculateTotalAmount();
+    setDeliveryFee(fetchedDeliveryFee, fetchedDeliveryFeeFormatted);
+    $('#discountCodeInput').prop('disabled', false);
+    $('#discountValueArea').addClass('d-none');
+    $('#discountCodeButton').removeClass('d-none');
+    $('#cancelDiscountCodeButton').addClass('d-none');
+}
+
+// ================ pay via bank transfer ===
+var onPayViaBankTransferButtonClick = function() {
+    createOrder(false, () => {
+        $('#paymentButtons button').addClass('d-none');
+        $('#viewOrderButton').removeClass('d-none');
+        $('#bankAccountsArea').removeClass('d-none');
+        $('.delete-shopping-cart-product-button').addClass('d-none');
+        if (deliveryFee || discountAmount) {
+            fetchPaymentQrCodes(true);
+        } else {
+            ezyweb.scrollToElement('bankAccountsArea');
+        }
+    });
+}
+
+// ================ order ===========
+var createOrderForm = function() {
+    var productData = [];
+    products.forEach(product => {
+        productData.push({
+            productId: product.product.id,
+            productColorId: product.color ? product.color.id : 0,
+            productSizeId: product.size ? product.size.id : 0,
+            productMaterialId: product.material ? product.material.id : 0,
+            amount: product.amount,
+            price: product.product.price
+        });
+    });
+    if (deliveryInformationFormData
+        && deliveryInformationFormData.deliveryOption == 'PICK_UP_AT_STORE'
+    ) {
+        deliveryFee = null;
+        delete deliveryInformationFormData.deliveryCountryId;
+        delete deliveryInformationFormData.deliveryProvinceId;
+        delete deliveryInformationFormData.deliveryDistrictId;
+        delete deliveryInformationFormData.deliveryWardId;
+    }
+    return {
+        fromShoppingCartId: shoppingCartId,
+        currencyId: defaultCurrencyId,
+        products: productData,
+        deliveryInformation: deliveryInformationFormData,
+        deliveryFee: deliveryFee,
+        discountCode: discountCode,
+        discountAmount: discountAmount
+    };
+};
+
+var redirectToPaymentUrl = function(code) {
+    var formData = createOrderForm();
+    formData.paymentServiceCode = code;
+    formData.message = ezyweb.messages.pay_order;
+    var url = ezyweb.appendLangParameterToUrl(
+        '/api/v1/orders/create-payment-url'
+    );
+    $.ajax({
+        type: 'POST',
+        url: url,
+        data: JSON.stringify(formData),
+        contentType: 'application/json'
+    }).done(function (paymentUrl) {
+        location.href = paymentUrl;
+    }).fail(function (data) {
+        ezyweb.processUpdateApiErrors({}, data);
+    });
+}
+
+var createRedirectToOrderUri = function(orderId) {
+    return '/orders/' + orderId;
+}
+
+var createOrder = function(waitingToConfirm, callback) {
+    var formData = createOrderForm();
+    ezyweb.showLoadingScreen();
+    $.ajax({
+        type: 'POST',
+        url: '/api/v1/orders/create' +
+            (waitingToConfirm ? '-waiting-to-confirm' : ''),
+        data: JSON.stringify(formData),
+        contentType: 'application/json'
+    }).done(function (data) {
+        if (waitingToConfirm) {
+            window.location = ezyweb.appendLangParameterToUrl(
+                createRedirectToOrderUri(data.createdId)
+            );
+        } else {
+            ezyweb.hideLoadingScreen();
+            createdOrderId = data.createdId;
+            callback();
+        }
+    }).fail(function (data) {
+        ezyweb.hideLoadingScreen();
+        ezyweb.processUpdateApiErrors(formData, data);
+        if (waitingToConfirm) {
+            processSaveWaitingToConfirmOrderError(data);
+        }
+    });
+}
+
+var updateOrderToWaitingToConfirm = function(shoppingCartProductId) {
+    var formData = createOrderForm();
+    ezyweb.showLoadingScreen();
+    $.ajax({
+        type: 'PUT',
+        url: '/api/v1/orders/' + createdOrderId + '/waiting-to-confirm',
+        data: JSON.stringify(formData),
+        contentType: 'application/json'
+    }).done(function (data) {
+        window.location = ezyweb.appendLangParameterToUrl(
+            createRedirectToOrderUri(createdOrderId)
+        );
+    }).fail(function (data) {
+        ezyweb.hideLoadingScreen();
+        ezyweb.processUpdateApiErrors({}, data);
+        processSaveWaitingToConfirmOrderError(data);
+    });
+}
+
+var updateOrderToWaitingToConfirmInDuration = function() {
+    ezyweb.showLoadingScreen();
+    $.ajax({
+        type: 'PUT',
+        url: '/api/v1/orders/' + createdOrderId + '/waiting-to-confirm-in-duration'
+    }).done(function (data) {
+        window.location = ezyweb.appendLangParameterToUrl(
+            createRedirectToOrderUri(createdOrderId)
+        );
+    }).fail(function (data) {
+        ezyweb.hideLoadingScreen();
+        ezyweb.processUpdateApiErrors({}, data);
+        processSaveWaitingToConfirmOrderError(data);
+    });
+}
+
+var processSaveWaitingToConfirmOrderError = function(data) {
+    var errors = data.responseJSON || {};
+    if (errors.orderId) {
+        window.location = ezyweb.appendLangParameterToUrl(
+            createRedirectToOrderUri(errors.orderId)
+        );
+    }
+}
+
+var onPromptConfirmed = function(modalId) {
+    if (modalId == 'confirm-bank-transfer') {
+        updateOrderToWaitingToConfirm();
+    } else if (modalId == 'confirm-pay-on-delivery') {
+        createOrder(true);
+    }
+}
+
+// ============= delete shopping cart product ==========
+var deleteShoppingCartProduct = function(shoppingCartProductId) {
+    $.ajax({
+        type: 'DELETE',
+        url: '/api/v1/checkout/shopping-cart-products/' + shoppingCartProductId
+    }).done(function (data) {
+        location.reload();
+    }).fail(function (data) {
+        ezyweb.processUpdateApiErrors({}, data);
+    });
+}
+
+// ============== update shopping cart product ==========
+var onCheckoutPlusProductButtonClick = function(e, shoppingCartProductId) {
+    var product = productById[shoppingCartProductId];
+    if (product && product.product) {
+        var soldAmount = (product.product.soldAmount || 0) + product.amount;
+        if (soldAmount < product.product.amount) {
+            updateShoppingCartProductAmount(
+                product,
+                product.amount + 1,
+                () => {
+                    product.amount += 1
+                    product.totalAmountMoney += product.product.price;
+                    shoppingCartTotalAmountMoney += product.product.price;
+                }
+            );
+        }
+    }
+}
+
+var onCheckoutMinusProductButtonClick = function(e, shoppingCartProductId) {
+    var product = productById[shoppingCartProductId];
+    if (product && product.product && product.amount > 1) {
+        updateShoppingCartProductAmount(
+            product,
+            product.amount - 1,
+            () => {
+                product.amount -= 1
+                product.totalAmountMoney -= product.product.price;
+                shoppingCartTotalAmountMoney -= product.product.price;
+            }
+        );
+    }
+}
+
+var updateShoppingCartProductAmount = function(
+    product,
+    newAmount,
+    callback
+) {
+    $.ajax({
+        type: 'PUT',
+        url: '/api/v1/checkout/shopping-cart-products/' + product.id + '/amount',
+        data: JSON.stringify({amount: newAmount}),
+        contentType: 'application/json'
+    }).done(function (data) {
+        callback();
+        $('.checkout-product-amount-' + product.id).text(newAmount);
+        formatSubtotalAmountMoney();
+        calculateTotalAmount();
+        formatAmountMoney(product.totalAmountMoney, (data) => {
+            product.formattedTotalAmountMoney = data.formatted;
+            $('.checkout-product-total-amount-money-' + product.id)
+                .text(data.formattedWithSymbol);
+        });
+        fetchPaymentQrCodes(false);
+    }).fail(function (data) {
+        ezyweb.processUpdateApiErrors({}, data);
+    });
+}
+
+var showCheckoutPlusMinusProductAmountButtons = function() {
+    $('.checkout-plus-product-button').removeClass('d-none');
+    $('.checkout-minus-product-button').removeClass('d-none');
+}
+
+var hideCheckoutPlusMinusProductAmountButtons = function() {
+    $('.checkout-plus-product-button').addClass('d-none');
+    $('.checkout-minus-product-button').addClass('d-none');
+}
+
+var fetchAffiliateVoucher = function(callback) {
+    $.ajax({
+        url: '/api/v1/affiliate-tokens/voucher' + '?currencyId=' + defaultCurrencyId,
+        type: 'GET'
+    })
+    .done(function(data) {
+        var discountCode = data.code;
+        if (discountCode) {
+            $('#discountCodeInput').val(discountCode);
+            submitDiscountCount();
+        }
+    })
+    .fail(function(e) {
+        ezyweb.processGetApiErrors(e);
+    });
+}
+
+var onDeliveryRecipientInformationChange = function(e) {
+    var id = $(e).prop('id');
+    var value = $(e).val();
+    localStorage.setItem(`checkout.${id}`, value);
+}
+
+var setDeliveryRecipientInformationFields = function() {
+    var fieldIds = [
+        'recipientFullName',
+        'recipientEmail',
+        'recipientNotes',
+        'recipientPhoneNumber',
+        'recipientNotes',
+        'recipientAddress'
+    ];
+    fieldIds.forEach((fieldId) => {
+        var field = $(`#${fieldId}`);
+        if (field && field.val && !field.val()) {
+            field.val(localStorage.getItem(`checkout.${fieldId}`));
+        }
+    });
+}
+
+var fetchOrderStatus = function(callback) {
+    $.ajax({
+        type: 'GET',
+        url: '/api/v1/orders/' + createdOrderId + '/status',
+        success: function (data) {
+          callback(data);
+        },
+        error: function (e) {
+            ezyweb.processGetApiErrors(e);
+        }
+    });
+}
+
+var paymentCountdownInterval;
+var startPaymentCountdown = function(
+    checkOrderStatusPeriodInSeconds
+) {
+    var period = paymentConfirmationPeriodInMinutes * 60 * 1000;
+    var maxCountdownTime = orderUpdatedAt + period;
+    var nextCheckTime = 0;
+    var paymentCountdownInterval = setInterval(function() {
+        var now = Date.now();
+        var remaining = maxCountdownTime - now;
+
+        if (remaining <= 0) {
+            clearInterval(paymentCountdownInterval);
+            $('#paymentTimeCountdown').html(
+                '<span>00</span><span>:</span><span>00</span>'
+            );
+            return;
+        }
+
+        var minutes = Math.floor(remaining / (60 * 1000));
+        var seconds = Math.floor((remaining % (60 * 1000)) / 1000);
+        var formatted =
+            (minutes < 10 ? '0' : '') + minutes + ':' +
+            (seconds < 10 ? '0' : '') + seconds;
+
+        $('#paymentTimeCountdown').text(formatted);
+        if (now > nextCheckTime) {
+            redirectToPaidOrderScreenIfCan();
+            nextCheckTime = now + (checkOrderStatusPeriodInSeconds || 3) * 1000;
+        }
+    }, 1000);
+};
+
+var redirectToPaidOrderScreenIfCan = function() {
+    fetchOrderStatus((data) => {
+        if (data.status == 'PAID') {
+            if (paymentCountdownInterval) {
+                clearInterval(paymentCountdownInterval);
+            }
+            window.location = ezyweb.appendLangParameterToUrl(
+                createRedirectToOrderUri(createdOrderId)
+            );
+        }
+    });
+}
+
+$(document).ready(() => {
+    setDeliveryRecipientInformationFields();
+    fetchAffiliateVoucher();
+    displayPaymentQrCodes();
+    if (discountCode) {
+        submitDiscountCount();
+    }
+});
+</script>
+<script th:fragment="product-count">
+// =========== register product ===================
+var fetchShoppingCartProductCount = function(callback) {
+    $.ajax({
+        type: 'GET',
+        url: '/api/v1/shopping-cart/product-count',
+        success: function (data) {
+          if (callback) {
+              callback(data.count);
+          } else  {
+              $('.shopping-cart-product-count').text(data.count);
+          }
+        },
+        error: function (e) {
+            ezyweb.processGetApiErrors(e);
+        }
+    });
+}
+</script>
+</body>
+</html>

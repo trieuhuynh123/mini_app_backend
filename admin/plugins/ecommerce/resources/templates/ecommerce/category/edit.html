@@ -1,0 +1,288 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:ezy="http://www.ezyplatform.com/thymeleaf/layout"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<head>
+    <script>
+        var ecommerce = {};
+        var ezyarticle = {
+            createDefaultEditor: true,
+            defaultTextEditorSetting: {
+                rows: 12
+            },
+            defaultTinymceEditorSetting: {
+                height: 450
+            }
+        };
+    </script>
+</head>
+<body>
+<div layout:fragment="content" class="row">
+    <div class="col-12">
+        <form id="editCategoryForm">
+            <div class="form-group row">
+                <label for="editCategoryName" class="col-sm-3 col-form-label">
+                    [[#{name}]] (<span class="text-danger">*</span>)
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="name" id="editCategoryName"
+                           class="form-control" th:placeholder="#{name}"
+                           th:value="${category.name}">
+                    <span class="text-dark">
+                        [[#{name_input_guide}]]
+                    </span>
+                </div>
+                <label id="editCategoryNameErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editCategoryName">
+                    <i class="far fa-times-circle"></i> <span id="editCategoryNameError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editCategoryDisplayName" class="col-sm-3 col-form-label">
+                    [[#{display_name}]] (<span class="text-danger">*</span>)
+                </label>
+                <div th:class="${webLanguages.size() > 1 ? 'col-lg-5 col-md-3' : 'col-lg-7 col-md-6'}">
+                    <input type="text" name="displayName" id="editCategoryDisplayName"
+                           class="form-control" th:placeholder="#{display_name}"
+                           th:value="${category.displayName}">
+                </div>
+                <div th:if="${webLanguages.size() > 1}" class="col-lg-2 col-md-3 mt-md-0 mt-2">
+                    <select name="language" id="editWebLanguage" class="form-control"
+                            onchange="ecommerce.onCategoryWebLanguageChange(this);">
+                        <option value="">[[#{default_language}]]</option>
+                        <option th:each="webLanguage : ${webLanguages}"
+                                th:value="${webLanguage.code}">
+                            [[${webLanguage.name}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="editCategoryDisplayNameErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editCategoryDisplayName">
+                    <i class="far fa-times-circle"></i> <span id="editCategoryDisplayNameError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editCategoryDisplayOrder" class="col-sm-3 col-form-label">
+                    [[#{display_order}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="number" name="displayOrder" id="editCategoryDisplayOrder"
+                           class="form-control" th:placeholder="#{display_order}"
+                           th:value="${category.displayOrder}">
+                    <span>[[#{display_order_input_guide}]]</span>
+                </div>
+                <label id="editCategoryDisplayOrderErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editCategoryDisplayOrder">
+                    <i class="far fa-times-circle"></i> <span id="editCategoryDisplayOrderError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editCategoryOpenCategory" class="col-sm-3 col-form-label">
+                    [[#{open_category}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="openCategoryId" id="editCategoryOpenCategory"
+                           class="form-control" th:placeholder="#{open_category}"
+                           th:value="${category.openCategory != null ? (category.openCategory.displayName + '<' + category.openCategory.name + '>') : ''}"
+                           autocomplete="off" inputmode="text">
+                    <span>[[#{open_category_input_guide}]]</span>
+                </div>
+                <label id="editCategoryOpenCategoryErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editCategoryOpenCategory">
+                    <i class="far fa-times-circle"></i> <span id="editCategoryOpenCategoryError"></span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editCategoryOpenUrl" class="col-sm-3 col-form-label">
+                    [[#{open_url}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="url" name="openUrl" id="editCategoryOpenUrl"
+                           class="form-control" th:placeholder="#{open_url}"
+                           th:value="${category.openUrl}">
+                    <span>[[#{open_url_input_guide}]]</span>
+                </div>
+                <label id="editCategoryOpenUrlErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editCategoryOpenUrl">
+                    <i class="far fa-times-circle"></i> <span id="editCategoryOpenUrlError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editCategoryDescription" class="col-sm-3 col-form-label">
+                    [[#{description}]]
+                </label>
+                <div class="col-lg-7 col-md-6" id="editCategoryDescription">
+                    <div id="ezyarticleEditor"></div>
+                </div>
+                <label id="editCategoryDescriptionErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editCategoryDescription">
+                    <i class="far fa-times-circle"></i> <span id="editCategoryDescriptionError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editCategoryType" class="col-md-3 col-form-label">
+                    [[#{type}]]
+                </label>
+                <div class="col-lg-3 col-md-3">
+                    <select name="type" id="editCategoryType" class="form-control">
+                        <option th:each="categoryType : ${categoryTypes}"
+                                th:value="${categoryType.toString()}"
+                                th:selected="${category.type == categoryType.toString()}">
+                            [[#{${categoryType.toString().toLowerCase()}}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="editCategoryTypeErrorLabel" class="col-lg-3 col-md-6 col-form-label text-danger d-none" for="editCategoryType">
+                    <i class="far fa-times-circle"></i> <span id="editCategoryTypeError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editCategoryIconImage" class="col-md-3 col-form-label">
+                    [[#{icon_image}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <div class="input-group cursor-pointer" onclick="ecommerce.selectIconImage('edit');">
+                        <input type="text" name="iconImageId"
+                               id="editCategoryIconImage"
+                               class="form-control" th:placeholder="#{select_an_image}"
+                               th:value="${category.iconImage != null ? category.iconImage.originalName : ''}">
+                        <div class="input-group-append">
+                            <div class="input-group-text">
+                                <span>[[#{browse}]]</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <label id="editCategoryIconImageErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editCategoryIconImage">
+                    <i class="far fa-times-circle"></i> <span id="editCategoryIconImageError">[[#{invalid}]]</span>
+                </label>
+                <div class="col-md-3"></div>
+                <div class="col-md-4">
+                    <img id="categoryIconImage" class="object-fit-cover mt-1" height="64"
+                         th:classappend="${category.iconImage != null ? '' : 'd-none'}"
+                         th:src="${category.iconImage != null ? category.iconImage.getUrlOrDefault('') : ''}">
+                </div>
+                <div class="col-md-5"></div>
+            </div>
+            <div class="form-group row">
+                <label for="editCategoryBannerImage" class="col-md-3 col-form-label">
+                    [[#{banner_image}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <div class="input-group cursor-pointer" onclick="ecommerce.selectBannerImage('edit');">
+                        <input type="text" name="bannerImageId"
+                               id="editCategoryBannerImage"
+                               class="form-control" th:placeholder="#{select_an_image}"
+                               th:value="${category.bannerImage != null ? category.bannerImage.originalName : ''}">
+                        <div class="input-group-append">
+                            <div class="input-group-text">
+                                <span>[[#{browse}]]</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <label id="editCategoryBannerImageErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editCategoryBannerImage">
+                    <i class="far fa-times-circle"></i> <span id="editCategoryBannerImageError">[[#{invalid}]]</span>
+                </label>
+                <div class="col-md-3"></div>
+                <div class="col-md-4">
+                    <img id="categoryBannerImage" class="object-fit-cover mt-1" height="64"
+                         th:classappend="${category.bannerImage != null ? '' : 'd-none'}"
+                         th:src="${category.bannerImage != null ? category.bannerImage.getUrlOrDefault('') : ''}">
+                </div>
+                <div class="col-md-5"></div>
+            </div>
+            <div class="form-group row">
+                <label for="editCategoryStatus" class="col-md-3 col-form-label">
+                    [[#{status}]]
+                </label>
+                <div class="col-lg-3 col-md-3">
+                    <select name="status" id="editCategoryStatus" class="form-control">
+                        <option th:each="categoryStatus : ${categoryStatuses}"
+                                th:value="${categoryStatus.toString()}"
+                                th:selected="${category.status == categoryStatus.toString()}">
+                            [[#{${categoryStatus.toString().toLowerCase()}}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="editParentStatusErrorLabel" class="col-lg-3 col-md-6 col-form-label text-danger d-none" for="editCategoryStatus">
+                    <i class="far fa-times-circle"></i> <span id="editParentStatusError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="row">
+                <div class="col-md-3"></div>
+                <div class="col-lg-2 col-md-3">
+                    <button type="button" class="btn btn-primary btn-block" onclick="ecommerce.addNewCategory();">[[#{submit}]]</button>
+                </div>
+                <div class="col-lg-7 col-md-6"></div>
+                <!-- /.col -->
+            </div>
+        </form>
+    </div>
+    <div class="col-12 mb-3"></div>
+</div>
+<script layout:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ecommerce.selectedCategoryId = /*[[${category.id}]]*/ '';
+ecommerce.selectedCategoryDisplayName = /*[[${category.displayName}]]*/ '';
+ecommerce.selectedCategoryDescription = /*[[${category.description}]]*/ '';
+ecommerce.selectedOpenCategoryId = /*[[${category.openCategory != null ? category.openCategory.id : ''}]]*/ '';
+ecommerce.categoryBannerId = /*[[${category.bannerImage != null ? category.bannerImage.id : 0}]]*/ '';
+ecommerce.categoryIconId = /*[[${category.iconImage != null ? category.iconImage.id : 0}]]*/ '';
+ezyadmin.messages.add_media = /*[[#{add_media}]]*/ '';
+/*]]>*/
+
+ecommerce.categoryIconImage = {
+    id: ecommerce.categoryIconId
+};
+
+ecommerce.categoryBannerImage = {
+    id: ecommerce.categoryBannerId
+};
+
+// ========== category language change =============
+ecommerce.fetchCategoryI18nCallback = function(data) {
+    if (data.displayName) {
+        $('#editCategoryDisplayName').val(data.displayName);
+    }
+    if (data.description) {
+        ezyarticle.editor.setHmtl(data.description);
+    }
+}
+
+// ========== add category =============
+ecommerce.addNewCategory = function() {
+    ecommerce.addOrEditCategory('edit');
+}
+</script>
+<th:block layout:fragment="post-scripts">
+    <script th:replace="~{ecommerce/category/scripts :: add-edit}" />
+    <script th:replace="~{ecommerce/category/scripts :: i18n}" />
+    <script th:replace="~{scripts/suggestion :: input}" />
+    <script th:replace="~{ecommerce/scripts/suggestion :: category}" />
+    <th:block th:if="${ezyArticleActive == true}">
+        <script ezy:vsrc="/ezyarticle/js/tinymce.js"></script>
+    </th:block>
+    <th:block th:if="${ezyArticleActive != true}">
+        <script ezy:vsrc="/ecommerce/editors/text.js"></script>
+    </th:block>
+    <script>
+        ecommerce.registerCategoryAutocomplete('editCategoryOpenCategory');
+        ezyarticle.editor.setHtml(ecommerce.selectedCategoryDescription || ' ');
+    </script>
+</th:block>
+</body>
+</html>

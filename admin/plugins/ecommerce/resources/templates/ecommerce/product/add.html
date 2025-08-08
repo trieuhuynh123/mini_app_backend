@@ -1,0 +1,594 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<head>
+    <script>
+      var ecommerce = {};
+    </script>
+    <style>
+        .multiple-select-height {
+            height: 60px !important;
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content" class="row">
+    <div class="col-md-10 col-sm-12">
+        <form id="addProductForm">
+            <div class="form-group row">
+                <label for="addProductName" class="col-sm-3 col-form-label">
+                    [[#{product_name}]] (<span class="text-danger">*</span>)
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="productName" id="addProductName"
+                           class="form-control" th:placeholder="#{product_name}">
+                </div>
+                <label id="addProductNameErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addProductName">
+                    <i class="far fa-times-circle"></i> <span id="addProductNameError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addProductCode" class="col-sm-3 col-form-label">
+                    [[#{product_code}]] (<span class="text-danger">*</span>)
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="productCode" id="addProductCode"
+                           class="form-control" th:placeholder="#{product_code}">
+                </div>
+                <label id="addProductCodeErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addProductCode">
+                    <i class="far fa-times-circle"></i> <span id="addProductCodeError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addProductSecondaryCode" class="col-sm-3 col-form-label">
+                    [[#{barcode}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="secondaryCode" id="addProductSecondaryCode"
+                           class="form-control" th:placeholder="#{barcode}">
+                </div>
+                <label id="addProductSecondaryCodeErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addProductSecondaryCode">
+                    <i class="far fa-times-circle"></i> <span id="addProductSecondaryCodeError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addProductIconImage" class="col-md-3 col-form-label">
+                    [[#{icon_image}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <div class="input-group cursor-pointer" onclick="ecommerce.selectIconImage('add');">
+                        <input type="text" name="iconImageId"
+                               id="addProductIconImage"
+                               class="form-control" th:placeholder="#{select_an_image}">
+                        <div class="input-group-append">
+                            <div class="input-group-text">
+                                <span>[[#{browse}]]</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <label id="addProductIconImageErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addProductIconImage">
+                    <i class="far fa-times-circle"></i> <span id="addProductIconImageError">[[#{invalid}]]</span>
+                </label>
+                <div class="col-md-3"></div>
+                <div class="col-md-4">
+                    <img id="productIconImage" class="object-fit-cover mt-1 d-none" src="#" height="64">
+                </div>
+                <div class="col-md-5"></div>
+            </div>
+            <div class="form-group row">
+                <label for="addProductBannerImage" class="col-md-3 col-form-label">
+                    [[#{banner_image}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <div class="input-group cursor-pointer" onclick="ecommerce.selectBannerImage('add');">
+                        <input type="text" name="bannerImageId"
+                               id="addProductBannerImage"
+                               class="form-control" th:placeholder="#{select_an_image}">
+                        <div class="input-group-append">
+                            <div class="input-group-text">
+                                <span>[[#{browse}]]</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <label id="addProductBannerImageErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addProductBannerImage">
+                    <i class="far fa-times-circle"></i> <span id="addProductBannerImageError">[[#{invalid}]]</span>
+                </label>
+                <div class="col-md-3"></div>
+                <div class="col-md-4">
+                    <img id="productBannerImage" class="object-fit-cover mt-1 d-none" src="#" height="64">
+                </div>
+                <div class="col-md-5"></div>
+            </div>
+            <div class="form-group row">
+                <label for="addProductAmount" class="col-sm-3 col-form-label">
+                    [[#{quantity}]] (<span class="text-danger">*</span>)
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="number" name="amount" id="addProductAmount"
+                           class="form-control" th:placeholder="#{product_amount}">
+                </div>
+                <label id="addProductAmountErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addProductAmount">
+                    <i class="far fa-times-circle"></i> <span id="addProductAmountError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addProductSoldAmount" class="col-sm-3 col-form-label">
+                    [[#{sold_quantity}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="number" name="soldAmount" id="addProductSoldAmount"
+                           class="form-control" th:placeholder="#{sold_amount}">
+                </div>
+                <label id="addProductSoldAmountErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addProductSoldAmount">
+                    <i class="far fa-times-circle"></i> <span id="addProductSoldAmountError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addProductCurrency" class="col-md-3 col-form-label">
+                    [[#{currency}]] (<span class="text-danger">*</span>)
+                </label>
+                <div class="col-lg-3 col-md-4">
+                    <select name="currencyId" id="addProductCurrency" class="form-control">
+                        <option th:each="currency, iterator : ${currencies}"
+                                th:value="${currency.id}"
+                                th:selected="${currency.id == defaultCurrency.id}">
+                            [[#{${currency.isoCode}}]]
+                            -
+                            [[#{${currency.displayName}}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="addProductCurrencyErrorLabel" class="col-lg-7 col-md-6 col-form-label text-danger d-none" for="addProductCurrency">
+                    <i class="far fa-times-circle"></i> <span id="addProductCurrencyError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addProductOriginalPrice" class="col-sm-3 col-form-label">
+                    [[#{original_price}]] ([[#{include_tax}]])
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="number" name="originalPrice" id="addProductOriginalPrice"
+                           class="form-control" th:placeholder="#{original_price}"
+                           onkeyup="ecommerce.onProductOriginalPriceKeyUp('add', this);">
+                </div>
+                <label id="addProductOriginalPriceErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addProductOriginalPrice">
+                    <i class="far fa-times-circle"></i> <span id="addProductOriginalPriceError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addProductDiscountPercent" class="col-sm-3 col-form-label">
+                    [[#{discount_percent}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="number" name="discountPercent" id="addProductDiscountPercent"
+                           class="form-control" th:placeholder="#{discount_percent}"
+                           onkeyup="ecommerce.onProductDiscountPercentKeyUp('add', this);">
+                    <span>[[#{discount_percent_input_guide}]]</span>
+                </div>
+                <label id="addProductDiscountPercentErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addProductDiscountPercent">
+                    <i class="far fa-times-circle"></i> <span id="addProductDiscountPercentError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addProductPrice" class="col-sm-3 col-form-label">
+                    [[#{price}]] ([[#{include_tax}]]) (<span class="text-danger">*</span>)
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="number" name="price" id="addProductPrice"
+                           class="form-control" th:placeholder="#{product_price}">
+                </div>
+                <label id="addProductPriceErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addProductPrice">
+                    <i class="far fa-times-circle"></i> <span id="addProductPriceError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addProductType" class="col-md-3 col-form-label">
+                    [[#{product_type}]]
+                </label>
+                <div class="col-lg-3 col-md-4">
+                    <select name="productType" id="addProductType" class="form-control">
+                        <option th:each="productType : ${productTypes}"
+                                th:value="${productType}">
+                            [[#{${'product_type_' + productType.toString().toLowerCase()}}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="addProductTypeErrorLabel" class="col-lg-7 col-md-6 col-form-label text-danger d-none" for="addProductType">
+                    <i class="far fa-times-circle"></i> <span id="addProductTypeError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addProductShop" class="col-md-3 col-form-label">
+                    [[#{shop}]] (<span class="text-danger">*</span>)
+                </label>
+                <div class="col-lg-3 col-md-4">
+                    <select name="shopId" id="addProductShop" class="form-control"
+                            onchange="ecommerce.onShopChange(this);">
+                        <option th:each="shop, iterator : ${shops}"
+                                th:value="${shop.id}">
+                            [[${shop.displayName}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="addProductShopErrorLabel" class="col-lg-7 col-md-6 col-form-label text-danger d-none" for="addProductShop">
+                    <i class="far fa-times-circle"></i> <span id="addProductShopError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addProductDisplayOrder" class="col-sm-3 col-form-label">
+                    [[#{display_order}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="number" name="displayOrder" id="addProductDisplayOrder"
+                           class="form-control" th:placeholder="#{display_order}">
+                    <span>[[#{display_order_input_guide}]]</span>
+                </div>
+                <label id="addProductDisplayOrderErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addProductDisplayOrder">
+                    <i class="far fa-times-circle"></i> <span id="addProductDisplayOrderError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addProductStatus" class="col-md-3 col-form-label">
+                    [[#{status}]] (<span class="text-danger">*</span>)
+                </label>
+                <div class="col-lg-3 col-md-4">
+                    <select name="status" id="addProductStatus" class="form-control">
+                        <option th:each="productStatus : ${productStatuses}"
+                                th:value="${productStatus}">
+                            [[#{${productStatus.toString().toLowerCase()}}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="addProductStatusErrorLabel" class="col-lg-7 col-md-6 col-form-label text-danger d-none" for="addProductStatus">
+                    <i class="far fa-times-circle"></i> <span id="addProductStatusError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div>
+                <hr />
+                <h5>
+                    [[#{for_goods_that_need_to_be_shipped}]]
+                </h5>
+            </div>
+            <div class="form-group row">
+                <label for="addProductDeliveryRequired" class="col-sm-3 col-form-label">
+                    [[#{delivery_required}]]
+                </label>
+                <div class="col-9 d-flex align-items-center">
+                    <input type="checkbox" name="deliveryRequired" id="addProductDeliveryRequired" class="wh-1rem"
+                           th:checked="${defaultDeliveryRequiredProducts}">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="addProductWarehouse" class="col-md-3 col-form-label">
+                    [[#{warehouse}]]
+                </label>
+                <div class="col-lg-3 col-md-4">
+                    <select name="warehouseIds" id="addProductWarehouse"
+                            class="form-control"
+                            th:classappend="${warehouses.size() > 1 ? 'multiple-select-height' : ''}"
+                            th:multiple="${warehouses.size() > 1}">
+                        <option th:each="warehouse, iterator : ${warehouses}"
+                                th:value="${warehouse.id}"
+                                th:selected="${iterator.index == 0}">
+                            [[${warehouse.displayName}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="addProductWarehouseErrorLabel" class="col-lg-7 col-md-6 col-form-label text-danger d-none" for="addProductWarehouse">
+                    <i class="far fa-times-circle"></i> <span id="addProductWarehouseError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addProductWeight" class="col-sm-3 col-form-label">
+                    [[#{weight}]]
+                </label>
+                <div class="col-lg-3 col-md-4 d-flex">
+                    <input type="number" name="weight" id="addProductWeight"
+                           class="form-control" th:placeholder="#{weight}">
+                    <select name="weightType" id="weightType" class="form-control">
+                        <option value="g">[[#{gram}]]</option>
+                        <option value="kg">[[#{kilogram}]]</option>
+                    </select>
+                </div>
+                <label id="addProductWeightErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addProductWeight">
+                    <i class="far fa-times-circle"></i> <span id="addProductWeightError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addProductWidth" class="col-sm-3 col-form-label">
+                    [[#{width}]]
+                </label>
+                <div class="col-lg-3 col-md-4 d-flex">
+                    <input type="number" name="width" id="addProductWidth"
+                           class="form-control" th:placeholder="#{width}">
+                    <select name="widthType" id="widthType" class="form-control">
+                        <option value="mm">[[#{millimeter}]]</option>
+                        <option value="cm">[[#{centimeter}]]</option>
+                        <option value="m">[[#{meter}]]</option>
+                    </select>
+                </div>
+                <label id="addProductWidthErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addProductWidth">
+                    <i class="far fa-times-circle"></i> <span id="addProductWidthError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addProductHeight" class="col-sm-3 col-form-label">
+                    [[#{height}]]
+                </label>
+                <div class="col-lg-3 col-md-4 d-flex">
+                    <input type="number" name="height" id="addProductHeight"
+                           class="form-control" th:placeholder="#{height}">
+                    <select name="heightType" id="heightType" class="form-control">
+                        <option value="mm">[[#{millimeter}]]</option>
+                        <option value="cm">[[#{centimeter}]]</option>
+                        <option value="m">[[#{meter}]]</option>
+                    </select>
+                </div>
+                <label id="addProductHeightErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addProductHeight">
+                    <i class="far fa-times-circle"></i> <span id="addProductHeightError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addProductLength" class="col-sm-3 col-form-label">
+                    [[#{length}]]
+                </label>
+                <div class="col-lg-3 col-md-4 d-flex">
+                    <input type="number" name="length" id="addProductLength"
+                           class="form-control" th:placeholder="#{length}">
+                    <select name="lengthType" id="lengthType" class="form-control">
+                        <option value="mm">[[#{millimeter}]]</option>
+                        <option value="cm">[[#{centimeter}]]</option>
+                        <option value="m">[[#{meter}]]</option>
+                    </select>
+                </div>
+                <label id="addProductLengthErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addProductLength">
+                    <i class="far fa-times-circle"></i> <span id="addProductLengthError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addProductSmall" class="col-sm-3 col-form-label">
+                    [[#{small}]]
+                </label>
+                <div class="col-9 d-flex align-items-center">
+                    <input type="checkbox" name="small" id="addProductSmall" class="wh-1rem">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="addProductFragile" class="col-sm-3 col-form-label">
+                    [[#{fragile}]]
+                </label>
+                <div class="col-9 d-flex align-items-center">
+                    <input type="checkbox" name="fragile" id="addProductFragile" class="wh-1rem">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="addProductLuxury" class="col-sm-3 col-form-label">
+                    [[#{luxury}]]
+                </label>
+                <div class="col-9 d-flex align-items-center">
+                    <input type="checkbox" name="luxury" id="addProductLuxury" class="wh-1rem">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="addProductDocument" class="col-sm-3 col-form-label">
+                    [[#{letters_or_document}]]
+                </label>
+                <div class="col-9 d-flex align-items-center">
+                    <input type="checkbox" name="document" id="addProductDocument" class="wh-1rem">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="addProductLiquid" class="col-sm-3 col-form-label">
+                    [[#{liquid}]]
+                </label>
+                <div class="col-9 d-flex align-items-center">
+                    <input type="checkbox" name="fragile" id="addProductLiquid" class="wh-1rem">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="addProductAgricultural" class="col-sm-3 col-form-label">
+                    [[#{agricultural}]]
+                </label>
+                <div class="col-9 d-flex align-items-center">
+                    <input type="checkbox" name="agricultural" id="addProductAgricultural" class="wh-1rem">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="addProductFood" class="col-sm-3 col-form-label">
+                    [[#{food}]]
+                </label>
+                <div class="col-9 d-flex align-items-center">
+                    <input type="checkbox" name="agricultural" id="addProductFood" class="wh-1rem">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="addProductDriedFood" class="col-sm-3 col-form-label">
+                    [[#{dried_food}]]
+                </label>
+                <div class="col-9 d-flex align-items-center">
+                    <input type="checkbox" name="agricultural" id="addProductDriedFood" class="wh-1rem">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="addProductFullBox" class="col-sm-3 col-form-label">
+                    [[#{full_box}]]
+                </label>
+                <div class="col-9 d-flex align-items-center">
+                    <input type="checkbox" name="fullBox" id="addProductFullBox" class="wh-1rem">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="addProductShortShelfLife" class="col-sm-3 col-form-label">
+                    [[#{short_shelf_life}]]
+                </label>
+                <div class="col-9 d-flex align-items-center">
+                    <input type="checkbox" name="shortShelfLife" id="addProductShortShelfLife" class="wh-1rem">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="addProductSharpEdges" class="col-sm-3 col-form-label">
+                    [[#{sharp_edges}]]
+                </label>
+                <div class="col-9 d-flex align-items-center">
+                    <input type="checkbox" name="sharpEdges" id="addProductSharpEdges" class="wh-1rem">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="addProductRequiringProperOrientation" class="col-sm-3 col-form-label">
+                    [[#{requiring_proper_orientation}]]
+                </label>
+                <div class="col-9 d-flex align-items-center">
+                    <input type="checkbox" name="requiringProperOrientation" id="addProductRequiringProperOrientation" class="wh-1rem">
+                </div>
+            </div>
+            <div>
+                <hr />
+                <h5>
+                    [[#{for_invoiced_goods}]]
+                </h5>
+            </div>
+            <div class="form-group row">
+                <label for="addProductGroup" class="col-sm-3 col-form-label">
+                    [[#{product_group}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="productGroup" id="addProductGroup"
+                           class="form-control" th:placeholder="#{product_group}">
+                </div>
+                <label id="addProductGroupErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addProductGroup">
+                    <i class="far fa-times-circle"></i> <span id="addProductGroupError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addInvoiceProductNature" class="col-md-3 col-form-label">
+                    [[#{type_of_tax}]]
+                </label>
+                <div class="col-lg-3 col-md-4">
+                    <select name="invoiceProductNature" id="addInvoiceProductNature" class="form-control">
+                        <option value="">[[#{select}]]</option>
+                        <option th:each="invoiceProductNature : ${invoiceProductNatures}"
+                                th:value="${invoiceProductNature}">
+                            [[#{${invoiceProductNature.toString().toLowerCase()}}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="addInvoiceProductNatureErrorLabel" class="col-lg-7 col-md-6 col-form-label text-danger d-none" for="addInvoiceProductNature">
+                    <i class="far fa-times-circle"></i> <span id="addInvoiceProductNatureError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addInvoiceProductType" class="col-md-3 col-form-label">
+                    [[#{product_type}]]
+                </label>
+                <div class="col-lg-3 col-md-4">
+                    <select name="invoiceProductType" id="addInvoiceProductType" class="form-control">
+                        <option value="">[[#{select}]]</option>
+                        <option th:each="invoiceProductType : ${invoiceProductTypes}"
+                                th:value="${invoiceProductType}">
+                            [[#{${invoiceProductType.toString().toLowerCase()}}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="addInvoiceProductTypeErrorLabel" class="col-lg-7 col-md-6 col-form-label text-danger d-none" for="addInvoiceProductType">
+                    <i class="far fa-times-circle"></i> <span id="addInvoiceProductTypeError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addInvoiceProductUnit" class="col-md-3 col-form-label">
+                    [[#{unit}]]
+                </label>
+                <div class="col-lg-3 col-md-4">
+                    <select name="invoiceProductUnit" id="addInvoiceProductUnit" class="form-control">
+                        <option value="">[[#{select}]]</option>
+                        <option th:each="invoiceProductUnit : ${invoiceProductUnits}"
+                                th:value="${invoiceProductUnit}">
+                            [[#{${invoiceProductUnit.toString().toLowerCase()}}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="addInvoiceProductUnitErrorLabel" class="col-lg-7 col-md-6 col-form-label text-danger d-none" for="addInvoiceProductUnit">
+                    <i class="far fa-times-circle"></i> <span id="addInvoiceProductUnitError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addProductTaxOnPriceType" class="col-md-3 col-form-label">
+                    [[#{tax_based_on_price_type}]]
+                </label>
+                <div class="col-lg-3 col-md-4">
+                    <select name="taxOnPriceType" id="addProductTaxOnPriceType" class="form-control">
+                        <option value="">[[#{select}]]</option>
+                        <option th:each="taxOnPriceType : ${taxOnPriceTypes}"
+                                th:value="${taxOnPriceType}">
+                            [[#{${taxOnPriceType.toString().toLowerCase()}}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="addProductTaxOnPriceTypeErrorLabel" class="col-lg-7 col-md-6 col-form-label text-danger d-none" for="addProductTaxOnPriceType">
+                    <i class="far fa-times-circle"></i> <span id="addProductTaxOnPriceTypeError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="addProductTaxPercent" class="col-sm-3 col-form-label">
+                    [[#{tax_percent}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="number" name="taxPercent" id="addProductTaxPercent"
+                           class="form-control" th:placeholder="#{tax_percent}">
+                </div>
+                <label id="addProductTaxPercentErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="addProductTaxPercent">
+                    <i class="far fa-times-circle"></i> <span id="addProductTaxPercentError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="row">
+                <div class="col-md-3"></div>
+                <div class="col-lg-2 col-md-3">
+                    <button type="button" class="btn btn-primary btn-block" onclick="ecommerce.addNewProduct();">[[#{submit}]]</button>
+                </div>
+                <div class="col-lg-7 col-md-6"></div>
+                <!-- /.col -->
+            </div>
+        </form>
+    </div>
+    <div class="col-md-2 col-sm-0"></div>
+    <div class="col-12 mb-3"></div>
+</div>
+
+<script layout:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.currentParentURL = /*[[${currentParentURL}]]*/ '';
+/*]]>*/
+
+// ========== add product =============
+ecommerce.warehousesSelectId = 'addProductWarehouse';
+
+ecommerce.addNewProduct = function() {
+    ecommerce.addOrEditProduct('add');
+}
+</script>
+<th:block layout:fragment="post-scripts">
+    <script th:replace="~{ecommerce/product/scripts :: add-edit}" />
+    <script th:replace="~{ecommerce/shop/warehouse/scripts :: change}" />
+</th:block>
+</body>
+</html>

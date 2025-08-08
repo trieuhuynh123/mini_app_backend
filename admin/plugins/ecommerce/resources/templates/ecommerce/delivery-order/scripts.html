@@ -1,0 +1,250 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~ 
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~ 
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~ 
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org">
+<body>
+<script th:fragment="actions" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.are_you_sure_the_order_pid_has_been_fully_delivered = /*[[#{are_you_sure_the_order_pid_has_been_fully_delivered}]]*/;
+ezyadmin.messages.do_you_want_to_deliver_order_pid = /*[[#{do_you_want_to_deliver_order_pid}]]*/;
+ezyadmin.messages.do_you_want_to_reject_order_pid = /*[[#{do_you_want_to_reject_order_pid}]]*/;
+/*]]>*/
+// ========== order actions =============
+ecommerce.onDeliverOrderClick = function(orderId) {
+    ecommerce.selectedOrderId = orderId;
+    $('#deliver-order-modal-body-content')
+        .text(
+            ezyadmin
+                .messages
+                .do_you_want_to_deliver_order_pid
+                .replace('{0}', orderId)
+        );
+    $('#deliver-order-modal').modal('show');
+}
+
+ecommerce.onDeliveredOrderClick = function(orderId) {
+    ecommerce.selectedOrderId = orderId;
+    $('#delivered-order-modal-body-content')
+        .text(
+            ezyadmin
+                .messages
+                .are_you_sure_the_order_pid_has_been_fully_delivered
+                .replace('{0}', orderId)
+        );
+    $('#delivered-order-modal').modal('show');
+}
+
+ecommerce.onRejectOrderRecipientClick = function(orderId) {
+    ecommerce.selectedOrderId = orderId;
+    $('#reject-order-modal-body-content')
+        .text(
+            ezyadmin
+                .messages
+                .do_you_want_to_reject_order_pid
+                .replace('{0}', orderId)
+        );
+    $('#reject-order-modal').modal('show');
+}
+
+ezyadmin.onPromptConfirmed = function(modalId) {
+    if (modalId == 'deliver-order-modal') {
+        ecommerce.deliverOrder();
+    } else if (modalId == 'delivered-order-modal') {
+        ecommerce.finishOrderRecipient();
+    } else if (modalId == 'reject-order-modal') {
+        ecommerce.rejectOrderRecipient();
+    }
+}
+
+ecommerce.deliverOrder = function() {
+    ecommerce.doOrderAction('deliver');
+}
+
+ecommerce.finishOrderRecipient = function() {
+    ecommerce.doOrderAction('delivered');
+}
+
+ecommerce.rejectOrderRecipient = function() {
+    ecommerce.doOrderAction('reject');
+}
+
+ecommerce.doOrderAction = function(action) {
+    ezyadmin.showLoadingScreen();
+    $.ajax({
+        type: action == 'deliver' ? 'POST' : 'PUT',
+        url: '/ecommerce/api/v1/order-recipients/' + ecommerce.selectedOrderId + '/' + action,
+        success: function () {
+            $('#deliver-order-modal').modal('hide');
+            $('#delivered-order-modal').modal('hide');
+            $('#reject-order-modal').modal('hide');
+            if (ecommerce.fetchOrderList) {
+                ecommerce.fetchOrderList('current');
+            } else if (ecommerce.onOrderActionFinished) {
+                ecommerce.onOrderActionFinished();
+            }
+            ezyadmin.hideLoadingScreen();
+        },
+        error: function (e) {
+            ezyadmin.hideLoadingScreen();
+            $('#deliver-order-modal').modal('hide');
+            $('#delivered-order-modal').modal('hide');
+            $('#reject-order-modal').modal('hide');
+            if (action == 'deliver') {
+                var status = e.status;
+                if (status == 404
+                    && (e.responseJSON.deliveryService
+                        || e.responseJSON.deliveryServiceSetting)
+                ) {
+                    ezyadmin.showAlert(
+                        ezyadmin.messages.delivery_service_not_set_up
+                    );
+                } else {
+                    ezyadmin.showAlert(
+                        ezyadmin.messages.deliver_order_pid_failed_message
+                            .replace('{0}', ecommerce.selectedOrderId)
+                    );
+                    if (status == 502) {
+                        if (ecommerce.fetchOrderList) {
+                            ecommerce.fetchOrderList('current');
+                        } else if (ecommerce.onOrderActionFinished) {
+                            ecommerce.onOrderActionFinished();
+                        }
+                    }
+                }
+            }
+            ezyadmin.processUpdateApiErrors({}, e);
+        }
+    });
+}
+</script>
+
+<script th:fragment="delivery-order-actions" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.deliver_order_pid_failed_message = /*[[#{deliver_order_pid_failed_message}]]*/;
+ezyadmin.messages.delivery_service_not_set_up = /*[[#{delivery_service_not_set_up}]]*/;
+ezyadmin.messages.are_you_sure_the_delivery_order_pid_has_been_delivered = /*[[#{are_you_sure_the_delivery_order_pid_has_been_delivered}]]*/;
+ezyadmin.messages.do_you_want_to_deliver_delivery_order_pid = /*[[#{do_you_want_to_deliver_delivery_order_pid}]]*/;
+ezyadmin.messages.do_you_want_to_reject_delivery_order_pid = /*[[#{do_you_want_to_reject_delivery_order_pid}]]*/;
+/*]]>*/
+// ========== order actions =============
+ecommerce.onDeliverDeliveryOrderClick = function(deliveryOrderId) {
+    ecommerce.selectedDeliveryOrderId = deliveryOrderId;
+    $('#deliver-delivery-order-modal-body-content')
+        .text(
+            ezyadmin
+                .messages
+                .do_you_want_to_deliver_delivery_order_pid
+                .replace('{0}', deliveryOrderId)
+        );
+    $('#deliver-delivery-order-modal').modal('show');
+}
+
+ecommerce.onDeliveredDeliveryOrderClick = function(deliveryOrderId) {
+    ecommerce.selectedDeliveryOrderId = deliveryOrderId;
+    $('#delivered-delivery-order-modal-body-content')
+        .text(
+            ezyadmin
+                .messages
+                .are_you_sure_the_delivery_order_pid_has_been_delivered
+                .replace('{0}', deliveryOrderId)
+        );
+    $('#delivered-delivery-order-modal').modal('show');
+}
+
+ecommerce.onRejectDeliveryOrderClick = function(deliveryOrderId) {
+    ecommerce.selectedDeliveryOrderId = deliveryOrderId;
+    $('#reject-delivery-order-modal-body-content')
+        .text(
+            ezyadmin
+                .messages
+                .do_you_want_to_reject_delivery_order_pid
+                .replace('{0}', deliveryOrderId)
+        );
+    $('#reject-delivery-order-modal').modal('show');
+}
+
+ezyadmin.onPromptConfirmed = function(modalId) {
+    if (modalId == 'deliver-delivery-order-modal') {
+        ecommerce.deliverDeliveryOrder();
+    } else if (modalId == 'delivered-delivery-order-modal') {
+        ecommerce.finishDeliveryOrder();
+    } else if (modalId == 'reject-delivery-order-modal') {
+        ecommerce.rejectDeliveryOrder();
+    }
+}
+
+ecommerce.deliverDeliveryOrder = function() {
+    ecommerce.doDeliveryOrderAction('deliver');
+}
+
+ecommerce.finishDeliveryOrder = function() {
+    ecommerce.doDeliveryOrderAction('delivered');
+}
+
+ecommerce.rejectDeliveryOrder = function() {
+    ecommerce.doDeliveryOrderAction('reject');
+}
+
+ecommerce.doDeliveryOrderAction = function(action) {
+    $.ajax({
+        type: action == 'deliver' ? 'POST' : 'PUT',
+        url: '/ecommerce/api/v1/delivery-orders/' +
+             ecommerce.selectedDeliveryOrderId + '/' + action,
+        success: function () {
+            $('#deliver-delivery-order-modal').modal('hide');
+            $('#delivered-delivery-order-modal').modal('hide');
+            $('#reject-delivery-order-modal').modal('hide');
+            if (ecommerce.fetchDeliveryOrderList) {
+                ecommerce.fetchDeliveryOrderList('current');
+            } else {
+                location.reload();
+            }
+        },
+        error: function (e) {
+            $('#deliver-delivery-order-modal').modal('hide');
+            $('#delivered-delivery-order-modal').modal('hide');
+            $('#reject-delivery-order-modal').modal('hide');
+            if (action == 'deliver') {
+                var status = e.status;
+                if (status == 404
+                    && (e.responseJSON.deliveryService
+                        || e.responseJSON.deliveryServiceSetting)
+                ) {
+                    ezyadmin.showAlert(
+                        ezyadmin.messages.delivery_service_not_set_up
+                    );
+                } else {
+                    ezyadmin.showAlert(
+                        ezyadmin.messages.deliver_order_pid_failed_message
+                            .replace('{0}', ecommerce.selectedOrderId)
+                    );
+                    if (status == 502) {
+                        if (ecommerce.fetchDeliveryOrderList) {
+                            ecommerce.fetchDeliveryOrderList('current');
+                        }
+                    }
+                }
+            }
+            ezyadmin.processUpdateApiErrors({}, e);
+        }
+    });
+}
+</script>
+</body>
+</html>

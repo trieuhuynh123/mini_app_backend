@@ -1,0 +1,344 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="content">
+    <div class="modal fade pt-4rem" id="save-province">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="save-province-modal-title">
+                        [[#{add_new_province}]]
+                    </h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="saveProvinceForm">
+                        <div class="form-group row">
+                            <label for="saveProvinceCode" class="col-4 col-form-label">
+                                [[#{code}]] (<span class="text-danger">*</span>)
+                            </label>
+                            <div class="col-8">
+                                <label class="col-form-label text-danger d-none" id="saveProvinceCodeErrorLabel" for="saveProvinceCode">
+                                    <i class="far fa-times-circle"></i> <span id="saveProvinceCodeError"></span>
+                                </label>
+                                <input type="text" name="code" id="saveProvinceCode"
+                                       class="form-control" th:placeholder="#{code}"
+                                       onkeydown="ecommerce.onKeyDownToSaveProvince('add')">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="saveProvinceType" class="col-4 col-form-label">
+                                [[#{type}]]:
+                            </label>
+                            <div class="col-8">
+                                <label class="col-form-label text-danger d-none" id="saveProvinceTypeErrorLabel" for="saveProvinceType">
+                                    <i class="far fa-times-circle"></i> <span id="saveProvinceTypeError"></span>
+                                </label>
+                                <select name="type" id="saveProvinceType" class="form-control" aria-label="Type Select">
+                                    <option th:each="provinceType : ${provinceTypes}"
+                                            th:value="${provinceType}">
+                                        [[#{${'province_type_' + provinceType.toLowerCase()}}]]
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="saveProvinceDisplayName" class="col-4 col-form-label">
+                                [[#{display_name}]] (<span class="text-danger">*</span>)
+                            </label>
+                            <div class="col-8">
+                                <label class="col-form-label text-danger d-none" id="saveProvinceDisplayNameErrorLabel" for="saveProvinceDisplayName">
+                                    <i class="far fa-times-circle"></i> <span id="saveProvinceDisplayNameError"></span>
+                                </label>
+                                <input type="text" name="displayName" id="saveProvinceDisplayName"
+                                       class="form-control" th:placeholder="#{name}"
+                                       onkeydown="ecommerce.onKeyDownToSaveProvince('add')">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="saveProvinceStatus" class="col-4 col-form-label">
+                                [[#{status}]] (<span class="text-danger">*</span>)
+                            </label>
+                            <div class="col-8">
+                                <label class="col-form-label text-danger d-none" id="saveProvinceStatusErrorLabel" for="saveProvinceStatus">
+                                    <i class="far fa-times-circle"></i> <span id="saveProvinceStatusError"></span>
+                                </label>
+                                <select type="text" name="status" id="saveProvinceStatus"
+                                       class="form-control">
+                                    <option th:each="administrativeUnitStatus : ${administrativeUnitStatuses}"
+                                            th:value="${administrativeUnitStatus}">
+                                        [[#{${administrativeUnitStatus.toString().toLowerCase()}}]]
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <div>
+                        <button type="button" class="btn btn-default" data-dismiss="modal"
+                                onclick="ecommerce.resetSaveProvinceModal();">[[#{cancel}]]</button>
+                        <button type="button" class="btn btn-default"
+                                onclick="ecommerce.resetSaveProvinceModal();">[[#{reset}]]</button>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="ecommerce.saveProvince();"
+                            id="save-province-modal-button">
+                        [[#{add}]]
+                    </button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+</th:block>
+<script th:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.add = /*[[#{add}]]*/;
+ezyadmin.messages.add_new_province = /*[[#{add_new_province}]]*/;
+ezyadmin.messages.districts = /*[[#{districts}]]*/;
+ezyadmin.messages.do_you_want_to_delete_province_pname = /*[[#{do_you_want_to_delete_province_pname}]]*/;
+ezyadmin.messages.edit = /*[[#{edit}]]*/;
+ezyadmin.messages.edit_province = /*[[#{edit_province}]]*/;
+ezyadmin.messages.of = /*[[#{of}]]*/;
+ezyadmin.messages.provinces = /*[[#{provinces}]]*/;
+ezyadmin.messages.province_type_province = /*[[#{province_type_province}]]*/;
+ezyadmin.messages.province_type_city = /*[[#{province_type_city}]]*/;
+ezyadmin.messages.update = /*[[#{update}]]*/;
+/*]]>*/
+// ========== select province =============
+ecommerce.selectProvince = function(provinceId) {
+    ecommerce.selectedProvince = ecommerce.provinceById[provinceId];
+    ecommerce.setDistrictsTitle();
+    ecommerce.fetchDistricts();
+}
+
+// ========== show save province modal =============
+ecommerce.showSaveProvinceModal = function(action, provinceId) {
+    ecommerce.saveProvinceAction = action;
+    if (action == 'add') {
+        ecommerce.resetSaveProvinceModal();
+        $('#save-province-modal-title').text(ezyadmin.messages.add_new_province);
+        $('#save-province-modal-button').text(ezyadmin.messages.add);
+    } else {
+        $('#save-province-modal-title').text(ezyadmin.messages.edit_new_province);
+        $('#save-province-modal-button').text(ezyadmin.messages.edit);
+        ecommerce.selectedProvinceId = provinceId;
+        ecommerce.selectedProvince = ecommerce.provinceById[provinceId];
+        var province = ecommerce.selectedProvince;
+        if (province) {
+            $('#saveProvinceCode').val(province.code);
+            $('#saveProvinceDisplayName').val(province.displayName);
+            $('#saveProvinceStatus').val(province.status);
+        }
+    }
+    $('#save-province').modal('show');
+}
+
+ecommerce.resetSaveProvinceModal = function() {
+    $('#saveProvinceCode').val('');
+    $('#saveProvinceDisplayName').val('');
+}
+
+// ========== get provinces =============
+ecommerce.processProvinces = function(provinces) {
+    ecommerce.provinces = provinces;
+    ecommerce.provinceById = {};
+    ecommerce.provinces.forEach((province) => {
+        ecommerce.provinceById[province.id] = province;
+    });
+    if (ecommerce.provinces.length) {
+        var province = ecommerce.selectedProvince;
+        if (province) {
+            province = ecommerce.provinceById[ecommerce.selectedProvince.id];
+        }
+        if (!province) {
+            province = ecommerce.provinces[0];
+        }
+        ecommerce.selectedProvince = province;
+    } else {
+        ecommerce.selectedProvince = null;
+    }
+    ezyadmin.destroyDataTableIfExists('provinceList');
+    $('#provinceListBody').html(
+        ecommerce.buildProvinceListBodyHtml(ecommerce.provinces)
+    );
+    ezyadmin.createDataTable('provinceList', 5);
+    ecommerce.setDistrictsTitle();
+    ecommerce.showOrHideAddDistrictButton();
+    ecommerce.selectProvince(ecommerce.selectedProvince?.id || 0);
+}
+
+ecommerce.fetchProvinces = function() {
+    if (!ecommerce.selectedCountry) {
+        ecommerce.processProvinces([]);
+        return;
+    }
+    $.ajax({
+        type: "GET",
+        url: '/ecommerce/api/v1/countries/' +
+            ecommerce.selectedCountry.id +
+            '/provinces-and-number-of-nearby',
+        success: function(data) {
+            ecommerce.processProvinces(data);
+        },
+        error: function(data, e) {
+            ezyadmin.processGetApiErrors(data);
+        }
+    });
+}
+
+ecommerce.buildProvinceListBodyHtml = function() {
+    var html = '';
+    ecommerce.provinces.forEach((province, index) => {
+        html += ecommerce.buildProvinceItemHtml(province, index);
+    });
+    return html;
+}
+
+ecommerce.buildProvinceItemHtml = function(province, index) {
+    return `
+        <tr>
+            <td class="text-center pl-2p5">${index + 1}</td>
+            <td class="text-center">${province.code}</td>
+            <td class="text-center">${province.type ? ezyadmin.getI18nMessage('province_type_' + province.type.toLowerCase()) : ''}</td>
+            <td>${province.displayName}</td>
+            <td class="text-center">
+                <div>
+                    <button type="button" class="btn btn-link"
+                            onclick="ecommerce.showNearbyProvincesModal(${province.countryId}, ${province.id}, '${province.displayName}')">
+                        ${province.numberOfNearByProvinces}
+                        ${ezyadmin.messages.province_s}
+                    </button>
+                    <button type="button" class="btn btn-link"
+                            onclick="ecommerce.showUpdateNearbyProvincesModal(${province.countryId}, ${province.id}, '${province.displayName}')">
+                        ${ezyadmin.messages.update} <i class="fas fa-exchange-alt ml-2"></i>
+                    </button>
+                </div>
+            </td>
+            <td status="${province.status}"
+                class="text-center status-text ${ezyadmin.getTextColorByStatus(province.status)}">
+                ${ezyadmin.getI18nMessage(province.status?.toLowerCase() || '')}
+            </td>
+            <td class="text-center">
+                <a class="text-primary pr-1 cursor-pointer"
+                   onclick="ecommerce.selectProvince(${province.id})">
+                    <i class="fas fa-hand-pointer"></i>
+                </a>
+                <a class="text-primary pr-1 cursor-pointer"
+                   onclick="ecommerce.showSaveProvinceModal('edit', ${province.id})">
+                    <i class="fas fa-edit"></i>
+                </a>
+                <a onclick="ecommerce.onDeleteProvinceClick(${province.id}, '${province.displayName}')"
+                   class="text-danger cursor-pointer">
+                    <i class="fas fa-trash"></i>
+                </a>
+            </td>
+        </tr>
+    `;
+}
+
+ecommerce.setDistrictsTitle = function() {
+    var districtsTitle = ezyadmin.messages.districts;
+    if (ecommerce.selectedProvince) {
+        districtsTitle +=  ' ' +
+            ezyadmin.messages.of + ' ' +
+            ecommerce.selectedProvince.displayName;
+    }
+    $('#districtsTitle').text(districtsTitle);
+}
+
+ecommerce.showOrHideAddDistrictButton = function() {
+    if (ecommerce.selectedProvince) {
+        $('#addDistrictButton').removeClass('d-none');
+    } else {
+        $('#addDistrictButton').addClass('d-none');
+    }
+}
+
+// ========== save province =============
+ecommerce.onKeyDownToSaveProvince = function() {
+    if(event.key === 'Enter') {
+    	ecommerce.saveProvince();
+    }
+}
+
+ecommerce.saveProvince = function() {
+    var formData = ezyadmin.formDataToObject('saveProvinceForm');
+    formData.active = $('#saveProvinceActive').prop('checked');
+    var action = ecommerce.saveProvinceAction;
+    $.ajax({
+        type: action == 'add' ? 'POST' : 'PUT',
+        url: '/ecommerce/api/v1/countries/' +
+            ecommerce.selectedCountry.id +
+            '/provinces/' +
+            (action == 'add' ? 'add' : ecommerce.selectedProvinceId),
+        data: formData,
+        success: function (data) {
+            if (action == 'add') {
+                ecommerce.selectedProvince = null;
+            }
+            ecommerce.fetchProvinces();
+            $('#save-province').modal('hide');
+        },
+        error: function (e) {
+        	var formView = {
+                saveProvinceCode: true,
+                saveProvinceDisplayName: true
+            };
+            var errors = e.responseJSON || {};
+        	errors.saveProvinceCode = errors.code;
+        	errors.saveProvinceDisplayName = errors.displayName;
+            ezyadmin.processUpdateApiErrors(formView, e);
+        }
+    });
+}
+
+// ========== delete province =============
+ecommerce.onDeleteProvinceClick = function(id, displayName) {
+    ecommerce.selectedProvinceId = id;
+    $('#delete-province-modal-body-content')
+        .text(
+            ezyadmin
+                .messages
+                .do_you_want_to_delete_province_pname
+                .replace('{0}', displayName)
+        );
+    $('#delete-province-modal').modal('show');
+}
+
+ecommerce.deleteProvince = function() {
+    $.ajax({
+        type: 'DELETE',
+        url: '/ecommerce/api/v1/provinces/' + ecommerce.selectedProvinceId,
+        success: function () {
+            $('#delete-province-modal').modal('hide');
+            ecommerce.fetchProvinces();
+        },
+        error: function (data, e) {
+            ezyadmin.processUpdateApiErrors({}, data);
+        }
+    });
+}
+</script>
+</body>
+</html>

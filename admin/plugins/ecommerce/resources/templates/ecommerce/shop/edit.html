@@ -1,0 +1,300 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<head>
+    <script>
+        var ecommerce = {};
+    </script>
+</head>
+<body>
+<div layout:fragment="content" class="row">
+    <div class="col-md-10 col-sm-12">
+        <form id="editShopForm">
+            <div class="form-group row">
+                <label for="editShopName" class="col-sm-3 col-form-label">
+                    [[#{shop_name}]] (<span class="text-danger">*</span>)
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="shopName" id="editShopName"
+                           class="form-control" th:placeholder="#{shop_name}"
+                           th:value="${shop.displayName}">
+                </div>
+                <label id="editShopNameErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editShopName">
+                    <i class="far fa-times-circle"></i> <span id="editShopNameError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editShopOwner" class="col-md-3 col-form-label">
+                    [[#{shop_owner}]]
+                </label>
+                <div class="col-lg-7 col-md-6 pr-0">
+                    <input type="text" name="editShopOwner" id="editShopOwner"
+                           class="form-control" th:placeholder="#{shop_owner}"
+                           th:value="${shop.owner != null ? (shop.owner.name + '&lt' + shop.owner.username + '&gt') : ''}">
+                </div>
+                <label id="editShopOwnerErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editShopOwner">
+                    <i class="far fa-times-circle"></i> <span id="editShopOwnerError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editShopIconImage" class="col-md-3 col-form-label">
+                    [[#{icon_image}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <div class="input-group cursor-pointer" onclick="ecommerce.selectIconImage('edit');">
+                        <input type="text" name="shopIconImage"
+                               id="editShopIconImage"
+                               class="form-control" th:placeholder="#{select_an_image}"
+                               th:value="${shop.iconImage != null ? shop.iconImage.originalName : ''}">
+                        <div class="input-group-append">
+                            <div class="input-group-text">
+                                <span>[[#{browse}]]</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <label id="editShopIconImageErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editShopIconImage">
+                    <i class="far fa-times-circle"></i> <span id="editShopIconImageError">[[#{invalid}]]</span>
+                </label>
+                <div class="col-md-3"></div>
+                <div class="col-md-4">
+                    <img id="shopIconImage" class="object-fit-cover mt-1" height="64"
+                         th:classappend="${shop.iconImage != null ? '' : 'd-none'}"
+                         th:src="${shop.iconImage != null ? shop.iconImage.getUrlOrDefault('') : ''}">
+                </div>
+                <div class="col-md-5"></div>
+            </div>
+            <div class="form-group row">
+                <label for="editShopBannerImage" class="col-md-3 col-form-label">
+                    [[#{banner_image}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <div class="input-group cursor-pointer" onclick="ecommerce.selectBannerImage('edit');">
+                        <input type="text" name="shopBannerImage"
+                               id="editShopBannerImage"
+                               class="form-control" th:placeholder="#{select_an_image}"
+                               th:value="${shop.bannerImage != null ? shop.bannerImage.originalName : ''}">
+                        <div class="input-group-append">
+                            <div class="input-group-text">
+                                <span>[[#{browse}]]</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <label id="editShopBannerImageErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editShopBannerImage">
+                    <i class="far fa-times-circle"></i> <span id="editShopBannerImageError">[[#{invalid}]]</span>
+                </label>
+                <div class="col-md-3"></div>
+                <div class="col-md-4">
+                    <img id="shopBannerImage" class="object-fit-cover mt-1" height="64"
+                         th:classappend="${shop.bannerImage != null ? '' : 'd-none'}"
+                         th:src="${shop.bannerImage != null ? shop.bannerImage.getUrlOrDefault('') : ''}">
+                </div>
+                <div class="col-md-5"></div>
+            </div>
+            <div class="form-group row">
+                <label for="editShopTaxPercent" class="col-sm-3 col-form-label">
+                    [[#{tax_percentage_on_each_order}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="number" name="taxPercent" id="editShopTaxPercent"
+                           class="form-control" th:placeholder="#{example} + ': 10'"
+                           th:value="${taxPercent}">
+                </div>
+                <label id="editShopTaxPercentErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editShopTaxPercent">
+                    <i class="far fa-times-circle"></i> <span id="editShopTaxPercentError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editShopCompanyName" class="col-sm-3 col-form-label">
+                    [[#{company_name}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="companyName" id="editShopCompanyName"
+                           class="form-control" th:placeholder="#{company_name}"
+                           th:value="${shopDetails != null ? shopDetails.companyName : ''}">
+                </div>
+                <label id="editShopCompanyNameErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editShopCompanyName">
+                    <i class="far fa-times-circle"></i> <span id="editShopCompanyNameError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editShopCompanyEmail" class="col-sm-3 col-form-label">
+                    [[#{company_email}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="companyEmail" id="editShopCompanyEmail"
+                           class="form-control" th:placeholder="#{company_email}"
+                           th:value="${shopDetails != null ? shopDetails.companyEmail : ''}">
+                </div>
+                <label id="editShopCompanyEmailErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editShopCompanyEmail">
+                    <i class="far fa-times-circle"></i> <span id="editShopCompanyEmailError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editShopCompanyPhoneNumber" class="col-sm-3 col-form-label">
+                    [[#{company_phone_number}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="companyPhoneNumber" id="editShopCompanyPhoneNumber"
+                           class="form-control" th:placeholder="#{company_phone_number}"
+                           th:value="${shopDetails != null ? shopDetails.companyPhoneNumber : ''}">
+                </div>
+                <label id="editShopCompanyPhoneNumberErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editShopCompanyPhoneNumber">
+                    <i class="far fa-times-circle"></i> <span id="editShopCompanyPhoneNumberError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editShopCompanyAddress" class="col-sm-3 col-form-label">
+                    [[#{company_address}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="companyAddress" id="editShopCompanyAddress"
+                           class="form-control" th:placeholder="#{company_address}"
+                           th:value="${shopDetails != null ? shopDetails.companyAddress : ''}">
+                </div>
+                <label id="editShopCompanyAddressErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editShopCompanyAddress">
+                    <i class="far fa-times-circle"></i> <span id="editShopCompanyAddressError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editShopCompanyLegalRepresentative" class="col-sm-3 col-form-label">
+                    [[#{company_legal_representative}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="companyLegalRepresentative" id="editShopCompanyLegalRepresentative"
+                           class="form-control" th:placeholder="#{company_legal_representative}"
+                           th:value="${shopDetails != null ? shopDetails.companyLegalRepresentative : ''}">
+                </div>
+                <label id="editShopCompanyLegalRepresentativeErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editShopCompanyLegalRepresentative">
+                    <i class="far fa-times-circle"></i> <span id="editShopCompanyLegalRepresentativeError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editShopCompanyTaxCode" class="col-sm-3 col-form-label">
+                    [[#{company_tax_code}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="companyTaxCode" id="editShopCompanyTaxCode"
+                           class="form-control" th:placeholder="#{company_tax_code}"
+                           th:value="${shopDetails != null ? shopDetails.companyTaxCode : ''}">
+                </div>
+                <label id="editShopCompanyTaxCodeErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editShopCompanyTaxCode">
+                    <i class="far fa-times-circle"></i> <span id="editShopCompanyTaxCodeError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editShopCompanyLicensedDate" class="col-sm-3 col-form-label">
+                    [[#{company_licensed_date}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="date" name="companyLicensedDate" id="editShopCompanyLicensedDate"
+                           class="form-control" placeholder="yyyy-MM-dd"
+                           th:value="${shopDetails != null ? shopDetails.companyLicensedDate : ''}">
+                </div>
+                <label id="editShopCompanyLicensedDateErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editShopCompanyLicensedDate">
+                    <i class="far fa-times-circle"></i> <span id="editShopCompanyLicensedDateError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editShopCompanyTaxSubmissionLocation" class="col-sm-3 col-form-label">
+                    [[#{company_tax_submission_location}]]
+                </label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="companyTaxSubmissionLocation" id="editShopCompanyTaxSubmissionLocation"
+                           class="form-control" th:placeholder="#{company_tax_submission_location}"
+                           th:value="${shopDetails != null ? shopDetails.companyTaxSubmissionLocation : ''}">
+                </div>
+                <label id="editShopCompanyTaxSubmissionLocationErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="editShopCompanyTaxSubmissionLocation">
+                    <i class="far fa-times-circle"></i> <span id="editShopCompanyTaxSubmissionLocationError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="form-group row">
+                <label for="editShopStatus" class="col-md-3 col-form-label">
+                    [[#{status}]]
+                </label>
+                <div class="col-lg-2 col-md-3">
+                    <select name="shopStatus" id="editShopStatus" class="form-control">
+                        <option th:each="shopStatus : ${shopStatuses}"
+                                th:value="${shopStatus.toString()}"
+                                th:selected="${shop.status == shopStatus.toString()}">
+                            [[#{${shopStatus.toString().toLowerCase()}}]]
+                        </option>
+                    </select>
+                </div>
+                <label id="editShopStatusErrorLabel" class="col-lg-7 col-md-6 col-form-label text-danger d-none" for="editShopStatus">
+                    <i class="far fa-times-circle"></i> <span id="editShopStatusError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="row">
+                <div class="col-md-3"></div>
+                <div class="col-lg-2 col-md-3">
+                    <button type="button" class="btn btn-primary btn-block" onclick="ecommerce.editShop();">[[#{submit}]]</button>
+                </div>
+                <div class="col-lg-7 col-md-6"></div>
+                <!-- /.col -->
+            </div>
+        </form>
+    </div>
+    <div class="col-md-2 col-sm-0"></div>
+    <div class="col-12 mb-3"></div>
+</div>
+<script layout:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ecommerce.editShopId = /*[[${shop.id}]]*/;
+ecommerce.shopBannerId = /*[[${shop.bannerImage != null ? shop.bannerImage.id : 0}]]*/ '';
+ecommerce.shopIconId = /*[[${shop.iconImage != null ? shop.iconImage.id : 0}]]*/ '';
+ecommerce.shopOwnerId = /*[[${shop.owner != null ? shop.owner.userId : 0}]]*/ '';
+ecommerce.shopHeadquartersId = /*[[${shop.headquartersId}]]*/;
+ecommerce.shopMainWarehouseId = /*[[${shop.mainWarehouseId}]]*/;
+/*]]>*/
+ecommerce.shopIconImage = {
+  id: ecommerce.shopIconId
+};
+
+ecommerce.shopBannerImage = {
+  id: ecommerce.shopBannerId
+};
+
+ecommerce.selectedShopOwner = {
+  userId: ecommerce.shopOwnerId
+};
+
+// ========== edit shop =============
+ecommerce.editShop = function() {
+    ecommerce.addOrEditShop('edit');
+}
+
+ezyadmin.onSearchUserModalCloseWithUserData = function(user) {
+    ecommerce.onSearchUserModalCloseWithUserDataByAction('edit', user);
+}
+</script>
+<th:block layout:fragment="post-scripts">
+    <script th:replace="~{scripts/suggestion :: input}" />
+    <script th:replace="~{scripts/suggestion :: user}" />
+    <script th:replace="~{ecommerce/shop/scripts :: add-edit}" />
+    <script>
+        ezyadmin.registerUserAutocomplete('editShopOwner');
+    </script>
+</th:block>
+</body>
+</html>

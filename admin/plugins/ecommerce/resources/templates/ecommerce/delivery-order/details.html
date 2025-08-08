@@ -1,0 +1,263 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~ 
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~ 
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~ 
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<head>
+    <style>
+        .max-height-64  {
+            max-height: 64px !important;
+        }
+    </style>
+    <script>
+        var ecommerce = {};
+    </script>
+</head>
+<body>
+<div layout:fragment="content" class="row">
+    <div class="col-md-3 col-4"><label>[[#{delivery_order_id}]]:</label></div>
+    <div class="col-md-9 col-8">[[${deliveryOrder.id}]]</div>
+    <div class="col-md-3 col-4"><label>[[#{order_id}]]:</label></div>
+    <div class="col-md-9 col-8">
+        <a th:href="${'/ecommerce/orders/' + deliveryOrder.orderId}">
+            [[${deliveryOrder.orderId}]]
+        </a>
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{delivery_service}]]:</label></div>
+    <div class="col-md-9 col-8">
+        <a th:if="${deliveryOrder.deliveryService != null}"
+           th:href="${'/ecommerce/delivery-services/' + deliveryOrder.deliveryService.code}">
+            [[${deliveryOrder.deliveryService.name}]]
+        </a>
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{tracking_id}]]:</label></div>
+    <div class="col-md-9 col-8">
+        <a th:if="${deliveryOrder.trackingUrl != null}"
+           th:href="${deliveryOrder.trackingUrl}" target="_blank">
+            [[${deliveryOrder.trackingId}]]
+        </a>
+        <th:block th:if="${deliveryOrder.trackingUrl == null}">
+            [[${deliveryOrder.trackingUrl}]]
+        </th:block>
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{from_warehouse}]]:</label></div>
+    <div class="col-md-9 col-8">
+        <a th:if="${deliveryOrder.fromWarehouse != null}"
+           th:href="${'/ecommerce/shops/' + deliveryOrder.fromWarehouse.shopId + '/warehouses/' + deliveryOrder.fromWarehouse.id}">
+            [[${deliveryOrder.fromWarehouse.displayName}]]
+        </a>
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{recipient}]]:</label></div>
+    <div class="col-md-9 col-8">[[${deliveryOrder.recipient.recipient}]]</div>
+    <th:block th:if="${deliveryOrder.recipient.email != null}">
+        <div class="col-md-3 col-4"><label>[[#{email}]]:</label></div>
+        <div class="col-md-9 col-8">
+            <a th:href="${'mailto:' + deliveryOrder.recipient.email}">
+                [[${deliveryOrder.recipient.email}]]
+            </a>
+        </div>
+    </th:block>
+    <div class="col-md-3 col-4"><label>[[#{phone_number}]]:</label></div>
+    <div class="col-md-9 col-8">[[${deliveryOrder.recipient.phoneNumber}]]</div>
+    <div class="col-md-3 col-4"><label>[[#{address}]]:</label></div>
+    <div class="col-md-9 col-8">
+        <a th:href="${'https://www.google.com/maps/search/?api=1&query=' + deliveryOrder.recipient.address}" target="_blank">
+            [[${deliveryOrder.recipient.address}]]
+        </a>
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{cash_on_delivery}]]:</label></div>
+    <div class="col-md-9 col-8">
+        [[${deliveryOrder.recipient.type.toString() == 'COD' ? deliveryOrder.formattedCodAmount : '0'}]]
+        [[${deliveryOrder.currency.isoCode}]]
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{metadata}]]:</label></div>
+    <div class="col-md-9 col-8 date-time-string">
+        <div th:if="${deliveryOrder.metadata.size() > 0}" class="mb-2">
+            <div th:each="entry : ${deliveryOrder.metadata.entrySet()}">
+                <small><b>[[${entry.key}]]</b></small>: <small>[[${entry.value}]]</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{status}]]:</label></div>
+    <div class="col-md-9 col-8 status-text">
+        [[#{${deliveryOrder.status.toString().toLowerCase()}}]]
+    </div>
+    <div class="col-md-3 col-4"></div>
+    <div class="col-md-9 col-8">
+        <button type="button" class="btn btn-primary mb-2"
+                th:if="${deliveryOrder.status.toString() == 'REQUEST_CREATED'
+                        || deliveryOrder.status.toString() == 'REQUEST_SEND_FAILED'
+                        || deliveryOrder.status.toString() == 'REJECTED'}"
+                th:attr="onclick=|ecommerce.onDeliverDeliveryOrderClick(${deliveryOrder.id})|">
+            [[#{deliver}]] <i class="fas fa-truck"></i>
+        </button>
+        <button type="button" class="btn btn-success mb-2"
+                th:if="${deliveryOrder.status.toString() != 'DELIVERED'}"
+                th:attr="onclick=|ecommerce.onDeliveredDeliveryOrderClick(${deliveryOrder.id})|">
+            [[#{delivered}]] <i class="fas fa-vote-yea"></i>
+        </button>
+        <button type="button" class="btn btn-danger mb-2"
+                th:if="${deliveryOrder.status.toString() != 'REJECTED'}"
+                th:attr="onclick=|ecommerce.onRejectDeliveryOrderClick(${deliveryOrder.id})|">
+            [[#{reject}]] <i class="fas fa-times-circle"></i>
+        </button>
+    </div>
+    <div class="col-12">
+        <hr class="mb-4" />
+    </div>
+    <div class="col-12">
+        <div class="d-flex">
+            <h3>[[#{products}]]</h3>
+        </div>
+    </div>
+    <div class="col-12 mt-3">
+        <table id="productList" class="table table-bordered table-hover bg-white">
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>[[#{icon}]]</th>
+                <th>[[#{code}]]</th>
+                <th>[[#{display_name}]]</th>
+                <th>[[#{color}]]</th>
+                <th>[[#{size}]]</th>
+                <th>[[#{amount}]]</th>
+                <th>[[#{price}]]</th>
+                <th>[[#{shop}]]</th>
+            </tr>
+            </thead>
+            <tbody id="productListBody">
+            <tr th:each="product, iterator : ${deliveryOrder.products}">
+                <td>[[${iterator.index + 1}]]</td>
+                <td th:if="${product.product.iconImage != null}">
+                    <a th:href="${'/ecommerce/products/' + product.product.id}">
+                        <img th:src="${product.product.iconImage != null ? product.product.iconImage.getUrlOrDefault('') : ''}"
+                             class="max-height-64 object-fit-cover" width="64">
+                    </a>
+                </td>
+                <td th:if="${product.product.iconImage == null}">
+                </td>
+                <td class="text-break">
+                    [[${product.product.productCode}]]
+                </td>
+                <td>
+                    <a th:href="${'/ecommerce/products/' + product.product.id}" class="text-primary pr-1">
+                        [[${product.product.productName}]]
+                    </a>
+                </td>
+                <td>
+                    [[${product.color != null ? product.color.colorDisplayName : ''}]]
+                </td>
+                <td>
+                    [[${product.size != null ? product.size.sizeDisplayName : ''}]]
+                </td>
+                <td class="commas-number-string">
+                    [[${product.amount}]]
+                </td>
+                <td>
+                    [[${product.formattedPrice}]] [[${deliveryOrder.currency.isoCode}]]
+                </td>
+                <td>
+                    <a th:if="${product.product.shop != null}"
+                       th:href="${'/ecommerce/shops/' + product.product.shop.id}" class="text-primary pr-1">
+                        [[${product.product.shop.displayName}]]
+                    </a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="col-12">
+        <hr class="mb-4" />
+    </div>
+    <div class="col-12">
+        <div class="d-flex">
+            <h3>[[#{history}]]</h3>
+        </div>
+    </div>
+    <th:block th:replace="~{/ecommerce/delivery-order/delivery-order-history-list :: content}" />
+    <div class="col-12 mb-3"></div>
+</div>
+<th:block layout:fragment="modals">
+    <th:block th:replace="~{fragments/prompt :: content(id='deliver-delivery-order-modal', title=confirm, confirmButton=confirm, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='delivered-delivery-order-modal', title=confirm, confirmButton=confirm, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='reject-delivery-order-modal', title=confirm, confirmButton=reject, closeButton=close, type=delete)}" />
+</th:block>
+<script layout:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ecommerce.selectedDeliveryOrderId = /*[[${deliveryOrder.id}]]*/ '';
+/*]]>*/
+
+ecommerce.onOrderActionFinished = function() {
+    window.location = '/ecommerce/orders'
+        + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+}
+
+// =========== invoice image ===================
+ecommerce.selectInvoiceImage = function() {
+    ezyadmin.showMediaModal('invoiceImage')
+        .onMediaShow(media => {
+            if (media.type != 'IMAGE') {
+                $('#selectMediaButton').attr('disabled', true);
+            }
+        })
+        .onMediaSelected(media => {
+            ecommerce.updateInvoiceImage(
+                media.id,
+                () => {
+                    $('#invoiceImage').attr(
+                        'src',
+                        ezyadmin.extractMediaUrl(media)
+                    )
+                    .removeClass('d-none')
+                    .show();
+                    $('#invoiceImageName').text(media.originalName);
+                    $('#uploadInvoiceImageButton').addClass('d-none');
+                    $('#changeInvoiceImageButton').removeClass('d-none');
+                    ezyadmin.closeMediaModal();
+                }
+            );
+        });
+}
+
+ecommerce.updateInvoiceImage = function(invoiceImageId, callback) {
+    var formData = {
+        invoiceImageId: invoiceImageId
+    };
+    $.ajax({
+        type: 'PUT',
+        url: '/ecommerce/api/v1/orders/' + ecommerce.selectedDeliveryOrderId + '/invoice-image',
+        contentType: 'application/json',
+        data: JSON.stringify(formData)
+    }).done(function() {
+        callback();
+    }).fail(function(data) {
+        ezyadmin.processUpdateApiErrors(formData, data);
+    });
+}
+
+// =========== product list ===================
+ezyadmin.createDataTable('productList', 12);
+</script>
+<th:block layout:fragment="post-scripts">
+    <script th:replace="~{ecommerce/delivery-order/scripts :: delivery-order-actions}" />
+    <script th:replace="~{ecommerce/delivery-order/delivery-order-history-list :: scripts}" />
+</th:block>
+</body>
+</html>

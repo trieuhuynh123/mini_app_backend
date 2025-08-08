@@ -1,0 +1,151 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~ 
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~ 
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~ 
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<head>
+    <script>
+        var ecommerce = {};
+    </script>
+</head>
+<body>
+<div layout:fragment="content" class="row">
+    <div class="col-md-3 col-4"><label>[[#{id}]]:</label></div>
+    <div class="col-md-9 col-8">
+        [[${shopAgency.id}]]
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{type}]]:</label></div>
+    <div class="col-md-9 col-8">
+        [[#{${shopAgency.type.toString().toLowerCase()}}]]
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{code}]]:</label></div>
+    <div class="col-md-9 col-8">
+        [[${shopAgency.code}]]
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{shop}]]:</label></div>
+    <div class="col-md-9 col-8">
+        <a th:href="${'/ecommerce/shops/' + shop.id}">[[${shop.displayName}]]</a>
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{name}]]:</label></div>
+    <div class="col-md-9 col-8">
+        [[${shopAgency.displayName}]]
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{address}]]:</label></div>
+    <div class="col-md-9 col-8">
+        <th:block th:if="${shopAgency.detailedAddress != null && shopAgency.detailedAddress.length() > 0}">
+            [[${shopAgency.detailedAddress}]],
+        </th:block>
+        <th:block th:if="${shopAgencyWard != null}">
+            [[${shopAgencyWard.displayName}]],
+        </th:block>
+        <th:block th:if="${shopAgencyDistrict != null}">
+            [[${shopAgencyDistrict.displayName}]],
+        </th:block>
+        <th:block th:if="${shopAgencyProvince != null}">
+            [[${shopAgencyProvince.displayName}]],
+        </th:block>
+        <th:block th:if="${shopAgencyCountry != null}">
+            [[${shopAgencyCountry.internationalName}]]
+        </th:block>
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{email}]]:</label></div>
+    <div class="col-md-9 col-8">
+        [[${shopAgency.email}]]
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{phone_number}]]:</label></div>
+    <div class="col-md-9 col-8">
+        <a th:href="${'tel:' + shopAgency.phoneNumber}">[[${shopAgency.phoneNumber}]]</a>
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{agency_tier}]]:</label></div>
+    <div class="col-md-9 col-8">[[${shopAgency.tier}]]</div>
+    <div class="col-md-3 col-4"><label>[[#{status}]]:</label></div>
+    <div class="col-md-9 col-8 status-text" th:attr="status=|${shopAgency.status}|">
+        [[#{${shopAgency.status.toString().toLowerCase()}}]]
+    </div>
+    <div class="col-md-3 col-4"><label>[[#{created_at}]]:</label></div>
+    <div class="col-md-9 col-8 date-time-string">[[${shopAgency.createdAt}]]</div>
+    <div class="col-md-3 col-4"><label>[[#{updated_at}]]:</label></div>
+    <div class="col-md-9 col-8 date-time-string">[[${shopAgency.updatedAt}]]</div>
+    <div class="col-md-3 col-4"></div>
+    <div class="col-md-9 col-8">
+        <button type="button" class="btn btn-danger mb-2"
+                th:attr="onclick=|ecommerce.onDeleteShopAgencyClick(${shopAgency.id}, '${shopAgency.displayName}', '${shop.displayName}')|">
+            [[#{delete}]] <i class="fas fa-trash"></i>
+        </button>
+    </div>
+    <div class="col-12">
+        <hr class="mb-4" />
+    </div>
+    <div class="col-12">
+        <div class="d-flex flex-md-row flex-column">
+            <h3>[[#{members}]]</h3>
+            <button type="button"
+                    class="btn btn-outline-primary button-next-to-title"
+                    onclick="ezyadmin.showSearchAdminModal();">
+                [[#{add_admin_member}]] <i class="fas fa-plus-circle"></i>
+            </button>
+            <button type="button"
+                    class="btn btn-outline-primary button-next-to-title mt-md-0 mt-2 mb-md-0 mb-2"
+                    onclick="ezyadmin.showSearchUserModal();">
+                [[#{add_user_member}]] <i class="fas fa-plus-circle"></i>
+            </button>
+        </div>
+    </div>
+    <th:block th:replace="~{/ecommerce/shop/agency/member-list :: content}" />
+    <div class="col-12 mb-3"></div>
+</div>
+<th:block layout:fragment="modals">
+    <th:block th:replace="~{modals/search-admin :: content}" />
+    <th:block th:replace="~{modals/search-user :: content}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='delete-shop-agency-modal', title=confirm, confirmButton=delete, closeButton=close)}" />
+    <th:block th:replace="~{fragments/prompt :: content(id='remove-shop-agency-member-modal', title=confirm, confirmButton=remove, closeButton=close, type=delete)}" />
+</th:block>
+<script layout:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ecommerce.selectedShopId = /*[[${shop.id}]]*/ '';
+ecommerce.selectedAgencyId = /*[[${shopAgency.id}]]*/ '';
+ecommerce.selectedAgencyDisplayName = /*[[${shopAgency.displayName}]]*/ '';
+/*]]>*/
+
+ezyadmin.onEditButtonClick = function() {
+    window.location = '/ecommerce/shops/' + ecommerce.selectedShopId
+        + '/agencies/' + ecommerce.selectedAgencyId
+        + '/edit' + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+}
+</script>
+<th:block layout:fragment="post-scripts">
+<script th:replace="~{ecommerce/shop/agency/member-list :: scripts}" />
+<script th:replace="~{ecommerce/shop/agency/member-list :: add-member}" />
+<script th:replace="~{ecommerce/shop/agency/member-list :: remove-member}" />
+<script th:replace="~{ecommerce/shop/agency/scripts :: delete}" />
+<script th:replace="~{modals/search-admin :: scripts}" />
+<script th:replace="~{modals/search-user :: scripts}" />
+<script>
+ezyadmin.onPromptConfirmed = function(modalId) {
+    if (modalId == 'delete-shop-agency-modal') {
+        ecommerce.deleteShopAgency();
+    } else if (modalId == 'remove-shop-agency-member-modal') {
+        ecommerce.removeShopAgencyMember();
+    }
+}
+</script>
+</th:block>
+</body>
+</html>

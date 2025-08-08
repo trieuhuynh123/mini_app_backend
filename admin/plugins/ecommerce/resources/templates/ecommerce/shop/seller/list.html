@@ -1,0 +1,210 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezyadmin}">
+<body>
+<th:block th:fragment="content">
+    <div class="col-lg-9 col-md-7 col-0"></div>
+    <div class="col-lg-3 col-md-5 col-12 page-search">
+        <label for="sellerSearchKeyword" class="text-nowrap">[[#{search}]]: </label>
+        <input type="search" class="form-control" th:placeholder="#{keyword}" id="sellerSearchKeyword"
+               onkeydown="ecommerce.onKeydownToSearchSeller();">
+    </div>
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-body table-responsive p-0">
+                <table class="table table-bordered table-hover text-nowrap">
+                    <thead>
+                    <tr>
+                        <th>[[#{id}]]</th>
+                        <th>[[#{username}]]</th>
+                        <th>[[#{display_name}]]</th>
+                        <th>[[#{phone_number}]]</th>
+                        <th>[[#{email}]]</th>
+                        <th class="text-center text-wrap">[[#{commission_percent}]]</th>
+                        <th class="text-wrap">[[#{total_balance}]]</th>
+                        <th>[[#{updated_at}]]</th>
+                        <th>[[#{actions}]]</th>
+                    </tr>
+                    </thead>
+                    <tbody id="sellerListBody">
+                    </tbody>
+                </table>
+            </div>
+            <!-- /.card-body -->
+            <div class="card-footer clearfix">
+                <span><span id="sellerCountText">0</span>
+                    [[${#strings.toLowerCase(#messages.msg('of'))}]]
+                    <span id="totalSellerText">0</span>
+                    [[${#strings.toLowerCase(#messages.msg('sellers'))}]]
+                </span>
+                <ul class="pagination pagination-sm m-0 float-right">
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="firstPageButtonSeller">
+                            <i class="fas fa-arrow-circle-left pl-1 pr-1"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="prevPageButtonSeller">[[#{prev}]]</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="nextPageButtonSeller">[[#{next}]]</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link cursor-pointer" id="lastPageButtonSeller">
+                            <i class="fas fa-arrow-circle-right pl-1 pr-1"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.card-footer -->
+        </div>
+    </div>
+</th:block>
+<script th:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.activated = /*[[#{activated}]]*/ '';
+ezyadmin.messages.discount = /*[[#{discount}]]*/ '';
+ezyadmin.messages.free_shipping = /*[[#{free_shipping}]]*/ '';
+ezyadmin.messages.inactivated = /*[[#{inactivated}]]*/ '';
+/*]]>*/
+
+// ========== seller search =============
+ecommerce.onKeydownToSearchSeller = function() {
+    if(event.key === 'Enter') {
+        ecommerce.sellerSearchKeyword = $('#sellerSearchKeyword').val();
+        ecommerce.fetchSellerList();
+    }
+}
+
+// ========== seller pagination =============
+$('#firstPageButtonSeller').click(() => {
+    ecommerce.fetchSellerList('first');
+});
+$('#lastPageButtonSeller').click(() => {
+    ecommerce.fetchSellerList('last');
+});
+$('#nextPageButtonSeller').click(() => {
+    ecommerce.fetchSellerList('next');
+});
+$('#prevPageButtonSeller').click(() => {
+    ecommerce.fetchSellerList('prev');
+});
+
+// ========== seller list =============
+ecommerce.fetchSellerList = function(action) {
+    var queryString = '';
+    if (ecommerce.sellerSearchKeyword) {
+        queryString += '&keyword=' + ecommerce.sellerSearchKeyword;
+    }
+    queryString += '&shopId=' + ecommerce.selectedShopId;
+    if (action == 'current') {
+        if (ecommerce.lastSellerQueryString) {
+            queryString = ecommerce.lastSellerQueryString;
+        }
+    } else if (action == 'next') {
+        if (ecommerce.lastSellerPageToken.next) {
+            queryString += '&nextPageToken=' + ecommerce.lastSellerPageToken.next;
+        } else {
+            return;
+        }
+    } else if (action == 'prev') {
+        if (ecommerce.lastSellerPageToken.prev) {
+            queryString += '&prevPageToken=' + ecommerce.lastSellerPageToken.prev;
+        } else {
+            return;
+        }
+    } else if (action == 'last') {
+        queryString += '&lastPage=true';
+    }
+    $.ajax({
+        url: '/ecommerce/api/v1/sellers?limit=12' + queryString,
+        type: 'GET',
+        dataType: 'json'
+    })
+    .done(function(data) {
+        $('#sellerCountText').text(data.count);
+        $('#totalSellerText').text(ezyadmin.formatNumberWithCommas(data.total));
+        ecommerce.lastSellerQueryString = queryString;
+        ecommerce.lastSellerPageToken = data.pageToken;
+        $('#sellerListBody').html(ecommerce.buildSellerListBodyHtml(data.items));
+        if (data.continuation.hasNext) {
+            $('#nextPageButtonSeller').removeClass('text-secondary');
+        } else {
+            $('#nextPageButtonSeller').addClass('text-secondary');
+        }
+        if (data.continuation.hasPrevious) {
+            $('#prevPageButtonSeller').removeClass('text-secondary');
+        } else {
+            $('#prevPageButtonSeller').addClass('text-secondary');
+        }
+    })
+    .fail(function(e) {
+    	ezyadmin.processGetApiErrors(e);
+    });
+}
+
+ecommerce.buildSellerListBodyHtml = function(sellers) {
+    var html = '';
+    sellers.forEach((seller) => {
+        html += ecommerce.buildSellerListItemHtml(seller);
+    });
+    return html;
+}
+ecommerce.buildSellerListItemHtml = function(seller) {
+    var statusColor = ezyadmin.getTextColorByStatus(seller.status);
+    const html = `
+        <tr id="seller-row-${seller.userId}">
+            <td>${seller.userId}</td>
+            <td>
+                <a href="/ecommerce/shops/${ecommerce.selectedShopId}/sellers/${seller.username}${ezyadmin.lang ? `?lang=${ezyadmin.lang}` : ''}">
+                    ${seller.username}
+                </a>
+            </td>
+            <td>
+                <a href="/ecommerce/shops/${ecommerce.selectedShopId}/sellers/${seller.username}${ezyadmin.lang ? `?lang=${ezyadmin.lang}` : ''}">
+                    ${seller.name}
+                </a>
+            </td>
+            <td><a href="tel:${seller.phone}">${seller.phone || ''}</a></td>
+            <td><a href="mailto:${seller.email}">${seller.email || ''}</a></td>
+            <td class="text-center" id="seller-cell-commission-percent-${seller.userId}">${seller.commissionPercent}%</td>
+            <td>${seller.formattedTotalBalance ? `${seller.formattedTotalBalance} ${ecommerce.defaultCurrency.isoCode}` : ''}</td>
+            <td>${ezyadmin.formatTimeStamp(seller.updatedAt)}</td>
+            <td>
+                <a class="btn btn-link pr-1" href="/ecommerce/shops/${ecommerce.selectedShopId}/sellers/${seller.username}${ezyadmin.lang ? `?lang=${ezyadmin.lang}` : ''}">
+                    <i class="fas fa-eye text-info"></i>
+                </a>
+                <a class="btn btn-link pr-1 cursor-pointer" onclick="ecommerce.showEditSellerModal(${seller.userId}, '${escape(seller.name)}', ${seller.commissionPercent})">
+                    <i class="fas fa-edit text-primary"></i>
+                </a>
+                <button type="button" class="btn pl-1" onclick="ecommerce.onDeleteSellerClick(${seller.userId}, '${escape(seller.displayName)}')">
+                    <i class="fas fa-trash text-danger"></i>
+                </button>
+            </td>
+        </tr>
+        `;
+	return html;
+}
+ecommerce.fetchSellerList();
+</script>
+</body>
+</html>

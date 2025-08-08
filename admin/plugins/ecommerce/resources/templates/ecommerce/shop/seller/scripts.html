@@ -1,0 +1,122 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~ 
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~ 
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~ 
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org">
+<body>
+<script th:fragment="delete" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.do_you_want_to_delete_seller_pname = /*[[#{do_you_want_to_delete_seller_pname}]]*/;
+/*]]>*/
+// ========== seller delete =============
+ecommerce.onDeleteSellerClick = function(
+    userId,
+    userDisplayName,
+) {
+    ecommerce.selectedSellerUserId = userId;
+    $('#delete-seller-modal-body-content')
+        .text(
+            ezyadmin
+                .messages
+                .do_you_want_to_delete_seller_pname
+                .replace('{0}', unescape(userDisplayName))
+        );
+    $('#delete-seller-modal').modal('show');
+}
+
+ecommerce.deleteSeller = function() {
+    $.ajax({
+        type: 'DELETE',
+        url: '/ecommerce/api/v1/shops/' + ecommerce.selectedShopId +
+             '/sellers/' + ecommerce.selectedSellerUserId,
+        success: function () {
+            $('#delete-seller-modal').modal('hide');
+            if (ecommerce.fetchSellerList) {
+                ecommerce.fetchSellerList('current');
+            } else if (ecommerce.onSellerDeleted) {
+                ecommerce.onSellerDeleted();
+            } else {
+                window.location = '/ecommerce/shops/' + ecommerce.selectedShopId
+                    + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+            }
+        },
+        error: function (data, e) {
+            ezyadmin.processUpdateApiErrors({}, data);
+        }
+    });
+}
+
+ezyadmin.onPromptConfirmed = function(modalId) {
+    if (modalId == 'delete-seller-modal') {
+        ecommerce.deleteSeller();
+    }
+}
+</script>
+<script th:fragment="delete-linked-customer" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.do_you_want_to_remove_linked_customer_pname_from_seller_pname = /*[[#{do_you_want_to_remove_linked_customer_pname_from_seller_pname}]]*/;
+/*]]>*/
+// ========== seller delete =============
+ecommerce.onDeleteSellerCustomerClick = function(
+    customerId,
+    customerDisplayName,
+) {
+    ecommerce.selectedSellerCustomerUserId = customerId;
+    $('#delete-linked-customer-modal-body-content')
+        .text(
+            ezyadmin
+                .messages
+                .do_you_want_to_remove_linked_customer_pname_from_seller_pname
+                .replace('{0}', unescape(customerDisplayName))
+                .replace('{1}', ecommerce.selectedSellerDisplayName)
+        );
+    $('#delete-linked-customer-modal').modal('show');
+}
+
+ecommerce.deleteSellerCustomer = function() {
+    $.ajax({
+        type: 'DELETE',
+        url: '/ecommerce/api/v1/shops/' + ecommerce.selectedShopId +
+             '/sellers/' + ecommerce.selectedSellerUserId +
+             '/customers/' + ecommerce.selectedSellerCustomerUserId,
+        success: function () {
+            $('#delete-linked-customer-modal').modal('hide');
+            if (ecommerce.fetchLinkedCustomerList) {
+                ecommerce.fetchLinkedCustomerList('current');
+            } else if (ecommerce.onSellerCustomerDeleted) {
+                ecommerce.onSellerCustomerDeleted();
+            } else {
+                window.location = '/ecommerce/shops/' + ecommerce.selectedShopId
+                    + '/sellers/' + ecommerce.selectedSellerUsername
+                    + (ezyadmin.lang ? '?lang=' + ezyadmin.lang : '');
+            }
+        },
+        error: function (data, e) {
+            ezyadmin.processUpdateApiErrors({}, data);
+        }
+    });
+}
+
+ezyadmin.onPromptConfirmed = function(modalId) {
+    if (modalId == 'delete-link-customer-modal') {
+        ecommerce.deleteSellerCustomer();
+    }
+}
+</script>
+</body>
+</html>

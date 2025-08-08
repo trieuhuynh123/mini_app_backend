@@ -1,0 +1,135 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="content">
+    <div class="modal fade pt-4rem" id="add-category-child">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="add-category-child-modal-title">
+                        [[#{add_new_category_child}]]
+                    </h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="addCategoryChildForm">
+                        <div class="form-group row">
+                            <label for="addCategoryChildName" class="col-4 col-form-label">
+                                [[#{category_child}]]
+                            </label>
+                            <div class="col-8">
+                                <label class="col-form-label text-danger d-none" id="addCategoryChildNameErrorLabel" for="addCategoryChildName">
+                                    <i class="far fa-times-circle"></i> <span id="addCategoryChildNameError"></span>
+                                </label>
+                                <input type="text" name="childName" id="addCategoryChildName"
+                                       class="form-control" th:placeholder="#{category_child}"
+                                       onkeydown="ecommerce.onKeyDownToAddCategoryChild();"
+                                       autocomplete="off" inputmode="text">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="addCategoryChildDisplayOrder" class="col-4 col-form-label">
+                                [[#{display_order}]]
+                            </label>
+                            <div class="col-8">
+                                <label class="col-form-label text-danger d-none" id="addCategoryChildDisplayOrderErrorLabel" for="addCategoryChildDisplayOrder">
+                                    <i class="far fa-times-circle"></i> <span id="addCategoryChildDisplayOrderError"></span>
+                                </label>
+                                <input type="number" name="displayOrder" id="addCategoryChildDisplayOrder"
+                                       class="form-control" th:placeholder="#{display_order}"
+                                       onkeydown="ecommerce.onKeyDownToAddCategoryChild();">
+                                <span>[[#{display_order_input_guide}]]</span>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <div>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">[[#{cancel}]]</button>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="ecommerce.saveCategoryChild('add');">
+                        [[#{add}]]
+                    </button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+</th:block>
+<script th:fragment="scripts">
+// ========== show add child modal =============
+ecommerce.showAddCategoryChildModal = function() {
+    $('#addCategoryChildName').val('');
+    $('#addCategoryChildDisplayOrder').val();
+    $('#add-category-child').modal('show');
+}
+
+// ========== add child =============
+ecommerce.onKeyDownToAddCategoryChild = function() {
+    if(event.key === 'Enter') {
+    	ecommerce.saveCategoryChild('add');
+    }
+}
+
+ecommerce.saveCategoryChild = function(action) {
+    var formData = ezyadmin.formDataToObject(action + 'CategoryChildForm');
+    ezyadmin.setActualFormData(formData);
+    var childName = formData.childName;
+    var childId = ecommerce.selectedCategoryChildId;
+    if (childName) {
+        var child = ezyadmin.latestSuggestedDataByKey[childName];
+        if (child) {
+            childId = child.id;
+        }
+    }
+    delete formData.childName;
+    if (!childId) {
+        return;
+    }
+    $.ajax({
+        type: 'PUT',
+        url: '/ecommerce/api/v1/product-categories/' + ecommerce.selectedCategoryId +
+             '/children/' + childId,
+        data: formData,
+        success: function (data) {
+            ecommerce.fetchCategoryChildNames();
+            $('#add-category-child').modal('hide');
+            $('#edit-category-child').modal('hide');
+        },
+        error: function (e) {
+        	var formView = {
+        	    addCategoryChildName: true,
+                addCategoryChildDisplayOrder: true
+            };
+            var errors = e.responseJSON || {};
+            errors.addCategoryChildName = errors.parentId;
+        	errors.addCategoryChildDisplayOrder = errors.displayOrder;
+            ezyadmin.processUpdateApiErrors(formView, e);
+        }
+    });
+}
+
+ecommerce.registerCategoryAutocomplete('addCategoryChildName');
+</script>
+</body>
+</html>
