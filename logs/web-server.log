@@ -86,3 +86,164 @@
 2025-08-08 01:32:09.170 [main] INFO  o.e.j.server.handler.ContextHandler Started o.e.j.s.ServletContextHandler@32472631{/,null,AVAILABLE}
 2025-08-08 01:36:04.202 [qtp598588779-30] INFO  c.t.e.s.c.m.ExceptionHandlerManager add exception handler for: com.tvd12.ezyhttp.core.exception.DeserializeValueException
 2025-08-08 01:36:04.203 [qtp598588779-30] INFO  c.t.e.s.c.m.ExceptionHandlerManager add exception handler for: com.tvd12.ezyhttp.core.exception.HttpRequestException
+2025-08-08 09:01:53.763 [main] INFO  c.t.e.b.i.EzySimpleBeanContext$Builder active profiles: null
+2025-08-08 09:01:53.986 [main] INFO  com.zaxxer.hikari.HikariDataSource HikariPool-1 - Starting...
+2025-08-08 09:01:54.413 [main] INFO  com.zaxxer.hikari.HikariDataSource HikariPool-1 - Start completed.
+2025-08-08 09:01:54.630 [main] INFO  o.h.jpa.internal.util.LogHelper HHH000204: Processing PersistenceUnitInfo [name: Default]
+2025-08-08 09:01:54.669 [main] INFO  org.hibernate.Version HHH000412: Hibernate ORM core version 5.6.15.Final
+2025-08-08 09:01:54.778 [main] INFO  o.h.annotations.common.Version HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2025-08-08 09:01:54.885 [main] INFO  org.hibernate.dialect.Dialect HHH000400: Using dialect: org.hibernate.dialect.MySQL8Dialect
+2025-08-08 09:01:55.863 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2025-08-08 09:01:57.923 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /api/v1/web/features - GET
+2025-08-08 09:01:57.925 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /health-check - GET
+2025-08-08 09:01:57.925 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/memory-usage - GET
+2025-08-08 09:01:57.925 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/features - GET
+2025-08-08 09:01:57.926 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /api/v1/account/media/{name} - GET
+2025-08-08 09:01:57.926 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/total-request - GET
+2025-08-08 09:01:57.926 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/start-time - GET
+2025-08-08 09:01:57.926 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /api/v1/affiliate-tokens/voucher - GET
+2025-08-08 09:01:57.927 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/thread-count - GET
+2025-08-08 09:01:57.927 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/request-per-second - GET
+2025-08-08 09:01:57.927 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: / - GET
+2025-08-08 09:01:57.927 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/live-time - GET
+2025-08-08 09:01:57.927 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/health-check - GET
+2025-08-08 09:01:57.927 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/feature-names - GET
+2025-08-08 09:01:57.927 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/disk-space - GET
+2025-08-08 09:01:57.928 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /api/v1/media/{name} - GET
+2025-08-08 09:01:57.928 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/cpu-usage - GET
+2025-08-08 09:01:57.928 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/response-per-second - GET
+2025-08-08 09:01:57.928 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /referral - GET
+2025-08-08 09:01:57.928 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/active-threads - GET
+2025-08-08 09:01:57.928 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/apis - GET
+2025-08-08 09:01:57.933 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /css/style.css - GET
+2025-08-08 09:01:57.934 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /js/ezyweb.js - GET
+2025-08-08 09:01:57.934 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /ecommerce/js/qrcode.min.js - GET
+2025-08-08 09:01:57.934 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /favicon.ico - GET
+2025-08-08 09:01:57.943 [main] INFO  org.eclipse.jetty.util.log Logging initialized @5714ms to org.eclipse.jetty.util.log.Slf4jLog
+2025-08-08 09:01:58.062 [main] INFO  c.t.e.s.j.JettyApplicationBootstrap cors.enable = true
+2025-08-08 09:01:58.076 [main] INFO  org.eclipse.jetty.server.Server jetty-9.4.56.v20240826; built: 2024-08-26T17:15:05.868Z; git: ec6782ff5ead824dabdcf47fa98f90a4aedff401; jvm 1.8.0_202-b08
+2025-08-08 09:01:58.097 [main] INFO  o.e.j.server.handler.ContextHandler Started o.e.j.s.ServletContextHandler@1478eab{/,null,AVAILABLE}
+2025-08-08 09:01:58.118 [main] INFO  o.e.jetty.server.AbstractConnector Started ServerConnector@6a54a2{HTTP/1.1, (http/1.1)}{0.0.0.0:8080}
+2025-08-08 09:01:58.122 [main] INFO  o.e.jetty.server.AbstractConnector Started ServerConnector@17699cb{HTTP/1.1, (http/1.1)}{0.0.0.0:18080}
+2025-08-08 09:01:58.124 [main] INFO  org.eclipse.jetty.server.Server Started @5895ms
+2025-08-08 09:01:58.124 [main] INFO  c.t.e.s.j.JettyApplicationBootstrap http server started on: 0.0.0.0:8080
+2025-08-08 09:01:58.125 [main] INFO  c.t.e.s.j.JettyApplicationBootstrap management started on: 0.0.0.0:18080
+2025-08-08 09:01:58.126 [main] INFO  c.t.e.server.core.EzyHttpApplication 
+
+  _____ _______   ___   _ _____ _____ ____    ____  _____    _    ______   __
+ | ____|__  /\ \ / / | | |_   _|_   _|  _ \  |  _ \| ____|  / \  |  _ \ \ / /
+ |  _|   / /  \ V /| |_| | | |   | | | |_) | | |_) |  _|   / _ \ | | | \ V / 
+ | |___ / /_   | | |  _  | | |   | | |  __/  |  _ <| |___ / ___ \| |_| || |  
+ |_____/____|  |_| |_| |_| |_|   |_| |_|     |_| \_\_____/_/   \_\____/ |_|  
+                                                                             
+
+
+2025-08-08 09:02:06.297 [qtp15149061-48] INFO  c.t.e.s.c.m.ExceptionHandlerManager add exception handler for: com.tvd12.ezyhttp.core.exception.DeserializeValueException
+2025-08-08 09:02:06.297 [qtp15149061-48] INFO  c.t.e.s.c.m.ExceptionHandlerManager add exception handler for: com.tvd12.ezyhttp.core.exception.HttpRequestException
+2025-08-08 09:05:21.696 [main] INFO  c.t.e.b.i.EzySimpleBeanContext$Builder active profiles: null
+2025-08-08 09:05:21.932 [main] INFO  com.zaxxer.hikari.HikariDataSource HikariPool-1 - Starting...
+2025-08-08 09:05:22.365 [main] INFO  com.zaxxer.hikari.HikariDataSource HikariPool-1 - Start completed.
+2025-08-08 09:05:22.577 [main] INFO  o.h.jpa.internal.util.LogHelper HHH000204: Processing PersistenceUnitInfo [name: Default]
+2025-08-08 09:05:22.622 [main] INFO  org.hibernate.Version HHH000412: Hibernate ORM core version 5.6.15.Final
+2025-08-08 09:05:22.745 [main] INFO  o.h.annotations.common.Version HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2025-08-08 09:05:22.845 [main] INFO  org.hibernate.dialect.Dialect HHH000400: Using dialect: org.hibernate.dialect.MySQL8Dialect
+2025-08-08 09:05:23.847 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2025-08-08 09:05:26.063 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/memory-usage - GET
+2025-08-08 09:05:26.065 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /api/v1/account/media/{name} - GET
+2025-08-08 09:05:26.066 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /api/v1/orders/{id} - GET
+2025-08-08 09:05:26.066 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /api/v1/orders/{id} - GET
+2025-08-08 09:05:26.066 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/features - GET
+2025-08-08 09:05:26.066 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /api/v1/product-categories - GET
+2025-08-08 09:05:26.067 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /api/v1/checkout/orders/{id}/qr-codes - GET
+2025-08-08 09:05:26.067 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/apis - GET
+2025-08-08 09:05:26.067 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /referral - GET
+2025-08-08 09:05:26.067 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /api/v1/affiliate-tokens/voucher - GET
+2025-08-08 09:05:26.068 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /api/v1/orders/create-payment-url - POST
+2025-08-08 09:05:26.068 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/cpu-usage - GET
+2025-08-08 09:05:26.068 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /api/v1/orders/{id}/create-payment-url - POST
+2025-08-08 09:05:26.068 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /api/v1/web/features - GET
+2025-08-08 09:05:26.069 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /api/v1/checkout - POST
+2025-08-08 09:05:26.069 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /api/v1/checkout - POST
+2025-08-08 09:05:26.069 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /api/v1/orders - GET
+2025-08-08 09:05:26.069 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /api/v1/orders/{id}/waiting-to-confirm - PUT
+2025-08-08 09:05:26.069 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/active-threads - GET
+2025-08-08 09:05:26.070 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/live-time - GET
+2025-08-08 09:05:26.070 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /api/v1/checkout/shopping-cart/qr-codes - GET
+2025-08-08 09:05:26.070 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /api/v1/checkout/shopping-cart-products/{id} - DELETE
+2025-08-08 09:05:26.071 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /api/v1/media/{name} - GET
+2025-08-08 09:05:26.071 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /health-check - GET
+2025-08-08 09:05:26.071 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /api/v1/orders/{id}/waiting-to-confirm-in-duration - PUT
+2025-08-08 09:05:26.072 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/total-request - GET
+2025-08-08 09:05:26.073 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /api/v1/orders/{id}/status - GET
+2025-08-08 09:05:26.073 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/request-per-second - GET
+2025-08-08 09:05:26.073 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /api/v1/orders/create - POST
+2025-08-08 09:05:26.073 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /api/v1/orders/create - POST
+2025-08-08 09:05:26.073 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/disk-space - GET
+2025-08-08 09:05:26.073 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /api/v1/orders/create-waiting-to-confirm - POST
+2025-08-08 09:05:26.074 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/start-time - GET
+2025-08-08 09:05:26.074 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/response-per-second - GET
+2025-08-08 09:05:26.074 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/health-check - GET
+2025-08-08 09:05:26.074 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /api/v1/checkout/shopping-cart-products/{id}/amount - PUT
+2025-08-08 09:05:26.075 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /api/v1/cart - GET
+2025-08-08 09:05:26.075 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: / - GET
+2025-08-08 09:05:26.075 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /api/v1/products - GET
+2025-08-08 09:05:26.075 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/thread-count - GET
+2025-08-08 09:05:26.075 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /api/v1/login-zalo - POST
+2025-08-08 09:05:26.076 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /management/feature-names - GET
+2025-08-08 09:05:26.079 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /css/style.css - GET
+2025-08-08 09:05:26.080 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /js/ezyweb.js - GET
+2025-08-08 09:05:26.080 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /ecommerce/js/qrcode.min.js - GET
+2025-08-08 09:05:26.080 [main] INFO  c.t.e.s.c.m.RequestHandlerManager add mapping uri: /favicon.ico - GET
+2025-08-08 09:05:26.091 [main] INFO  org.eclipse.jetty.util.log Logging initialized @5299ms to org.eclipse.jetty.util.log.Slf4jLog
+2025-08-08 09:05:26.152 [main] INFO  c.t.e.s.j.JettyApplicationBootstrap cors.enable = true
+2025-08-08 09:05:26.168 [main] INFO  org.eclipse.jetty.server.Server jetty-9.4.56.v20240826; built: 2024-08-26T17:15:05.868Z; git: ec6782ff5ead824dabdcf47fa98f90a4aedff401; jvm 1.8.0_202-b08
+2025-08-08 09:05:26.186 [main] INFO  o.e.j.server.handler.ContextHandler Started o.e.j.s.ServletContextHandler@1e898de{/,null,AVAILABLE}
+2025-08-08 09:05:26.202 [main] INFO  o.e.jetty.server.AbstractConnector Started ServerConnector@f40682{HTTP/1.1, (http/1.1)}{0.0.0.0:8080}
+2025-08-08 09:05:26.207 [main] INFO  o.e.jetty.server.AbstractConnector Started ServerConnector@83dc7e{HTTP/1.1, (http/1.1)}{0.0.0.0:18080}
+2025-08-08 09:05:26.207 [main] INFO  org.eclipse.jetty.server.Server Started @5415ms
+2025-08-08 09:05:26.208 [main] INFO  c.t.e.s.j.JettyApplicationBootstrap http server started on: 0.0.0.0:8080
+2025-08-08 09:05:26.208 [main] INFO  c.t.e.s.j.JettyApplicationBootstrap management started on: 0.0.0.0:18080
+2025-08-08 09:05:26.209 [main] INFO  c.t.e.server.core.EzyHttpApplication 
+
+  _____ _______   ___   _ _____ _____ ____    ____  _____    _    ______   __
+ | ____|__  /\ \ / / | | |_   _|_   _|  _ \  |  _ \| ____|  / \  |  _ \ \ / /
+ |  _|   / /  \ V /| |_| | | |   | | | |_) | | |_) |  _|   / _ \ | | | \ V / 
+ | |___ / /_   | | |  _  | | |   | | |  __/  |  _ <| |___ / ___ \| |_| || |  
+ |_____/____|  |_| |_| |_| |_|   |_| |_|     |_| \_\_____/_/   \_\____/ |_|  
+                                                                             
+
+
+2025-08-08 09:05:46.150 [qtp13204028-48] INFO  c.t.e.s.c.m.ExceptionHandlerManager add exception handler for: com.tvd12.ezyhttp.core.exception.DeserializeValueException
+2025-08-08 09:05:46.151 [qtp13204028-48] INFO  c.t.e.s.c.m.ExceptionHandlerManager add exception handler for: com.tvd12.ezyhttp.core.exception.HttpRequestException
+2025-08-08 09:05:46.155 [qtp13204028-47] INFO  o.y.e.w.i.WebLogInterceptor pre handle request uri: /api/v1/cart, method: GET
+2025-08-08 09:05:46.155 [qtp13204028-46] INFO  o.y.e.w.i.WebLogInterceptor pre handle request uri: /api/v1/product-categories, method: GET
+2025-08-08 09:05:46.184 [qtp13204028-47] INFO  o.y.e.w.i.WebLogInterceptor post handle request uri: /api/v1/cart, method: GET, code: 200
+2025-08-08 09:05:46.229 [qtp13204028-46] INFO  o.y.e.w.i.WebLogInterceptor post handle request uri: /api/v1/product-categories, method: GET, code: 200
+2025-08-08 09:05:46.233 [qtp13204028-38] INFO  o.y.e.w.i.WebLogInterceptor pre handle request uri: /api/v1/products, method: GET
+2025-08-08 09:05:46.297 [qtp13204028-38] INFO  o.y.e.w.i.WebLogInterceptor post handle request uri: /api/v1/products, method: GET, code: 200
+2025-08-08 09:05:47.085 [qtp13204028-50] INFO  o.y.e.w.i.WebLogInterceptor pre handle request uri: /api/v1/login-zalo, method: POST
+2025-08-08 09:05:47.273 [qtp13204028-50] INFO  o.y.e.w.i.WebLogInterceptor post handle request uri: /api/v1/login-zalo, method: POST, code: 200
+2025-08-08 09:05:58.240 [qtp13204028-51] INFO  o.y.e.w.i.WebLogInterceptor pre handle request uri: /api/v1/checkout, method: POST
+2025-08-08 09:05:58.321 [qtp13204028-51] INFO  o.y.e.w.i.WebLogInterceptor post handle request uri: /api/v1/checkout, method: POST, code: 204
+2025-08-08 09:06:01.183 [qtp13204028-47] INFO  o.y.e.w.i.WebLogInterceptor pre handle request uri: /api/v1/orders/create, method: POST
+2025-08-08 09:06:01.382 [qtp13204028-47] INFO  o.y.e.w.i.WebLogInterceptor post handle request uri: /api/v1/orders/create, method: POST, code: 200
+2025-08-08 09:06:05.452 [qtp13204028-48] INFO  o.y.e.w.i.WebLogInterceptor pre handle request uri: /api/v1/orders/create, method: POST
+2025-08-08 09:06:05.463 [qtp13204028-48] INFO  o.y.e.w.i.WebLogInterceptor post handle request uri: /api/v1/orders/create, method: POST, code: 400
+2025-08-08 09:06:18.595 [qtp13204028-50] INFO  o.y.e.w.i.WebLogInterceptor pre handle request uri: /api/v1/orders/create, method: POST
+2025-08-08 09:06:18.610 [qtp13204028-50] INFO  o.y.e.w.i.WebLogInterceptor post handle request uri: /api/v1/orders/create, method: POST, code: 400
+2025-08-08 09:07:19.044 [qtp13204028-49] INFO  o.y.e.w.i.WebLogInterceptor pre handle request uri: /api/v1/cart, method: GET
+2025-08-08 09:07:19.051 [qtp13204028-49] INFO  o.y.e.w.i.WebLogInterceptor post handle request uri: /api/v1/cart, method: GET, code: 200
+2025-08-08 09:07:25.452 [qtp13204028-51] INFO  o.y.e.w.i.WebLogInterceptor pre handle request uri: /api/v1/checkout, method: POST
+2025-08-08 09:07:25.474 [qtp13204028-51] INFO  o.y.e.w.i.WebLogInterceptor post handle request uri: /api/v1/checkout, method: POST, code: 204
+2025-08-08 09:07:28.134 [qtp13204028-47] INFO  o.y.e.w.i.WebLogInterceptor pre handle request uri: /api/v1/orders/create, method: POST
+2025-08-08 09:07:28.200 [qtp13204028-47] INFO  o.y.e.w.i.WebLogInterceptor post handle request uri: /api/v1/orders/create, method: POST, code: 200
+2025-08-08 09:07:28.205 [qtp13204028-51] INFO  o.y.e.w.i.WebLogInterceptor pre handle request uri: /api/v1/cart, method: GET
+2025-08-08 09:07:28.211 [qtp13204028-51] INFO  o.y.e.w.i.WebLogInterceptor post handle request uri: /api/v1/cart, method: GET, code: 200
+2025-08-08 09:07:36.034 [qtp13204028-48] INFO  o.y.e.w.i.WebLogInterceptor pre handle request uri: /api/v1/cart, method: GET
+2025-08-08 09:07:36.043 [qtp13204028-48] INFO  o.y.e.w.i.WebLogInterceptor post handle request uri: /api/v1/cart, method: GET, code: 200
+2025-08-08 09:07:37.040 [qtp13204028-47] INFO  o.y.e.w.i.WebLogInterceptor pre handle request uri: /api/v1/cart, method: GET
+2025-08-08 09:07:37.052 [qtp13204028-47] INFO  o.y.e.w.i.WebLogInterceptor post handle request uri: /api/v1/cart, method: GET, code: 200
+2025-08-08 09:07:40.866 [qtp13204028-48] INFO  o.y.e.w.i.WebLogInterceptor pre handle request uri: /api/v1/checkout, method: POST
+2025-08-08 09:07:40.887 [qtp13204028-48] INFO  o.y.e.w.i.WebLogInterceptor post handle request uri: /api/v1/checkout, method: POST, code: 204
+2025-08-08 09:07:43.245 [qtp13204028-47] INFO  o.y.e.w.i.WebLogInterceptor pre handle request uri: /api/v1/orders/create, method: POST
+2025-08-08 09:07:43.313 [qtp13204028-47] INFO  o.y.e.w.i.WebLogInterceptor post handle request uri: /api/v1/orders/create, method: POST, code: 200
