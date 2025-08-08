@@ -3,7 +3,14 @@
     <properties>
         <!--suppress UnresolvedMavenProperty -->
         <ecommerce.version>0.8.7</ecommerce.version>
+        <ezylogin.version>0.1.4</ezylogin.version>
+        <ezymail.version>0.1.1</ezymail.version>
+        <ezypayment.version>0.1.3</ezypayment.version>
         <ezyplatform.home>${env.EZYPLATFORM_HOME}</ezyplatform.home>
+        <facebook.client.version>2022.3.1</facebook.client.version>
+        <google.apis.version>v2-rev157-1.25.0</google.apis.version>
+        <google.client.version>1.33.2</google.client.version>
+        <javax.mail.version>1.6.2</javax.mail.version>
         <zxing.version>3.5.3</zxing.version>
         <sepayapp.version>1.0.0</sepayapp.version>
     </properties>
@@ -13,6 +20,19 @@
             <artifactId>javase</artifactId>
             <version>${zxing.version}</version>
         <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.mail</groupId>
+            <artifactId>javax.mail</artifactId>
+            <version>${javax.mail.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.youngmonkeys</groupId>
+            <artifactId>ecommerce-sdk</artifactId>
+            <version>${ecommerce.version}</version>
+            <scope>system</scope>
+            <systemPath>${ezyplatform.home}/web/plugins/ecommerce/lib/ecommerce-sdk-${ecommerce.version}.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>org.youngmonkeys</groupId>
@@ -29,6 +49,24 @@
     </common>
     <web-plugin>
         <dependency>
+            <groupId>com.google.api-client</groupId>
+            <artifactId>google-api-client</artifactId>
+            <version>${google.client.version}</version>
+        <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.apis</groupId>
+            <artifactId>google-api-services-oauth2</artifactId>
+            <version>${google.apis.version}</version>
+        <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.restfb</groupId>
+            <artifactId>restfb</artifactId>
+            <version>${facebook.client.version}</version>
+        <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>org.youngmonkeys</groupId>
             <artifactId>ecommerce-sdk</artifactId>
             <version>${ecommerce.version}</version>
@@ -41,6 +79,49 @@
             <version>${ecommerce.version}</version>
             <scope>system</scope>
             <systemPath>${ezyplatform.home}/web/plugins/ecommerce/lib/ecommerce-web-plugin-${ecommerce.version}.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>org.youngmonkeys</groupId>
+            <artifactId>ezylogin-sdk</artifactId>
+            <version>${ezylogin.version}</version>
+        <scope>system</scope>
+            <systemPath>${ezyplatform.home}/web/plugins/ezylogin/lib/ezylogin-sdk-${ezylogin.version}.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>org.youngmonkeys</groupId>
+            <artifactId>ezylogin-web-plugin</artifactId>
+            <version>${ezylogin.version}</version>
+            <scope>system</scope>
+            <systemPath>${ezyplatform.home}/web/plugins/ezylogin/lib/ezylogin-web-plugin-${ezylogin.version}.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>org.youngmonkeys</groupId>
+            <artifactId>ezymail-sdk</artifactId>
+            <version>${ezymail.version}</version>
+            <scope>system</scope>
+            <systemPath>${ezyplatform.home}/web/plugins/ezymail/lib/ezymail-sdk-${ezymail.version}.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>org.youngmonkeys</groupId>
+            <artifactId>ezymail-web-plugin</artifactId>
+            <version>${ezymail.version}</version>
+            <scope>system</scope>
+            <systemPath>${ezyplatform.home}/web/plugins/ezymail/lib/ezymail-web-plugin-${ezymail.version}.jar
+            </systemPath>
+        </dependency>
+        <dependency>
+            <groupId>org.youngmonkeys</groupId>
+            <artifactId>ezypayment-sdk</artifactId>
+            <version>${ezypayment.version}</version>
+        <scope>system</scope>
+            <systemPath>${ezyplatform.home}/web/plugins/ezypayment/lib/ezypayment-sdk-${ezypayment.version}.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>org.youngmonkeys</groupId>
+            <artifactId>ezypayment-web-plugin</artifactId>
+            <version>${ezypayment.version}</version>
+            <scope>system</scope>
+            <systemPath>${ezyplatform.home}/web/plugins/ezypayment/lib/ezypayment-web-plugin-${ezypayment.version}.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>org.youngmonkeys</groupId>
