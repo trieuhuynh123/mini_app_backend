@@ -1,0 +1,75 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~ 
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~ 
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~ 
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+    xmlns:th="http://www.thymeleaf.org"
+    xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{ezyadmin}">
+<head>
+    <script>
+      var ezypayment = {};
+    </script>
+</head>
+<body>
+<div layout:fragment="content" class="row">
+    <div class="col-md-12">
+        <form id="updateSettingsForm">
+            <div class="form-group row">
+                <label for="paymentMessagePrefix" class="col-sm-3 col-form-label">[[#{payment_message_prefix}]]</label>
+                <div class="col-lg-7 col-md-6">
+                    <input type="text" name="paymentMessagePrefix" id="paymentMessagePrefix" class="form-control" th:placeholder="#{notify_new_orders_period}"
+                           th:value="${paymentMessagePrefix}">
+                </div>
+                <label id="paymentMessagePrefixErrorLabel" class="col-lg-2 col-md-3 col-form-label text-danger d-none" for="paymentMessagePrefix">
+                    <i class="far fa-times-circle"></i> <span id="paymentMessagePrefixError">[[#{invalid}]]</span>
+                </label>
+            </div>
+            <div class="row">
+                <div class="col-md-3"></div>
+                <div class="col-md-2 mb-2">
+                    <button type="button" class="btn btn-primary btn-block" onclick="ezypayment.updateSettings();">[[#{save}]]</button>
+                </div>
+                <div class="col-md-5"></div>
+                <!-- /.col -->
+            </div>
+        </form>
+    </div>
+</div>
+<script layout:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+ezyadmin.messages.save_successfully = /*[[#{save_successfully}]]*/;
+/*]]>*/
+// ================ settings ==================
+ezypayment.updateSettings = function() {
+    var formData = ezyadmin.formDataToObject('updateSettingsForm');
+    $.ajax({
+        type: 'PUT',
+        url: '/ezypayment/api/v1/settings',
+        data: JSON.stringify(formData),
+        contentType: 'application/json',
+        success: function () {
+            ezyadmin.hideFormErrors(formData);
+            ezyadmin.shortToast('bg-success', ezyadmin.messages.save_successfully);
+        },
+        error: function (data, e) {
+            ezyadmin.processUpdateApiErrors(formData, data);
+        }
+    });
+}
+</script>
+</body>
+</html>

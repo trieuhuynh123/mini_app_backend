@@ -1,0 +1,86 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezytheme}">
+<body>
+<div layout:fragment="content" class="container mt-4">
+    <div class="row">
+        <div class="col-12 mb-4">
+            <h4>[[#{choose_payment_method}]]</h4>
+        </div>
+        <div class="col-md-4"></div>
+        <div class="col-md-4">
+            <div id="paypal-button-container"></div>
+            <p class="text-danger text-center" id="error-message"></p>
+        </div>
+        <div class="col-md-4"></div>
+    </div>
+</div>
+<th:block layout:fragment="import-scripts">
+    <script th:src="${'https://www.paypal.com/sdk/js?client-id=' + paypalClientId + '&amp;currency=' + currency.isoCode}"></script>
+</th:block>
+
+<script layout:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+var currencyId = /*[[${currency.id}]]*/;
+var orderAmount = /*[[${orderAmount}]]*/;
+var orderId = /*[[${orderId}]]*/;
+ezyweb.messages.paypal_an_error_occurred = /*[[#{paypal_an_error_occurred}]]*/;
+/*]]>*/
+
+var createOrder = async () => {
+    try {
+        const url = '/api/v1/paypal/orders/' + orderId + '/create';
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                currencyId: currencyId,
+                amount: orderAmount
+            }),
+        });
+        if (response.ok) {
+            const orderData = await response.json();
+            return orderData.id;
+        }
+        throw new Error(response.statusText);
+    } catch (error) {
+        $('#error-message').html(ezyweb.messages.paypal_an_error_occurred);
+    }
+}
+
+var onApprove = async (data, actions) => {
+    window.location = '/payment/callback/PAYPAL'
+        + '?orderId=' + orderId
+        + '&paypalOrderId=' + data.orderID
+        + '&currencyId=' + currencyId
+        + '&amount=' + orderAmount
+        + (ezyweb.lang ? '&lang=' + ezyweb.lang : '');
+}
+
+window.paypal
+    .Buttons({createOrder, onApprove})
+    .render('#paypal-button-container');
+</script>
+</body>
+</html>

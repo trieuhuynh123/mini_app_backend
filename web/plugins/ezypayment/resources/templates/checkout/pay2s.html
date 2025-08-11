@@ -1,0 +1,102 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:ezy="http://www.ezyplatform.com/thymeleaf/layout"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{ezytheme}">
+<body>
+<div layout:fragment="content" class="container mt-4">
+    <div class="row">
+        <div class="col-12 mb-4">
+            <h4>[[#{choose_payment_method}]]</h4>
+        </div>
+        <div class="col-md-8">
+            <div class="row">
+                <div class="col-md-6 d-flex flex-column mb-3">
+                    <h5>[[${bank.name}]] ([[${bank.code}]])</h5>
+                    <span>[[#{account_number}]]: [[${bankAccount.accountNumber}]]</span>
+                    <span>[[#{account_owner}]]: [[${bankAccount.accountOwnerName}]]</span>
+                    <span th:if="${bankAccount.bankBranchOfAccount != null && bankAccount.bankBranchOfAccount.trim().length() > 0}">
+                    [[#{bank_branch}]]: [[${bankAccount.bankBranchOfAccount}]]
+                </span>
+                </div>
+                <div class="col-md-6">
+                    <div class="pb-md-5 pb-3" id="bank-account-qr-code"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <button type="button" class="btn btn-danger form-control mt-3"
+                    data-bs-toggle="modal" data-bs-target="#confirm-bank-transfer">
+                [[#{i_have_transferred_the_money}]]
+            </button>
+        </div>
+    </div>
+</div>
+<th:block layout:fragment="modals">
+    <th:block th:if="${bankAccounts.size() > 0}"
+              th:replace="~{ezycommon/prompt :: content(id='confirm-bank-transfer', title=#{confirm}, body=${#messages.msg('have_you_completed_the_bank_transfer')}, confirmButton=#{confirm}, closeButton=#{close})}" />
+</th:block>
+<th:block layout:fragment="import-scripts">
+    <script ezy:vsrc="/ecommerce/js/qrcode.min.js"></script>
+</th:block>
+<script layout:fragment="scripts" th:inline="javascript">
+/*<![CDATA[*/
+var orderId = /*[[${orderId}]]*/;
+var paymentChecksum = /*[[${paymentChecksum}]]*/;
+var qrCodeContent = /*[[${qrCodeContent}]]*/;
+/*]]>*/
+// ================ qrcode ===========
+var element = document.getElementById('bank-account-qr-code');
+    new QRCode(element, {
+        text: qrCodeContent,
+        width: 150,
+        height: 150,
+        colorDark : "#27004B",
+        colorLight : "#ffffff",
+        correctLevel : QRCode.CorrectLevel.L
+    });
+
+// ================ order ===========
+var updateOrderStatusToWaitingForConfirm = function() {
+    var url = '/api/v1/pay2s/orders/' + orderId + '/bank-transferred'
+        + '?checksum=' + paymentChecksum;
+    $.ajax({
+        type: 'PUT',
+        url: url,
+    }).done(function (data) {
+        window.location = ezyweb.appendLangParameterToUrl(
+            '/orders/' + orderId
+        );
+    }).fail(function (data) {
+        window.location = ezyweb.appendLangParameterToUrl(
+            '/orders/' + orderId
+        );
+    });
+}
+
+var onPromptConfirmed = function(modalId) {
+    if (modalId == 'confirm-bank-transfer') {
+        updateOrderStatusToWaitingForConfirm();
+    }
+}
+</script>
+</body>
+</html>

@@ -28,3 +28,29 @@
 2025-08-08T09:01:51.612: run: console web
 2025-08-08T09:04:35.396: run: console admin
 2025-08-08T09:05:20.049: run: console web
+2025-08-10T20:33:06.323: run: console admin
+2025-08-10T20:33:09.523: finish: console admin
+2025-08-10T20:33:09.531: done
+2025-08-10T20:34:35.604: run: console admin
+2025-08-10T20:34:36.323: finish: console admin
+2025-08-10T20:34:36.335: done
+2025-08-10T20:34:50.176: run: console admin
+2025-08-10T20:37:06.553: start ezyplatform installation
+2025-08-10T20:37:06.602: stop all targets
+2025-08-10T20:37:06.926: run: stop
+2025-08-10T20:37:06.946: java.lang.UnsupportedOperationException('stop' command is not yet supported in windows)
+2025-08-10T20:37:06.958: finish: stop
+2025-08-10T20:37:06.965: done
+2025-08-10T20:37:06.994: stop all targets successfully
+2025-08-10T20:37:11.751: start all targets
+2025-08-10T20:37:20.960: run: start
+2025-08-10T20:37:22.813: java.lang.UnsupportedOperationException('start' command is not yet supported in windows)
+2025-08-10T20:37:22.820: finish: start
+2025-08-10T20:37:22.826: done
+2025-08-10T20:37:22.850: start all targets successfully
+2025-08-10T20:37:22.864: delete ezyplatform installation folder
+2025-08-10T20:37:22.989: finish ezyplatform installation
+2025-08-10T20:37:28.185: run: console admin
+2025-08-10T20:38:33.772: run: console admin
+2025-08-11T08:36:18.675: run: console admin
+2025-08-11T08:41:00.306: run: console admin

@@ -1,1 +1,1 @@
-[{"name":"sepayapp","active":true},{"name":"ecommerce","active":true}]
+[{"name":"sepayapp","active":true},{"name":"ezypayment","active":true},{"name":"ecommerce","active":true}]

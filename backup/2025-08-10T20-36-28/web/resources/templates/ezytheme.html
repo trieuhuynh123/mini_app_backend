@@ -1,0 +1,131 @@
+<!--
+ ~ Copyright 2022 youngmonkeys.org
+ ~ 
+ ~ Licensed under the ezyplatform, Version 1.0.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~ 
+ ~     https://youngmonkeys.org/licenses/ezyplatform-1.0.0.txt
+ ~ 
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html
+	xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:ezy="http://www.ezyplatform.com/thymeleaf/layout"
+	dir="ltr">
+
+<head>
+<title th:if="${pageTitle != null || siteTitle != null}"
+	   th:text="#{${pageTitle != null ? pageTitle : 'empty_string'}} + ${pageTitle != null and siteTitle != null ? ' ' + pageTitleSeparator + ' ' : ''} + #{${siteTitle != null ? siteTitle : 'empty_string'}}"></title>
+<link th:if="${siteIconUrl != null}" rel="icon" type="image/x-icon" ezy:vhref="${siteIconUrl}">
+<meta th:if="${pageCharset == null}" charset="UTF-8" />
+<meta th:if="${pageContentType == null}" http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta th:if="${pageContentType != null}" http-equiv="Content-Type" th:content="${pageContentType}" />
+<meta th:if="${pageCharSet != null}" th:charset="${pageCharSet}" />
+<meta th:if="${pageTitle != null}" name="title" th:content="#{${pageTitle}}" />
+<meta th:if="${pageDescription != null}" name="description" th:content="#{${pageDescription}}">
+<meta th:if="${pageViewPort == null}" name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta th:if="${pageViewPort != null}" name="viewport" th:content="${pageViewPort}">
+
+<meta property="og:type" content="website" />
+<meta th:if="${siteLocale != null}" property="og:locale" th:content="${siteLocale}" />
+<meta th:if="${pageTitle != null}" property="og:title" th:content="#{${pageTitle}}" />
+<meta th:if="${pageUrl != null}" property="og:url" th:content="${pageUrl}" />
+<meta th:if="${siteName != null}" property="og:site_name" th:content="${siteName}" />
+<meta th:if="${sitePublisher != null}" property="article:publisher" th:content="${sitePublisher}" />
+<meta th:if="${pageDescription != null}" property="og:description" th:content="#{${pageDescription}}">
+<meta th:if="${pageKeywords != null}" name='keywords' th:content="${pageKeywords}">
+<meta th:if="${pageImageUrl != null}" property="og:image" th:content="${pageImageUrl}">
+<th:block th:replace="~{page::head}"></th:block>
+<th:block th:if="${additionalHeads != null}" th:each="ahead : ${additionalHeads}">
+	<th:block th:utext="${ahead}"></th:block>
+</th:block>
+<th:block th:if="${additionalStyleFiles != null}"
+		  th:each="astyleFile : ${additionalStyleFiles}">
+	<link ezy:vhref="${astyleFile}" rel="stylesheet" />
+</th:block>
+<style th:if="${additionalStyles != null}"
+	   th:each="astyle : ${additionalStyles}"
+	   th:utext="${astyle}">
+</style>
+<script>
+	const ezyweb = {};
+</script>
+<script th:inline="javascript">
+/*<![CDATA[*/
+ezyweb.lang = /*[[${ezyLang}]]*/ '';
+ezyweb.defaultLang = /*[[${ezyDefaultLang}]]*/ '';
+ezyweb.websocketUrl = /*[[${websocketUrl}]]*/ 'ws://localhost:2208/ws';
+ezyweb.defaultDateFormat = /*[[${defaultDateFormat}]]*/ '';
+ezyweb.defaultTimeFormat = /*[[${defaultTimeFormat}]]*/ '';
+ezyweb.defaultDateTimeFormat = /*[[${defaultDateTimeFormat}]]*/ '';
+ezyweb.defaultDateMinuteFormat = /*[[${defaultDateMinuteFormat}]]*/ '';
+ezyweb.valueMap = /*[[${additionalValueMap}]]*/;
+ezyweb.messages = {
+	check_your_internet_connection: /*[[#{check_your_internet_connection}]]*/,
+	clipboard: /*[[#{clipboard}]]*/,
+	copied: /*[[#{copied}]]*/,
+	error: /*[[#{error}]]*/,
+	file_too_big: /*[[#{file_too_big}]]*/,
+	invalid_file_type: /*[[#{invalid_file_type}]]*/,
+	invalid_upload_file: /*[[#{invalid_upload_file}]]*/,
+	just_now: /*[[#{just_now}]]*/,
+	loading: /*[[#{loading}]]*/,
+	password: /*[[#{password}]]*/,
+	server_error: /*[[#{server_error}]]*/,
+	warning: /*[[#{warning}]]*/,
+	year: /*[[#{year}]]*/,
+	years: /*[[#{years}]]*/,
+	month: /*[[#{month}]]*/,
+	months: /*[[#{months}]]*/,
+	day: /*[[#{day}]]*/,
+	days: /*[[#{days}]]*/,
+	hour: /*[[#{hour}]]*/,
+	hours: /*[[#{hours}]]*/,
+	minute: /*[[#{minute}]]*/,
+	minutes: /*[[#{minutes}]]*/,
+	second: /*[[#{second}]]*/,
+	seconds: /*[[#{seconds}]]*/,
+	ago: /*[[#{ago}]]*/,
+	more: /*[[#{more}]]*/,
+	required: /*[[#{required}]]*/,
+	invalid: /*[[#{invalid}]]*/,
+	not_found: /*[[#{not_found}]]*/,
+	too_short: /*[[#{too_short}]]*/,
+	too_long: /*[[#{too_long}]]*/,
+	over_length: /*[[#{over_length}]]*/,
+	duplicated: /*[[#{duplicated}]]*/,
+	incorrect: /*[[#{incorrect}]]*/,
+	mismatch: /*[[#{mismatch}]]*/,
+	too_many: /*[[#{too_many}]]*/
+};
+Object.assign(
+	ezyweb.messages,
+	/*[[${additionalMessageMap}]]*/
+);
+/*]]>*/
+</script>
+<script ezy:vsrc="/js/ezyweb.js"></script>
+</head>
+<body>
+<div th:replace="~{page::body}"></div>
+<th:block th:if="${additionalScriptFiles != null}"
+		  th:each="ascriptFile : ${additionalScriptFiles}">
+	<script ezy:vsrc="${ascriptFile}"></script>
+</th:block>
+<script th:if="${additionalScripts != null}"
+	   th:each="ascript : ${additionalScripts}"
+	   th:utext="${ascript}">
+</script>
+<th:block th:if="${additionalFoots != null}" th:each="afoot : ${additionalFoots}">
+	<th:block th:utext="${afoot}"></th:block>
+</th:block>
+</body>
+</html>
